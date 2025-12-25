@@ -1,5 +1,5 @@
 {
-  "name": "IGCSE Learning Companion",
-  "description": "A friendly chatbot designed to help IGCSE students learn by providing hints and guidance instead of direct answers. It uses encouraging, Socratic methods to foster critical thinking and deeper understanding of subjects.",
+  "name": "Academic Oracle",
+  "description": "A comprehensive academic support system for IELTS, SAT, AP, IGCSE, University studies, and Industrial practices. Provides personalized guidance, validation, and explanations tailored to any learning level.",
   "requestFramePermissions": []
 }
