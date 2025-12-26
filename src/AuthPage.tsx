@@ -31,7 +31,7 @@ const AuthPage: React.FC<{ onLogin: (apiKey: string) => void }> = ({ onLogin }) 
       // 🟢 Existing user
       if (profile?.api_key) {
         let keyPayLoad = profile.api_key;
-        if (typeof(keyPayLoad) == "string") {
+        if (typeof(keyPayLoad) == "string") { // already change api_key to jsonb on supabase, this is just for safety-net
           try {
             JSON.parse(keyPayLoad);
           } catch (e) {
