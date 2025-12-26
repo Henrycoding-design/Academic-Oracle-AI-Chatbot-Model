@@ -1,11 +1,17 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { supabase } from "./services/supabaseClient";
+import {decryptApiKey, encryptApiKey} from "./services/edgeCrypto";
+
 
 const AuthPage: React.FC<{ onLogin: (apiKey: string) => void }> = ({ onLogin }) => {
   const [loading, setLoading] = useState(true);
+  const ranRef = useRef(false);
 
   // 🔁 Runs AFTER OAuth redirect
   useEffect(() => {
+    if (ranRef.current) return;
+    ranRef.current = true;
+
     const initAuth = async () => {
       const {
         data: { user },
@@ -16,39 +22,49 @@ const AuthPage: React.FC<{ onLogin: (apiKey: string) => void }> = ({ onLogin }) 
         return;
       }
 
-      // 🔍 Check if user already exists
       const { data: profile } = await supabase
         .from("profiles")
         .select("api_key")
         .eq("id", user.id)
         .single();
 
-      // 🟢 Existing user → LOGIN
+      // 🟢 Existing user
       if (profile?.api_key) {
+        let keyPayLoad = profile.api_key;
+        if (typeof(keyPayLoad) == "string") {
+          try {
+            JSON.parse(keyPayLoad);
+          } catch (e) {
+            throw new Error("Failed to parsed store API Key");
+          }
+        }
+        const apiKey = await decryptApiKey(keyPayLoad);
         setLoading(false);
-        onLogin(profile.api_key);
+        onLogin(apiKey);
         return;
       }
 
-      // 🆕 New user → SIGNUP
+      // 🆕 New user
       const apiKey = prompt(
         "Welcome! Please paste your GG AI Studio API Key to continue:"
       );
 
       if (!apiKey) {
         alert("API Key is required.");
-        setLoading(false);
         await supabase.auth.signOut();
+        setLoading(false);
         return;
       }
 
-      const { error: insertError } = await supabase.from("profiles").insert({
-        id: user.id,          // 🔐 REQUIRED
-        email: user.email,    // ok for display
-        api_key: apiKey,
+      const encrypted = await encryptApiKey(apiKey);
+
+      const { error } = await supabase.from("profiles").insert({
+        id: user.id,
+        email: user.email,
+        api_key: encrypted,
       });
 
-      if (insertError) {
+      if (error) {
         alert("Failed to save API key.");
         setLoading(false);
         return;
