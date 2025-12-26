@@ -8,10 +8,10 @@
     "build": "vite build",
     "preview": "vite preview",
     "start": "serve -s dist"
-
   },
   "dependencies": {
     "@google/genai": "^1.22.0",
+    "@supabase/supabase-js": "^2.89.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0"
   },

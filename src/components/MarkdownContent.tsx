@@ -91,47 +91,43 @@ export const MarkdownContent: React.FC<MarkdownContentProps> = ({ content }) => 
     }
   };
 
-  const parseInline = (text: string) => {
-    // Priority: 1. Inline Code, 2. Bold, 3. Italic
-    let parts: (string | React.ReactNode)[] = [text];
+  const parseInline = (text: string): React.ReactNode[] => {
+    // 1. Define a combined regex to catch all tokens at once.
+    // Order matters: Code has priority to prevent matching inside code.
+    // Group 1: Code (`...`)
+    // Group 2: Bold (**...**)
+    // Group 3: Italic (*...*)
+    const regex = /(`[^`]+`|\*\*[^*]+\*\*|\*[^*]+\*)/g;
 
-    // Inline Code `text`
-    parts = parts.flatMap(p => {
-      if (typeof p !== 'string') return p;
-      const regex = /(`[^`]+`)/g;
-      return p.split(regex).map((chunk, i) => {
-        if (chunk.startsWith('`') && chunk.endsWith('`')) {
-          return <InlineCode key={i} code={chunk.slice(1, -1)} />;
-        }
-        return chunk;
-      });
+    return text.split(regex).map((part, index) => {
+      if (!part) return null;
+
+      // 2. Check for Code Block first (Atomic, no recursion inside)
+      if (part.startsWith('`') && part.endsWith('`')) {
+        return <InlineCode key={index} code={part.slice(1, -1)} />;
+      }
+
+      // 3. Check for Bold (Container, recurse inside)
+      if (part.startsWith('**') && part.endsWith('**')) {
+        return (
+          <strong key={index} className="font-bold text-slate-900 dark:text-white">
+            {parseInline(part.slice(2, -2))}
+          </strong>
+        );
+      }
+
+      // 4. Check for Italic (Container, recurse inside)
+      if (part.startsWith('*') && part.endsWith('*')) {
+        return (
+          <em key={index} className="italic">
+            {parseInline(part.slice(1, -1))}
+          </em>
+        );
+      }
+
+      // 5. Plain text
+      return part;
     });
-
-    // Bold **text**
-    parts = parts.flatMap(p => {
-      if (typeof p !== 'string') return p;
-      const regex = /(\*\*[^*]+\*\*)/g;
-      return p.split(regex).map((chunk, i) => {
-        if (chunk.startsWith('**') && chunk.endsWith('**')) {
-          return <strong key={i} className="font-bold text-slate-900 dark:text-white">{chunk.slice(2, -2)}</strong>;
-        }
-        return chunk;
-      });
-    });
-
-    // Italic *text*
-    parts = parts.flatMap(p => {
-      if (typeof p !== 'string') return p;
-      const regex = /(\*[^*]+\*)/g;
-      return p.split(regex).map((chunk, i) => {
-        if (chunk.startsWith('*') && chunk.endsWith('*')) {
-          return <em key={i} className="italic">{chunk.slice(1, -1)}</em>;
-        }
-        return chunk;
-      });
-    });
-
-    return parts;
   };
 
   for (let i = 0; i < lines.length; i++) {

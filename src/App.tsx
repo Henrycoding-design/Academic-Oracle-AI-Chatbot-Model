@@ -4,6 +4,9 @@ import type { Message } from './types';
 import { sendMessageToBot } from './services/geminiService';
 import { ChatInput } from './components/ChatInput';
 import { ChatMessage } from './components/ChatMessage';
+import AuthPage from "./AuthPage";
+import { supabase } from "./services/supabaseClient";
+import { resetChat } from "./services/geminiService";
 
 const SunIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
@@ -56,11 +59,12 @@ const LoadingIndicator = () => (
 );
 
 const App: React.FC = () => {
+  const [userApiKey, setUserApiKey] = useState<string | null>(null); // ✅ Add this
   const [messages, setMessages] = useState<Message[]>([
-      {
-          role: 'model',
-          content: "Welcome to the Universal Academic Oracle. From SATs and IELTS to University research and Industrial practices, I am here to guide your journey. \n\nBefore we begin, what should I call you, and what academic challenge are we tackling today?"
-      }
+    {
+      role: 'model',
+      content: "Welcome to the Universal Academic Oracle. From SATs and IELTS to University research and Industrial practices, I am here to guide your journey. \n\nBefore we begin, what should I call you, and what academic challenge are we tackling today?"
+    }
   ]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -72,9 +76,9 @@ const App: React.FC = () => {
     }
     return false;
   });
-  
   const chatEndRef = useRef<HTMLDivElement>(null);
 
+  // ⚡ Theme handling
   useEffect(() => {
     if (isDark) {
       document.documentElement.classList.add('dark');
@@ -85,75 +89,112 @@ const App: React.FC = () => {
     }
   }, [isDark]);
 
-  useEffect(() => {
-    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages, isLoading]);
+  // useEffect(() => {
+  //   chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  // }, [messages, isLoading]);
 
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => {
+      if (!data.session) {
+        setUserApiKey(null);
+      }
+    });
+  }, []);
+
+  // ✅ Handle sending messages with dynamic userApiKey
   const handleSendMessage = async (userMessage: string) => {
+    if (!userApiKey) return alert("API key missing. Please log in first.");
     setError(null);
-    const newMessage: Message = { role: 'user', content: userMessage };
+    const newMessage: Message = { role: "user", content: userMessage };
     setMessages(prev => [...prev, newMessage]);
     setIsLoading(true);
 
     try {
-      const botResponse = await sendMessageToBot(userMessage);
-      const botMessage: Message = { role: 'model', content: botResponse };
+      const botResponse = await sendMessageToBot(userMessage, userApiKey);
+      const botMessage: Message = { role: "model", content: botResponse };
       setMessages(prev => [...prev, botMessage]);
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : "Network synchronization failed.";
-      setError(errorMessage);
-      const botMessage: Message = { role: 'model', content: "The Oracle is currently contemplating. Please check your connection and try again." };
-      setMessages(prev => [...prev, botMessage]);
+      setError(err instanceof Error ? err.message : "Network error.");
+      setMessages(prev => [...prev, { role: "model", content: "The Oracle is currently contemplating." }]);
     } finally {
       setIsLoading(false);
     }
   };
 
   const getStatus = (): 'ok' | 'loading' | 'error' => {
-      if (error) return 'error';
-      if (isLoading) return 'loading';
-      return 'ok';
+    if (error) return 'error';
+    if (isLoading) return 'loading';
+    return 'ok';
   };
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut(); // 🔐 kill auth
+    resetChat();                  // 🧠 wipe AI memory
+    setUserApiKey(null);           // 🚪 back to AuthPage
+
+    // Optional but recommended: reset chat UI
+    setMessages([
+      {
+        role: 'model',
+        content:
+          "Welcome to the Universal Academic Oracle. From SATs and IELTS to University research and Industrial practices, I am here to guide your journey. \n\nBefore we begin, what should I call you, and what academic challenge are we tackling today?",
+      },
+    ]);
+  };
+
+  // ✅ Show AuthPage first if userApiKey is missing
+  if (!userApiKey) {
+    return <AuthPage onLogin={(key) => setUserApiKey(key)} />;
+  }
 
   return (
     <div className="flex flex-col h-screen font-sans antialiased text-gray-800 dark:text-gray-100 bg-slate-50 dark:bg-slate-950 overflow-hidden transition-colors duration-300">
-        <header className="px-6 py-4 bg-slate-900 text-white shadow-xl z-20 flex items-center justify-between border-b border-white/10">
-            <h1 className="text-xl font-black tracking-tighter flex items-center">
-                <span className="bg-indigo-500 text-white text-[10px] px-1.5 py-0.5 rounded-sm mr-2 shadow-[0_0_10px_rgba(99,102,241,0.5)]">UNIV</span> 
-                ACADEMIC ORACLE
-            </h1>
-            <div className="flex items-center gap-4">
-                <button 
-                  onClick={() => setIsDark(!isDark)}
-                  className="p-2 rounded-full hover:bg-white/10 transition-colors text-slate-300 hover:text-white"
-                  aria-label="Toggle theme"
-                >
-                  {isDark ? <SunIcon /> : <MoonIcon />}
-                </button>
-                <SystemStatus status={getStatus()} />
-            </div>
-        </header>
+      <header className="px-6 py-4 bg-slate-900 text-white shadow-xl z-20 flex items-center justify-between border-b border-white/10">
+        <h1 className="text-xl font-black tracking-tighter flex items-center">
+          <span className="bg-indigo-500 text-white text-[10px] px-1.5 py-0.5 rounded-sm mr-2 shadow-[0_0_10px_rgba(99,102,241,0.5)]">UNIV</span>
+          ACADEMIC ORACLE
+        </h1>
+        <div className="flex items-center gap-4">
+          <button
+            onClick={handleLogout}
+            className="px-3 py-1.5 text-xs font-semibold rounded-full
+                      bg-white/10 hover:bg-white/20
+                      text-slate-300 hover:text-white
+                      transition-colors"
+          >
+            Logout
+          </button>
+          <button 
+            onClick={() => setIsDark(!isDark)}
+            className="p-2 rounded-full hover:bg-white/10 transition-colors text-slate-300 hover:text-white"
+            aria-label="Toggle theme"
+          >
+            {isDark ? <SunIcon /> : <MoonIcon />}
+          </button>
+          <SystemStatus status={getStatus()} />
+        </div>
+      </header>
 
-        <main className="flex-grow overflow-y-auto pb-32 scrollbar-thin scrollbar-thumb-slate-300 dark:scrollbar-thumb-slate-800">
-            <div className="max-w-4xl mx-auto px-4 pt-8">
-                {messages.map((msg, index) => (
-                    <ChatMessage key={index} message={msg} />
-                ))}
-                {isLoading && <LoadingIndicator />}
-                {error && (
-                  <div className="bg-rose-100/80 dark:bg-rose-900/20 text-rose-600 dark:text-rose-400 p-4 rounded-2xl text-center my-6 border border-rose-200 dark:border-rose-800/30 backdrop-blur-sm animate-pulse">
-                    {error}
-                  </div>
-                )}
-                <div ref={chatEndRef} />
+      <main className="flex-grow overflow-y-auto pb-32 scrollbar-thin scrollbar-thumb-slate-300 dark:scrollbar-thumb-slate-800">
+        <div className="max-w-4xl mx-auto px-4 pt-8">
+          {messages.map((msg, index) => (
+            <ChatMessage key={index} message={msg} />
+          ))}
+          {isLoading && <LoadingIndicator />}
+          {error && (
+            <div className="bg-rose-100/80 dark:bg-rose-900/20 text-rose-600 dark:text-rose-400 p-4 rounded-2xl text-center my-6 border border-rose-200 dark:border-rose-800/30 backdrop-blur-sm animate-pulse">
+              {error}
             </div>
-        </main> 
-        
-        <footer className="fixed bottom-0 left-0 w-full z-30 pointer-events-none">
-            <div className="pointer-events-auto bg-gradient-to-t from-slate-50 dark:from-slate-950 via-slate-50/80 dark:via-slate-950/80 to-transparent transition-colors duration-300">
-                <ChatInput onSendMessage={handleSendMessage} isLoading={isLoading} />
-            </div>
-        </footer>
+          )}
+          <div ref={chatEndRef} />
+        </div>
+      </main>
+
+      <footer className="fixed bottom-0 left-0 w-full z-30 pointer-events-none">
+        <div className="pointer-events-auto bg-gradient-to-t from-slate-50 dark:from-slate-950 via-slate-50/80 dark:via-slate-950/80 to-transparent transition-colors duration-300">
+          <ChatInput onSendMessage={handleSendMessage} isLoading={isLoading} />
+        </div>
+      </footer>
     </div>
   );
 };

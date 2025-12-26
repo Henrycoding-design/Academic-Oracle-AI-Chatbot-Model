@@ -17,31 +17,40 @@ Your Interaction Framework:
 
 Always maintain a hidden 'Student Profile' in your context: Name, Level, Confidence. Use this to maintain consistency across the session.`;
 
-let chat: Chat | null = null;
 
-const getChat = (): Chat => {
-  if (!chat) {
-    if (!process.env.API_KEY) {
-      throw new Error("API_KEY environment variable not set");
-    }
-    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-    chat = ai.chats.create({
-      model: 'gemini-3-flash-preview',
-      config: {
-        systemInstruction: SYSTEM_INSTRUCTION,
-      },
-    });
+let chatInstance: Chat | null = null;
+let currentApiKey: string | null = null;
+
+export const getChat = (apiKey: string): Chat => {
+  // 🔁 Same user, same chat → full context preserved
+  if (chatInstance && currentApiKey === apiKey) {
+    return chatInstance;
   }
-  return chat;
+
+  // 🆕 New user OR new session
+  const ai = new GoogleGenAI({ apiKey });
+
+  chatInstance = ai.chats.create({
+    model: "gemini-3-flash-preview",
+    config: {
+      systemInstruction: SYSTEM_INSTRUCTION,
+    },
+  });
+
+  currentApiKey = apiKey;
+  return chatInstance;
 };
 
-export const sendMessageToBot = async (message: string): Promise<string> => {
-  try {
-    const chatInstance = getChat();
-    const response: GenerateContentResponse = await chatInstance.sendMessage({ message });
-    return response.text || "I'm sorry, I couldn't process that academic query.";
-  } catch (error) {
-    console.error("Error sending message to Academic Oracle:", error);
-    throw error;
-  }
+export const resetChat = () => {
+  chatInstance = null;
+  currentApiKey = null;
+};
+
+export const sendMessageToBot = async (
+  message: string,
+  apiKey: string
+): Promise<string> => {
+  const chat = getChat(apiKey);
+  const response: GenerateContentResponse = await chat.sendMessage({ message });
+  return response.text || "I'm sorry, I couldn't process that academic query.";
 };
