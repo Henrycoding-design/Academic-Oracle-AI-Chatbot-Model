@@ -245,9 +245,40 @@ const App: React.FC = () => {
         setOracleMemory(memory);
       }
 
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err);
-      setError(err.message || "Sorry, an unexpected error occurred.");
+
+      let status: number | undefined;
+      let message = "Sorry, an unexpected error occurred.";
+
+      let extractedretryDelay : number | undefined;
+
+      if (typeof err === "string") {
+        try {
+          const parsed = JSON.parse(err);
+
+          // Check for err status based on gg API response
+          status = parsed?.error?.code;
+          message = parsed?.error?.message || message;
+
+          extractedretryDelay = // extract the retryDelay param gg API give us
+            parsed?.error?.details?.find(
+              (d: any) => d["@type"] === "type.googleapis.com/google.rpc.RetryInfo"
+            )?.retryDelay;
+        } catch {
+          message = err;
+        }
+      }
+
+      if (status === 429) {
+        setError(
+          "You’ve hit the free rate limit 😅\n\n" +
+          `⏳ ${extractedretryDelay? "Try again after" + extractedretryDelay : "Try again later"}, or\n` +
+          "❤️ Support the project to unlock higher limits"
+        );
+      } else {
+        setError(message);
+      }
     } finally {
       setIsLoading(false);
     }
