@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { supabase } from "./services/supabaseClient";
-import {decryptApiKey, encryptApiKey} from "./services/edgeCrypto";
+import { encryptApiKey } from "./services/edgeCrypto";
 
 
 const AuthPage: React.FC<{ onLogin: (apiKey: string) => void }> = ({ onLogin }) => {
@@ -30,17 +30,8 @@ const AuthPage: React.FC<{ onLogin: (apiKey: string) => void }> = ({ onLogin }) 
 
       // 🟢 Existing user
       if (profile?.api_key) {
-        let keyPayLoad = profile.api_key;
-        if (typeof(keyPayLoad) == "string") { // already change api_key to jsonb on supabase, this is just for safety-net
-          try {
-            JSON.parse(keyPayLoad);
-          } catch (e) {
-            throw new Error("Failed to parsed store API Key");
-          }
-        }
-        const apiKey = await decryptApiKey(keyPayLoad);
         setLoading(false);
-        onLogin(apiKey);
+        onLogin(profile.api_key);
         return;
       }
 
@@ -71,7 +62,7 @@ const AuthPage: React.FC<{ onLogin: (apiKey: string) => void }> = ({ onLogin }) 
       }
 
       setLoading(false);
-      onLogin(apiKey);
+      onLogin(encrypted);
     };
 
     initAuth();

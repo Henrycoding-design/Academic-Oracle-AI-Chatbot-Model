@@ -1,5 +1,6 @@
 
 import React, { useState } from 'react';
+import { BlockMath, InlineMath } from 'react-katex';
 
 interface MarkdownContentProps {
   content: string;
@@ -83,6 +84,8 @@ export const MarkdownContent: React.FC<MarkdownContentProps> = ({ content }) => 
   let currentList: React.ReactNode[] = [];
   let inCodeBlock = false;
   let codeBlockLines: string[] = [];
+  let inMathBlock = false;
+  let mathBlockLines: string[] = [];
 
   const flushList = (key: number) => {
     if (currentList.length > 0) {
@@ -97,7 +100,7 @@ export const MarkdownContent: React.FC<MarkdownContentProps> = ({ content }) => 
     // Group 1: Code (`...`)
     // Group 2: Bold (**...**)
     // Group 3: Italic (*...*)
-    const regex = /(`[^`]+`|\*\*[^*]+\*\*|\*[^*]+\*)/g;
+    const regex = /(`[^`]+`|\$\$[^$]+\$\$|\$[^$]+\$|\*\*[^*]+\*\*|\*[^*]+\*)/g;
 
     return text.split(regex).map((part, index) => {
       if (!part) return null;
@@ -105,6 +108,16 @@ export const MarkdownContent: React.FC<MarkdownContentProps> = ({ content }) => 
       // 2. Check for Code Block first (Atomic, no recursion inside)
       if (part.startsWith('`') && part.endsWith('`')) {
         return <InlineCode key={index} code={part.slice(1, -1)} />;
+      }
+
+      // Inline Math $...$
+      if (part.startsWith('$') && part.endsWith('$') && !part.startsWith('$$')) {
+        return (
+          <InlineMath
+            key={index}
+            math={part.slice(1, -1)}
+          />
+        );
       }
 
       // 3. Check for Bold (Container, recurse inside)
@@ -151,6 +164,32 @@ export const MarkdownContent: React.FC<MarkdownContentProps> = ({ content }) => 
 
     if (inCodeBlock) {
       codeBlockLines.push(line);
+      continue;
+    }
+
+    // 🧮 Block Math ($$ ... $$)
+    if (trimmedLine.startsWith('$$')) {
+      flushList(i);
+
+      if (inMathBlock) {
+        // END math block
+        elements.push(
+          <BlockMath
+            key={`math-${i}`}
+            math={mathBlockLines.join('\n')}
+          />
+        );
+        mathBlockLines = [];
+        inMathBlock = false;
+      } else {
+        // START math block
+        inMathBlock = true;
+      }
+      continue;
+    }
+
+    if (inMathBlock) {
+      mathBlockLines.push(line);
       continue;
     }
 

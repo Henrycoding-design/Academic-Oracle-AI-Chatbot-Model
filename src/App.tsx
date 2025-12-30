@@ -1,12 +1,14 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import type { Message } from './types';
+import type { Message, ChatHistoryItem } from './types';
 import { sendMessageToBot } from './services/geminiService';
 import { ChatInput } from './components/ChatInput';
 import { ChatMessage } from './components/ChatMessage';
 import AuthPage from "./AuthPage";
 import { supabase } from "./services/supabaseClient";
-import { resetChat } from "./services/geminiService";
+// import { resetChat } from "./services/geminiService";
+import { readFileAsText } from "./services/fileReader";
+import 'katex/dist/katex.min.css';
 
 const SunIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
@@ -58,14 +60,69 @@ const LoadingIndicator = () => (
     </div>
 );
 
+
+// Trimmed History to control tokens -> put necessary info on oracleMemory (1 instance) instead
+const MAX_HISTORY = 10;
+
+function trimHistory(history: ChatHistoryItem[]) {
+  return history.slice(-MAX_HISTORY);
+}
+
 const App: React.FC = () => {
-  const [userApiKey, setUserApiKey] = useState<string | null>(null); // ✅ Add this
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      role: 'model',
-      content: "Welcome to the Universal Academic Oracle. From SATs and IELTS to University research and Industrial practices, I am here to guide your journey. \n\nBefore we begin, what should I call you, and what academic challenge are we tackling today?"
+  const [encryptedApiKey, setEncryptedApiKey] = useState<any | null>(null);
+  const [messages, setMessages] = useState<Message[]>(() => {
+    if (typeof window === "undefined") return [];
+
+    const saved = sessionStorage.getItem("academic-oracle-chat");
+    if (saved) return JSON.parse(saved);
+
+    return [
+      {
+        role: "model",
+        content:
+          "Welcome to the Universal Academic Oracle. From SATs and IELTS to University research and Industrial practices, I am here to guide your journey.\n\nBefore we begin, what should I call you, and what academic challenge are we tackling today?",
+      },
+    ];
+  });
+  const [chatHistory, setChatHistory] = useState<ChatHistoryItem[]>(() => {
+    if (typeof window === "undefined") return [];
+
+    const saved = sessionStorage.getItem("academic-oracle-history");
+    if (saved) return JSON.parse(saved);
+
+    return [
+      {
+        role: "model",
+        content:
+          "Welcome to the Universal Academic Oracle. From SATs and IELTS to University research and Industrial practices, I am here to guide your journey.",
+      },
+    ];
+  });
+  const [oracleMemory, setOracleMemory] = useState<string | null>(() => { // student profile
+    if (typeof window === "undefined") return null;
+    return sessionStorage.getItem("academic-oracle-memory");
+  });
+
+  useEffect(() => { // for student profile
+    if (oracleMemory) {
+      sessionStorage.setItem("academic-oracle-memory", oracleMemory);
     }
-  ]);
+  }, [oracleMemory]);
+
+  useEffect(() => { // for model
+    sessionStorage.setItem(
+      "academic-oracle-history",
+      JSON.stringify(chatHistory)
+    );
+  }, [chatHistory]);
+
+  useEffect(() => { // for UI
+    sessionStorage.setItem(
+      "academic-oracle-chat",
+      JSON.stringify(messages)
+    );
+  }, [messages]);
+
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isDark, setIsDark] = useState(() => {
@@ -89,33 +146,108 @@ const App: React.FC = () => {
     }
   }, [isDark]);
 
-  // useEffect(() => {
-  //   chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  // }, [messages, isLoading]);
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages, isLoading]);
+
+  useEffect(() => { // update oracle-api-key and only save it as string format
+    if (encryptedApiKey) {
+      sessionStorage.setItem("oracle-api-key", JSON.stringify(encryptedApiKey));
+    }
+  }, [encryptedApiKey]);
+
+  useEffect(() => { // set encryptedApiKey on sessionStorage oracle-api-key change (changed to JSON object)
+    const key = sessionStorage.getItem("oracle-api-key");
+    if (key) setEncryptedApiKey(JSON.parse(key));
+  }, []);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
       if (!data.session) {
-        setUserApiKey(null);
+        setEncryptedApiKey(null);
+        sessionStorage.removeItem("oracle-api-key");
       }
     });
   }, []);
 
-  // ✅ Handle sending messages with dynamic userApiKey
-  const handleSendMessage = async (userMessage: string) => {
-    if (!userApiKey) return alert("API key missing. Please log in first.");
-    setError(null);
-    const newMessage: Message = { role: "user", content: userMessage };
-    setMessages(prev => [...prev, newMessage]);
+  // ✅ Handle sending messages with dynamic encryptedApiKey
+  const handleSendMessage = async (
+    userMessage: string,
+    file?: File | null
+  ) => {
+    if (!encryptedApiKey) return;
+
     setIsLoading(true);
+    setError(null);
 
     try {
-      const botResponse = await sendMessageToBot(userMessage, userApiKey);
-      const botMessage: Message = { role: "model", content: botResponse };
-      setMessages(prev => [...prev, botMessage]);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Network error.");
-      setMessages(prev => [...prev, { role: "model", content: "The Oracle is currently contemplating." }]);
+      let fileContext = "";
+
+      if (file) {
+        const extractedText = await readFileAsText(file);
+        fileContext = `
+  --- FILE CONTEXT (${file.name}) ---
+  ${extractedText}
+  --- END FILE CONTEXT ---
+  `;
+      }
+
+      // 🖼️ UI update (unchanged, clean)
+      setMessages(prev => [
+        ...prev,
+        {
+          role: "user",
+          content: userMessage,
+          attachment: file
+            ? {
+                name: file.name,
+                type: file.type,
+                size: file.size,
+              }
+            : undefined,
+        },
+      ]);
+
+      // 🧠 AI history update (this is new)
+      const nextHistory = trimHistory([
+        ...chatHistory,
+        {
+          role: "user",
+          content: `${fileContext}\nUSER QUESTION:\n${userMessage}`.trim(),
+        },
+      ]);
+
+      setChatHistory(nextHistory);
+
+      // 🔁 Stateless call with full history
+      const { answer, memory } = await sendMessageToBot({
+        history: nextHistory,
+        memory: oracleMemory,
+        encryptedKeyPayload: encryptedApiKey,
+      });
+
+      // 🖼️ UI response
+      setMessages(prev => [
+        ...prev,
+        { role: "model", content: answer },
+      ]);
+
+      // 🧠 AI memory response (trimmed)
+      setChatHistory(prev =>
+        trimHistory([
+          ...prev,
+          { role: "model", content: answer },
+        ])
+      );
+
+      // Student profile/memory
+      if (memory) {
+        setOracleMemory(memory);
+      }
+
+    } catch (err: any) {
+      console.error(err);
+      setError(err.message || "Sorry, an unexpected error occurred.");
     } finally {
       setIsLoading(false);
     }
@@ -129,10 +261,14 @@ const App: React.FC = () => {
 
   const handleLogout = async () => {
     await supabase.auth.signOut(); // 🔐 kill auth
-    resetChat();                  // 🧠 wipe AI memory
-    setUserApiKey(null);           // 🚪 back to AuthPage
+    // resetChat();                  // 🧠 wipe AI memory
+    setEncryptedApiKey(null);           // 🚪 back to AuthPage
 
-    // Optional but recommended: reset chat UI
+    sessionStorage.removeItem("academic-oracle-chat"); // 🧹 wipe chat
+    sessionStorage.removeItem("academic-oracle-history"); // wipe history
+    sessionStorage.removeItem("oracle-api-key");
+
+    // reset chat UI
     setMessages([
       {
         role: 'model',
@@ -140,11 +276,21 @@ const App: React.FC = () => {
           "Welcome to the Universal Academic Oracle. From SATs and IELTS to University research and Industrial practices, I am here to guide your journey. \n\nBefore we begin, what should I call you, and what academic challenge are we tackling today?",
       },
     ]);
+
+    // reset chat history for model
+    setChatHistory([
+      {
+        role: "model",
+        content:
+          "Welcome to the Universal Academic Oracle. From SATs and IELTS to University research and Industrial practices, I am here to guide your journey.",
+      },
+    ]);
+
   };
 
-  // ✅ Show AuthPage first if userApiKey is missing
-  if (!userApiKey) {
-    return <AuthPage onLogin={(key) => setUserApiKey(key)} />;
+  // ✅ Show AuthPage first if encryptedApiKey is missing
+  if (!encryptedApiKey) {
+    return <AuthPage onLogin={(key) => setEncryptedApiKey(key)} />;
   }
 
   return (
@@ -152,7 +298,7 @@ const App: React.FC = () => {
       <header className="px-6 py-4 bg-slate-900 text-white shadow-xl z-20 flex items-center justify-between border-b border-white/10">
         <h1 className="text-xl font-black tracking-tighter flex items-center">
           <span className="bg-indigo-500 text-white text-[10px] px-1.5 py-0.5 rounded-sm mr-2 shadow-[0_0_10px_rgba(99,102,241,0.5)]">UNIV</span>
-          ACADEMIC ORACLE
+          Academic Oracle
         </h1>
         <div className="flex items-center gap-4">
           <button

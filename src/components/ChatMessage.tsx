@@ -23,24 +23,73 @@ const UserAvatar = () => (
     </div>
 );
 
+
+const fileIconFor = (type?: string, name?: string) => {
+  const t = (type || name || "").toLowerCase();
+
+  if (t.includes("pdf")) return "📕";
+  if (t.includes("png") || t.includes("jpg") || t.includes("jpeg")) return "🖼️";
+  if (t.includes("doc") || t.includes("word")) return "📘";
+  if (t.includes("txt")) return "📄";
+  if (t.includes("ppt")) return "📊";
+  if (t.includes("xls") || t.includes("sheet")) return "📈";
+
+  return "📎";
+};
+
+
 export const ChatMessage: React.FC<ChatMessageProps> = ({ message }) => {
   const isModel = message.role === 'model';
 
   return (
-    <div className={`flex items-start gap-3 my-6 animate-fade-in-up ${isModel ? 'justify-start' : 'justify-end'}`}>
+    <div
+      className={`flex items-start gap-3 my-6 animate-fade-in-up ${
+        isModel ? 'justify-start' : 'justify-end'
+      }`}
+    >
       {isModel && <BotAvatar />}
-      <div className={`max-w-[85%] sm:max-w-xl px-5 py-3.5 rounded-2xl shadow-sm border ${
-        isModel
-          ? 'bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 rounded-tl-none border-slate-100 dark:border-slate-800'
-          : 'bg-indigo-600 text-white rounded-br-none border-indigo-500 shadow-indigo-200 dark:shadow-none'
-      }`}>
+
+      <div
+        className={`max-w-[85%] sm:max-w-xl px-5 py-3.5 rounded-2xl shadow-sm border ${
+          isModel
+            ? 'bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 rounded-tl-none border-slate-100 dark:border-slate-800'
+            : 'bg-indigo-600 text-white rounded-br-none border-indigo-500 shadow-indigo-200 dark:shadow-none'
+        }`}
+      >
+        {/* 📎 Attachment UI (inside bubble, above text) */}
+        {message.attachment && (
+          <div
+            className={`
+              mb-2 inline-flex items-center gap-2
+              px-3 py-1.5 rounded-xl text-xs
+              ${
+                isModel
+                  ? 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200'
+                  : 'bg-indigo-500/80 text-white'
+              }
+            `}
+          >
+            <span>
+              {fileIconFor(message.attachment.type, message.attachment.name)}
+            </span>
+            <span className="font-medium truncate max-w-[160px]">
+              {message.attachment.name}
+            </span>
+          </div>
+        )}
+
+        {/* 💬 Message content */}
         {isModel ? (
           <MarkdownContent content={message.content} />
         ) : (
-          <p className="whitespace-pre-wrap leading-relaxed text-[15px]">{message.content}</p>
+          <p className="whitespace-pre-wrap leading-relaxed text-[15px]">
+            {message.content}
+          </p>
         )}
       </div>
-       {!isModel && <UserAvatar />}
+
+      {!isModel && <UserAvatar />}
     </div>
   );
 };
+

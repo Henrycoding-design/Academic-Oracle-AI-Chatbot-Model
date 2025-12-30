@@ -2,7 +2,7 @@
 import React, { useLayoutEffect, useRef, useState } from 'react';
 
 interface ChatInputProps {
-  onSendMessage: (message: string) => void;
+  onSendMessage: (message: string, file?: File | null) => void;
   isLoading: boolean;
 }
 
@@ -23,13 +23,18 @@ const SendIcon = ({ className }: { className: string }) => (
 export const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, isLoading }) => {
   const [inputValue, setInputValue] = useState('');
   const [isComposing, setIsComposing] = useState(false);
+  const [attachedFile, setAttachedFile] = useState<File | null>(null);
   const taRef = useRef<HTMLTextAreaElement | null>(null);
 
   const handleSubmit = () => {
-    if (inputValue.trim() && !isLoading) {
-      onSendMessage(inputValue);
-      setInputValue('');
-    }
+    if (!inputValue.trim() && !attachedFile) return;
+    if (isLoading) return;
+
+
+    onSendMessage(inputValue, attachedFile);
+    setAttachedFile(null);
+    setInputValue('');
+    
   };
 
   const autosize = () => {
@@ -46,6 +51,19 @@ export const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, isLoading }
     autosize();
   }, [inputValue]);
 
+  const fileIconFor = (name?: string) => {
+    const t = (name || "").toLowerCase();
+
+    if (t.includes("pdf")) return "📕";
+    if (t.includes("png") || t.includes("jpg") || t.includes("jpeg")) return "🖼️";
+    if (t.includes("doc") || t.includes("word")) return "📘";
+    if (t.includes("txt")) return "📄";
+    if (t.includes("ppt")) return "📊";
+    if (t.includes("xls") || t.includes("sheet")) return "📈";
+
+    return "📎";
+  };
+
   const onKeyDown: React.KeyboardEventHandler<HTMLTextAreaElement> = (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       if (!isComposing) {
@@ -55,10 +73,31 @@ export const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, isLoading }
     }
   };
 
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+
   return (
     <div className="w-full px-4 pb-6 pt-2">
       <div className="max-w-4xl mx-auto">
         <div className="flex items-end gap-3 p-2 rounded-2xl bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border border-slate-200 dark:border-slate-800 shadow-2xl transition-all duration-300">
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            className="p-2 rounded-xl hover:bg-slate-200 dark:hover:bg-slate-700 transition"
+            title="Upload from computer"
+          >
+            📎
+          </button>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".pdf,.docx,.txt,.png,.jpg"
+            hidden
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (file) setAttachedFile(file);
+            }}
+          />
           <textarea
             ref={taRef}
             value={inputValue}
@@ -77,6 +116,23 @@ export const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, isLoading }
             "
             style={{ lineHeight: "1.5" }}
           />
+          {attachedFile && (
+            <div className="flex items-center gap-2 mb-2 px-3 py-1.5
+                            bg-slate-200 dark:bg-slate-800
+                            rounded-xl text-sm">
+              <span className="truncate max-w-[200px]">
+                <span>
+                  {fileIconFor(attachedFile.name)}
+                </span> {attachedFile.name}
+              </span>
+              <button
+                onClick={() => setAttachedFile(null)}
+                className="text-slate-500 hover:text-rose-500"
+              >
+                ✕
+              </button>
+            </div>
+          )}
           <button
             type="button"
             onClick={handleSubmit}
