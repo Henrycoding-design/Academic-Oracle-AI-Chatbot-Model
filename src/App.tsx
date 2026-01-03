@@ -84,6 +84,12 @@ const App: React.FC = () => {
       },
     ];
   });
+
+  const lastRequestRef = useRef<{ // for retry
+    message: string;
+    file?: File | null;
+  } | null>(null);
+
   const [chatHistory, setChatHistory] = useState<ChatHistoryItem[]>(() => {
     if (typeof window === "undefined") return [];
 
@@ -173,7 +179,8 @@ const App: React.FC = () => {
   // ✅ Handle sending messages with dynamic encryptedApiKey
   const handleSendMessage = async (
     userMessage: string,
-    file?: File | null
+    file?: File | null,
+    isRetry = false
   ) => {
     if (!encryptedApiKey) return;
 
@@ -192,36 +199,44 @@ const App: React.FC = () => {
   `;
       }
 
-      // 🖼️ UI update (unchanged, clean)
-      setMessages(prev => [
-        ...prev,
-        {
-          role: "user",
-          content: userMessage,
-          attachment: file
-            ? {
-                name: file.name,
-                type: file.type,
-                size: file.size,
-              }
-            : undefined,
-        },
-      ]);
+      let outgoingHistory = chatHistory;
 
-      // 🧠 AI history update (this is new)
-      const nextHistory = trimHistory([
-        ...chatHistory,
-        {
+      if (!isRetry) { // avoid double user questions if reTry
+        // 🖼️ UI update (unchanged, clean)
+        setMessages(prev => [
+          ...prev,
+          {
+            role: "user",
+            content: userMessage,
+            attachment: file
+              ? {
+                  name: file.name,
+                  type: file.type,
+                  size: file.size,
+                }
+              : undefined,
+          },
+        ]);
+
+        const userEntry: ChatHistoryItem = {
           role: "user",
           content: `${fileContext}\nUSER QUESTION:\n${userMessage}`.trim(),
-        },
-      ]);
+        };
 
-      setChatHistory(nextHistory);
+        outgoingHistory = trimHistory([...chatHistory, userEntry]);
+
+        setChatHistory(outgoingHistory);
+      }
+
+      // cache for retry if failed
+      lastRequestRef.current = {
+        message: userMessage,
+        file: file ?? null,
+      };
 
       // 🔁 Stateless call with full history
       const { answer, memory } = await sendMessageToBot({
-        history: nextHistory,
+        history: outgoingHistory,
         memory: oracleMemory,
         encryptedKeyPayload: encryptedApiKey,
       });
@@ -250,38 +265,87 @@ const App: React.FC = () => {
 
       let status: number | undefined;
       let message = "Sorry, an unexpected error occurred.";
+      let extractedRetryDelay: string | undefined;
 
-      let extractedretryDelay : number | undefined;
+      try {
+        // Case 1: string error (Gemini SDK common)
+        if (typeof err === "string") {
+          try {
+            const parsed = JSON.parse(err);
 
-      if (typeof err === "string") {
-        try {
-          const parsed = JSON.parse(err);
+            status =
+              parsed?.error?.code ??
+              parsed?.error?.status;
 
-          // Check for err status based on gg API response
-          status = parsed?.error?.code;
-          message = parsed?.error?.message || message;
+            message =
+              parsed?.error?.message ?? message;
 
-          extractedretryDelay = // extract the retryDelay param gg API give us
-            parsed?.error?.details?.find(
-              (d: any) => d["@type"] === "type.googleapis.com/google.rpc.RetryInfo"
-            )?.retryDelay;
-        } catch {
-          message = err;
+            extractedRetryDelay =
+              parsed?.error?.details?.find(
+                (d: any) =>
+                  d["@type"] === "type.googleapis.com/google.rpc.RetryInfo"
+              )?.retryDelay;
+          } catch {
+            // Plain string
+            message = err;
+            if (err.includes("429")) status = 429;
+          }
         }
+
+        // Case 2: object / Error
+        else if (typeof err === "object" && err !== null) {
+          const anyErr = err as any;
+
+          status =
+            anyErr?.status ??
+            anyErr?.code ??
+            anyErr?.error?.status ??
+            anyErr?.error?.code;
+
+          message =
+            anyErr?.message ??
+            anyErr?.error?.message ??
+            message;
+
+          extractedRetryDelay =
+            anyErr?.error?.details?.find(
+              (d: any) =>
+                d["@type"] === "type.googleapis.com/google.rpc.RetryInfo"
+            )?.retryDelay;
+        }
+      } catch {
+        // absolutely never crash UI error handling
       }
 
       if (status === 429) {
         setError(
           "You’ve hit the free rate limit 😅\n\n" +
-          `⏳ ${extractedretryDelay? "Try again after" + extractedretryDelay : "Try again later"}, or\n` +
+          `⏳ ${
+            extractedRetryDelay
+              ? "Try again after " + extractedRetryDelay
+              : "Try again later"
+          }, or\n` +
           "❤️ Support the project to unlock higher limits"
         );
       } else {
         setError(message);
       }
+
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleRetry = () => {
+    if (!lastRequestRef.current || isLoading) return;
+
+    setError(null);
+
+    handleSendMessage(
+      lastRequestRef.current.message,
+      lastRequestRef.current.file,
+      true
+    );
   };
 
   const getStatus = (): 'ok' | 'loading' | 'error' => {
@@ -298,6 +362,8 @@ const App: React.FC = () => {
     sessionStorage.removeItem("academic-oracle-chat"); // 🧹 wipe chat
     sessionStorage.removeItem("academic-oracle-history"); // wipe history
     sessionStorage.removeItem("oracle-api-key");
+    sessionStorage.removeItem("academic-oracle-memory"); //wipe profile
+    setOracleMemory(null);
 
     // reset chat UI
     setMessages([
@@ -359,8 +425,29 @@ const App: React.FC = () => {
           ))}
           {isLoading && <LoadingIndicator />}
           {error && (
-            <div className="bg-rose-100/80 dark:bg-rose-900/20 text-rose-600 dark:text-rose-400 p-4 rounded-2xl text-center my-6 border border-rose-200 dark:border-rose-800/30 backdrop-blur-sm animate-pulse">
-              {error}
+            <div className="bg-rose-100/80 dark:bg-rose-900/20 text-rose-600 dark:text-rose-400 p-4 rounded-2xl text-center my-6 border border-rose-200 dark:border-rose-800/30 backdrop-blur-sm">
+              <p className="whitespace-pre-line text-sm">{error}</p>
+
+              <div className="mt-3 flex justify-center gap-3">
+                <button
+                  onClick={handleRetry}
+                  className="px-4 py-1.5 text-xs font-semibold rounded-full
+                            bg-rose-500 hover:bg-rose-600
+                            text-white transition-colors"
+                >
+                  Retry
+                </button>
+
+                <button
+                  onClick={() => setError(null)}
+                  className="px-4 py-1.5 text-xs font-semibold rounded-full
+                            bg-white/50 dark:bg-white/10
+                            hover:bg-white/70 dark:hover:bg-white/20
+                            transition-colors"
+                >
+                  Dismiss
+                </button>
+              </div>
             </div>
           )}
           <div ref={chatEndRef} />

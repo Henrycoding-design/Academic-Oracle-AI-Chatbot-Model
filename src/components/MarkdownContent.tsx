@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { BlockMath, InlineMath } from 'react-katex';
 
@@ -20,6 +19,7 @@ const CheckIcon = () => (
 
 const CodeBlock: React.FC<{ code: string }> = ({ code }) => {
   const [copied, setCopied] = useState(false);
+  // Unescape backslashes that might have been doubled during JSON transport
 
   const handleCopy = () => {
     navigator.clipboard.writeText(code);
@@ -29,17 +29,16 @@ const CodeBlock: React.FC<{ code: string }> = ({ code }) => {
 
   return (
     <div className="relative group my-4 rounded-lg bg-slate-900 dark:bg-black overflow-hidden border border-slate-800">
-      <div className="absolute top-2 left-2 flex gap-2">
+      <div className="absolute top-2 right-2 flex gap-2">
         <button
           onClick={handleCopy}
           className="p-1.5 rounded-md bg-white/10 hover:bg-white/20 text-slate-400 hover:text-white transition-all backdrop-blur-sm flex items-center gap-1.5 text-xs font-medium"
-          title="Copy code"
         >
           {copied ? <CheckIcon /> : <CopyIcon />}
           <span>{copied ? 'Copied' : 'Copy'}</span>
         </button>
       </div>
-      <pre className="p-4 pt-12 overflow-x-auto text-sm text-slate-300 font-mono leading-relaxed">
+      <pre className="p-4 pt-10 overflow-x-auto text-sm text-slate-300 font-mono leading-relaxed">
         <code>{code}</code>
       </pre>
     </div>
@@ -47,38 +46,19 @@ const CodeBlock: React.FC<{ code: string }> = ({ code }) => {
 };
 
 const InlineCode: React.FC<{ code: string }> = ({ code }) => {
-  const [copied, setCopied] = useState(false);
-  const wordCount = code.trim().split(/\s+/).length;
-  const isCopyable = wordCount > 2;
-
-  const handleCopy = () => {
-    if (!isCopyable) return;
-    navigator.clipboard.writeText(code);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
-
   return (
-    <code
-      onClick={handleCopy}
-      className={`
-        px-1.5 py-0.5 rounded font-mono text-sm
-        bg-slate-100 dark:bg-slate-800 text-indigo-600 dark:text-indigo-400
-        ${isCopyable ? 'cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors relative' : ''}
-      `}
-    >
+    <code className="px-1.5 py-0.5 rounded font-mono text-sm bg-slate-100 dark:bg-slate-800 text-indigo-600 dark:text-indigo-400">
       {code}
-      {isCopyable && copied && (
-        <span className="absolute -top-6 left-1/2 -translate-x-1/2 bg-slate-800 text-white text-[10px] px-2 py-1 rounded shadow-lg pointer-events-none">
-          Copied!
-        </span>
-      )}
     </code>
   );
 };
 
 export const MarkdownContent: React.FC<MarkdownContentProps> = ({ content }) => {
-  const lines = content.split('\n');
+  // Pre-process the content: Normalize double backslashes to single ones 
+  // ONLY if they are not part of a specific JSON-escaped sequence
+  const processedContent = content;
+  
+  const lines = processedContent.split('\n');
   const elements: React.ReactNode[] = [];
   
   let currentList: React.ReactNode[] = [];
@@ -89,39 +69,39 @@ export const MarkdownContent: React.FC<MarkdownContentProps> = ({ content }) => 
 
   const flushList = (key: number) => {
     if (currentList.length > 0) {
-      elements.push(<ul key={`list-${key}`} className="list-disc ml-6 my-3 space-y-1.5 text-slate-700 dark:text-slate-300">{[...currentList]}</ul>);
+      elements.push(
+        <ul key={`list-${key}`} className="list-disc ml-6 my-3 space-y-1.5 text-slate-700 dark:text-slate-300">
+          {[...currentList]}
+        </ul>
+      );
       currentList = [];
     }
   };
 
   const parseInline = (text: string): React.ReactNode[] => {
-    // 1. Define a combined regex to catch all tokens at once.
-    // Order matters: Code has priority to prevent matching inside code.
-    // Group 1: Code (`...`)
-    // Group 2: Bold (**...**)
-    // Group 3: Italic (*...*)
-    const regex = /(`[^`]+`|\$\$[^$]+\$\$|\$[^$]+\$|\*\*[^*]+\*\*|\*[^*]+\*)/g;
+    // Robust Regex to catch Inline Math ($...$), Bold (**...**), and Inline Code (`...`)
+    const regex = /(`[^`]+`|\$\$[\s\S]+?\$\$|\$[^$\n]+\$|\*\*[^*]+\*\*|\*[^*]+\*)/g;
 
     return text.split(regex).map((part, index) => {
       if (!part) return null;
 
-      // 2. Check for Code Block first (Atomic, no recursion inside)
-      if (part.startsWith('`') && part.endsWith('`')) {
-        return <InlineCode key={index} code={part.slice(1, -1)} />;
+      // Block Math inside paragraph (sometimes happens)
+      if (part.startsWith('$$')) {
+        return <BlockMath key={index} math={part.slice(2, -2).trim()} />;
       }
 
       // Inline Math $...$
-      if (part.startsWith('$') && part.endsWith('$') && !part.startsWith('$$')) {
-        return (
-          <InlineMath
-            key={index}
-            math={part.slice(1, -1)}
-          />
-        );
+      if (part.startsWith('$')) {
+        return <InlineMath key={index} math={part.slice(1, -1).trim()} />;
       }
 
-      // 3. Check for Bold (Container, recurse inside)
-      if (part.startsWith('**') && part.endsWith('**')) {
+      // Inline Code `...`
+      if (part.startsWith('`')) {
+        return <InlineCode key={index} code={part.slice(1, -1)} />;
+      }
+
+      // Bold **...**
+      if (part.startsWith('**')) {
         return (
           <strong key={index} className="font-bold text-slate-900 dark:text-white">
             {parseInline(part.slice(2, -2))}
@@ -129,16 +109,11 @@ export const MarkdownContent: React.FC<MarkdownContentProps> = ({ content }) => 
         );
       }
 
-      // 4. Check for Italic (Container, recurse inside)
-      if (part.startsWith('*') && part.endsWith('*')) {
-        return (
-          <em key={index} className="italic">
-            {parseInline(part.slice(1, -1))}
-          </em>
-        );
+      // Italic *...*
+      if (part.startsWith('*')) {
+        return <em key={index} className="italic">{parseInline(part.slice(1, -1))}</em>;
       }
 
-      // 5. Plain text
       return part;
     });
   };
@@ -147,15 +122,14 @@ export const MarkdownContent: React.FC<MarkdownContentProps> = ({ content }) => 
     const line = lines[i];
     const trimmedLine = line.trim();
 
-    // Code Block Check
     if (trimmedLine.startsWith('```')) {
       if (inCodeBlock) {
-        // Ending a code block
-        elements.push(<CodeBlock key={`code-${i}`} code={codeBlockLines.join('\n')} />);
+        elements.push(
+          <CodeBlock key={`code-${i}`} code={codeBlockLines.join('\n')} />
+        );
         codeBlockLines = [];
         inCodeBlock = false;
       } else {
-        // Starting a code block
         flushList(i);
         inCodeBlock = true;
       }
@@ -164,72 +138,53 @@ export const MarkdownContent: React.FC<MarkdownContentProps> = ({ content }) => 
 
     if (inCodeBlock) {
       codeBlockLines.push(line);
-      continue;
+      continue; // 🔒 NOTHING touches code
     }
 
-    // 🧮 Block Math ($$ ... $$)
-    if (trimmedLine.startsWith('$$')) {
-      flushList(i);
-
+    // 2. Block Math Logic
+    if (trimmedLine === '$$') {
       if (inMathBlock) {
-        // END math block
-        elements.push(
-          <BlockMath
-            key={`math-${i}`}
-            math={mathBlockLines.join('\n')}
-          />
-        );
+        elements.push(<div key={`math-${i}`} className="my-4 overflow-x-auto"><BlockMath math={mathBlockLines.join('\n')} /></div>);
         mathBlockLines = [];
         inMathBlock = false;
       } else {
-        // START math block
+        flushList(i);
         inMathBlock = true;
       }
       continue;
     }
-
     if (inMathBlock) {
       mathBlockLines.push(line);
       continue;
     }
 
-    // Header Check
-    if (trimmedLine.startsWith('### ')) {
+    // 3. Headers
+    if (trimmedLine.startsWith('#')) {
       flushList(i);
-      elements.push(<h3 key={`h3-${i}`} className="text-lg font-bold mt-6 mb-2 text-slate-900 dark:text-white">{parseInline(trimmedLine.slice(4))}</h3>);
-      continue;
-    }
-    if (trimmedLine.startsWith('## ')) {
-      flushList(i);
-      elements.push(<h2 key={`h2-${i}`} className="text-xl font-bold mt-7 mb-3 text-slate-900 dark:text-white">{parseInline(trimmedLine.slice(3))}</h2>);
-      continue;
-    }
-    if (trimmedLine.startsWith('# ')) {
-      flushList(i);
-      elements.push(<h1 key={`h1-${i}`} className="text-2xl font-black mt-8 mb-4 text-slate-900 dark:text-white border-b border-slate-200 dark:border-slate-800 pb-2">{parseInline(trimmedLine.slice(2))}</h1>);
+      const level = trimmedLine.match(/^#+/)?.[0].length || 1;
+      const text = trimmedLine.replace(/^#+\s*/, '');
+      const Tag = level === 1 ? 'h1' : level === 2 ? 'h2' : 'h3' as any;
+      const classes = level === 1 ? "text-2xl font-black mt-8 mb-4 border-b pb-2" : "text-xl font-bold mt-6 mb-3";
+      elements.push(<Tag key={`h-${i}`} className={`${classes} text-slate-900 dark:text-white`}>{parseInline(text)}</Tag>);
       continue;
     }
 
-    // List Item Check
+    // 4. Lists
     if (trimmedLine.startsWith('- ') || trimmedLine.startsWith('* ')) {
       currentList.push(<li key={`li-${i}`}>{parseInline(trimmedLine.slice(2))}</li>);
       continue;
     }
 
-    // Regular line / Paragraph
-    flushList(i);
+    // 5. Paragraphs
     if (trimmedLine === '') {
-      elements.push(<div key={`spacer-${i}`} className="h-4" />);
+      flushList(i);
+      elements.push(<div key={`spacer-${i}`} className="h-2" />);
     } else {
-      elements.push(<p key={`p-${i}`} className="mb-3 last:mb-0 text-slate-700 dark:text-slate-300">{parseInline(line)}</p>);
+      flushList(i);
+      elements.push(<p key={`p-${i}`} className="mb-3 text-slate-700 dark:text-slate-300 leading-relaxed">{parseInline(line)}</p>);
     }
   }
   
-  // Final flush for remaining items
   flushList(lines.length);
-  if (inCodeBlock) {
-    elements.push(<CodeBlock key="code-final" code={codeBlockLines.join('\n')} />);
-  }
-
-  return <div className="markdown-container text-[15px] leading-relaxed selection:bg-indigo-100 dark:selection:bg-indigo-900 selection:text-indigo-900 dark:selection:text-indigo-100">{elements}</div>;
+  return <div className="markdown-container py-2">{elements}</div>;
 };

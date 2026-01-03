@@ -30,13 +30,23 @@ Memory exists to SUPPORT reasoning and personalization — never to distract fro
 Output Format:
 All responses MUST be returned as a valid JSON object. Do not include any text outside the JSON. Use the following structure:
 {
-  "answer": "Your response, explanation, or hint goes here.",
-  "memory": "Updated Student Profile: [Only the most valuable, stable, and reusable insights about the student]"
+  "answer": "...",
+  "memory": "..."
 }
+
+CRITICAL FOR MATH & CODE:
+1. All LaTeX must use double backslashes (e.g., \\\\frac instead of \\frac) so it survives JSON parsing.
+2. Code blocks should use standard markdown: \`\`\`python\\nprint('hello')\\n\`\`\`.
+3. Use literal newlines (\\n) inside the JSON strings for line breaks.
+Never wrap the JSON in markdown fences.
+Never place \'\'\' inside the JSON unless it is part of a code block inside the "answer" string
 
 Note: 
 + ORACLE MEMORY: Long-term & Persistence memory
 + CHAT HISTORY: Short-term
+* LaTeX is allowed in the "answer" field.
+* All LaTeX MUST be properly escaped for JSON strings (use \\ for backslashes).
+* Do not place LaTeX outside the JSON object.
 
 Memory Update Rules (CRITICAL):
 - The "answer" is ALWAYS the top priority.
@@ -64,6 +74,11 @@ Your Interaction Framework:
 Treat the provided long-term memory as the single source of truth for student identity, level, goals, and preferences. 
 Use it to personalize your response and update it only when new, long-term valuable information emerges.`;
 
+const MODEL_FALLBACK_CHAIN = [
+  "gemini-3-flash-preview",
+  "gemini-2.5-flash",
+  "gemini-2.5-flash-lite"
+] as const;
 
 // let chatInstance: Chat | null = null;
 // let currentApiKey: string | null = null;
@@ -79,7 +94,55 @@ const isEncryptedPayload = (p: any): p is EncryptedKeyPayload =>
   typeof p.iv === "string" &&
   typeof p.data === "string";
 
-export const getChat = (apiKey: string): Chat => {
+const isRateLimitError = (err: unknown): boolean => {
+  try {
+    // Case 1: string error (Gemini SDK common case)
+    if (typeof err === "string") {
+      // Try JSON parse
+      try {
+        const parsed = JSON.parse(err);
+        return (
+          parsed?.error?.code === 429 ||
+          parsed?.error?.status === 429 ||
+          parsed?.error?.message?.includes("429") ||
+          parsed?.error?.message?.toLowerCase().includes("rate limit")
+        );
+      } catch {
+        // Plain string
+        return err.includes("429") || err.toLowerCase().includes("rate limit");
+      }
+    }
+
+    // Case 2: Error / object
+    const anyErr = err as any;
+
+    return (
+      anyErr?.status === 429 ||
+      anyErr?.code === 429 ||
+      anyErr?.error?.status === 429 ||
+      anyErr?.error?.code === 429 ||
+      anyErr?.message?.toLowerCase().includes("rate limit") ||
+      anyErr?.error?.message?.toLowerCase().includes("rate limit")
+    );
+  } catch {
+    // Absolute last resort — never crash fallback
+    return false;
+  }
+};
+
+function extractAndParseJSON(text: string) {
+  const start = text.indexOf('{');
+  const end = text.lastIndexOf('}');
+
+  if (start === -1 || end === -1) {
+    throw new Error("Oracle returned no JSON");
+  }
+
+  const json = text.slice(start, end + 1);
+  return JSON.parse(json);
+}
+
+export const getChat = (apiKey: string, model: string): Chat => {
   // // 🔁 Same user, same chat → full context preserved
   // if (chatInstance && currentApiKey === apiKey) {
   //   return chatInstance;
@@ -89,7 +152,7 @@ export const getChat = (apiKey: string): Chat => {
   const ai = new GoogleGenAI({ apiKey });
 
   const chat = ai.chats.create({
-    model: "gemini-3-flash-preview",
+    model,
     config: {
       systemInstruction: SYSTEM_INSTRUCTION
     },
@@ -106,13 +169,11 @@ export const getChat = (apiKey: string): Chat => {
 //   currentApiKey = null;
 // };
 
-export const sendMessageToBot = async (
-  params: {
-    history: { role: "user" | "model"; content: string }[];
-    memory?: string | null;
-    encryptedKeyPayload: EncryptedKeyPayload;
-  }
-): Promise<OracleResponse> => {
+export const sendMessageToBot = async (params: {
+  history: { role: "user" | "model"; content: string }[];
+  memory?: string | null;
+  encryptedKeyPayload: any;
+}): Promise<OracleResponse> => {
   const { history, memory, encryptedKeyPayload } = params;
 
   const memoryBlock = memory
@@ -135,13 +196,30 @@ export const sendMessageToBot = async (
 
   const api_key = await decryptApiKey(encryptedKeyPayload);
 
-  const chat = getChat(api_key);
-  const response: GenerateContentResponse = await chat.sendMessage({ message: prompt});
-  
-  const parsed = JSON.parse(response.text);
+  let lastError: any = null;
+  for (const model of MODEL_FALLBACK_CHAIN) {
+    try {
+      const ai = new GoogleGenAI({ apiKey: api_key });
+      const chat = ai.chats.create({
+        model,
+        config: { systemInstruction: SYSTEM_INSTRUCTION },
+      });
 
-  return {
-    answer: parsed.answer,
-    memory: parsed.memory,
-  };
+      const response: GenerateContentResponse = await chat.sendMessage({ message: prompt });
+      
+      // USE THE HYBRID PARSER HERE
+      const parsed = extractAndParseJSON(response.text);
+
+      return {
+        answer: parsed.answer,
+        memory: parsed.memory,
+      };
+    } catch (err: any) {
+      lastError = err;
+      // If it's a rate limit, try the next model in the chain
+      if (isRateLimitError(err)) continue;
+      throw err;
+    }
+  }
+  throw lastError;
 };

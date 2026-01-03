@@ -12,8 +12,13 @@
   "dependencies": {
     "@google/genai": "^1.22.0",
     "@supabase/supabase-js": "^2.89.0",
+    "highlight.js": "^11.11.1",
     "katex": "^0.16.27",
     "mammoth": "^1.11.0",
+    "markdown-it": "^14.1.0",
+    "markdown-it-footnote": "^4.0.0",
+    "markdown-it-katex": "^2.0.3",
+    "markdown-it-task-lists": "^2.1.1",
     "pdfjs-dist": "^5.4.449",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
