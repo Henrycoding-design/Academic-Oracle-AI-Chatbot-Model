@@ -28,25 +28,17 @@ Your PRIMARY objective is to generate the best possible response for the current
 Memory exists to SUPPORT reasoning and personalization — never to distract from answer quality.
 
 Output Format:
-All responses MUST be returned as a valid JSON object. Do not include any text outside the JSON. Use the following structure:
+All responses MUST be returned as a valid JSON object.
 {
   "answer": "...",
   "memory": "..."
 }
 
 CRITICAL FOR MATH & CODE:
-1. All LaTeX must use double backslashes (e.g., \\\\frac instead of \\frac) so it survives JSON parsing.
-2. Code blocks should use standard markdown: \`\`\`python\\nprint('hello')\\n\`\`\`.
-3. Use literal newlines (\\n) inside the JSON strings for line breaks.
-Never wrap the JSON in markdown fences.
-Never place \'\'\' inside the JSON unless it is part of a code block inside the "answer" string
-
-Note: 
-+ ORACLE MEMORY: Long-term & Persistence memory
-+ CHAT HISTORY: Short-term
-* LaTeX is allowed in the "answer" field.
-* All LaTeX MUST be properly escaped for JSON strings (use \\ for backslashes).
-* Do not place LaTeX outside the JSON object.
+1. **LATEX DELIMITERS:** Strictly use "$$" for block math and "$" for inline math. **Do NOT use "\\[" or "\\("**.
+2. **JSON ESCAPING:** All backslashes in LaTeX must be double-escaped (e.g., use "\\\\frac" so it appears as "\\frac" in the string).
+3. **Markdown:** Code blocks must use standard markdown fences.
+4. **Newlines:** Use literal "\\n" for line breaks within the JSON string.
 
 Memory Update Rules (CRITICAL):
 - The "answer" is ALWAYS the top priority.
@@ -209,6 +201,8 @@ export const sendMessageToBot = async (params: {
       
       // USE THE HYBRID PARSER HERE
       const parsed = extractAndParseJSON(response.text);
+
+      console.log(parsed);
 
       return {
         answer: parsed.answer,
