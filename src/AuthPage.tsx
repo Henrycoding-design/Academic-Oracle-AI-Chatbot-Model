@@ -3,7 +3,7 @@ import { supabase } from "./services/supabaseClient";
 import { encryptApiKey } from "./services/edgeCrypto";
 
 
-const AuthPage: React.FC<{ onLogin: (apiKey: string) => void }> = ({ onLogin }) => {
+const AuthPage: React.FC<{ onLogin: (apiKey: string) => void ; onViewDemo: () => void;}> = ({ onLogin , onViewDemo}) => {
   const [loading, setLoading] = useState(true);
   const ranRef = useRef(false);
 
@@ -72,6 +72,9 @@ const AuthPage: React.FC<{ onLogin: (apiKey: string) => void }> = ({ onLogin }) 
   const handleLogin = async () => {
     await supabase.auth.signInWithOAuth({
       provider: "google",
+      options: {
+        redirectTo: window.location.origin
+      }
     });
   };
 
@@ -86,12 +89,20 @@ const AuthPage: React.FC<{ onLogin: (apiKey: string) => void }> = ({ onLogin }) 
 
   return (
     <div className="h-screen flex flex-col items-center justify-center bg-slate-50 dark:bg-slate-950">
-      <h1 className="text-2xl font-bold mb-6 text-slate-900 dark:text-slate-100">Academic Oracle</h1>
+      <h1 className="text-3xl font-bold mb-6 text-slate-900 dark:text-slate-100">Academic Oracle</h1>
       <button
         onClick={handleLogin}
         className="px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
       >
         Continue with Google
+      </button>
+      <button
+        onClick={onViewDemo}
+        className="mt-4 px-6 py-3 border border-indigo-600 text-indigo-600
+                  rounded-lg hover:bg-indigo-50 dark:hover:bg-slate-900
+                  transition-colors"
+      >
+        View Interactive Guide
       </button>
     </div>
   );

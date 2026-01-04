@@ -9,6 +9,7 @@ import { supabase } from "./services/supabaseClient";
 // import { resetChat } from "./services/geminiService";
 import { readFileAsText } from "./services/fileReader";
 import 'katex/dist/katex.min.css';
+import ArcadeDemo from "./components/ArcadeDemo";
 
 const SunIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
@@ -108,6 +109,8 @@ const App: React.FC = () => {
     if (typeof window === "undefined") return null;
     return sessionStorage.getItem("academic-oracle-memory");
   });
+
+  const [showDemo, setShowDemo] = useState(false);
 
   useEffect(() => { // for student profile
     if (oracleMemory) {
@@ -385,9 +388,16 @@ const App: React.FC = () => {
 
   };
 
+  if (showDemo) {
+    return <ArcadeDemo />;
+  }
+
   // ✅ Show AuthPage first if encryptedApiKey is missing
   if (!encryptedApiKey) {
-    return <AuthPage onLogin={(key) => setEncryptedApiKey(key)} />;
+    return <AuthPage
+      onLogin={(key) => setEncryptedApiKey(key)}
+      onViewDemo={() => setShowDemo(true)}
+    />;
   }
 
   return (
