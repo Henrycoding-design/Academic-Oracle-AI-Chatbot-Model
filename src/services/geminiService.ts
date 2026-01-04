@@ -202,6 +202,8 @@ export const sendMessageToBot = async (params: {
       // USE THE HYBRID PARSER HERE
       const parsed = extractAndParseJSON(response.text);
 
+      // console.log(`Response from model ${model}:`, parsed);
+
       return {
         answer: parsed.answer,
         memory: parsed.memory,

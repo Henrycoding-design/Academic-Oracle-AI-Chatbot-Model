@@ -4,21 +4,62 @@ import mammoth from "mammoth";
 import Tesseract from "tesseract.js";
 
 
-pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker;
+// pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker;
+pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
+  "pdfjs-dist/build/pdf.worker.mjs",
+  import.meta.url
+).toString();
 
+// async function readPdf(file: File): Promise<string> {
+//   const buffer = await file.arrayBuffer();
+//   const pdf = await pdfjsLib.getDocument({ data: buffer }).promise;
+
+//   let text = "";
+
+//   for (let i = 1; i <= pdf.numPages; i++) {
+//     const page = await pdf.getPage(i);
+//     const content = await page.getTextContent();
+//     text += content.items.map((i: any) => i.str).join(" ") + "\n";
+//   }
+
+//   return text.trim();
+// }
 async function readPdf(file: File): Promise<string> {
-  const buffer = await file.arrayBuffer();
-  const pdf = await pdfjsLib.getDocument({ data: buffer }).promise;
+  try {
+    const buffer = await file.arrayBuffer();
+    
+    // Load the document
+    const loadingTask = pdfjsLib.getDocument({ 
+      data: buffer,
+      useSystemFonts: true // Helps with some encoding issues
+    });
+    
+    const pdf = await loadingTask.promise;
+    let fullText = "";
 
-  let text = "";
+    for (let i = 1; i <= pdf.numPages; i++) {
+      const page = await pdf.getPage(i);
+      const content = await page.getTextContent();
+      
+      // Filter and join text items
+      const pageText = content.items
+        .map((item: any) => item.str)
+        .join(" ");
+        
+      fullText += pageText + "\n";
+    }
 
-  for (let i = 1; i <= pdf.numPages; i++) {
-    const page = await pdf.getPage(i);
-    const content = await page.getTextContent();
-    text += content.items.map((i: any) => i.str).join(" ") + "\n";
+    const result = fullText.trim();
+    
+    if (result === "" && pdf.numPages > 0) {
+      console.warn("PDF parsed but no text found. This might be a scanned document.");
+    }
+
+    return result;
+  } catch (error) {
+    console.error("Error parsing PDF:", error);
+    throw new Error("Failed to read PDF content.");
   }
-
-  return text.trim();
 }
 
 
@@ -36,6 +77,7 @@ async function readImage(file: File): Promise<string> {
 
 export async function readFileAsText(file: File): Promise<string> {
   const ext = file.name.split(".").pop()?.toLowerCase();
+  console.log("Detected file extension:", ext);
 
   if (!ext) throw new Error("Unknown file type");
 
