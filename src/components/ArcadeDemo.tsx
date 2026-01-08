@@ -1,9 +1,9 @@
 const ArcadeDemo = () => {
   return (
-    <div style={{ position: 'relative', paddingBottom: 'calc(43.083333333333336% + 41px)', height: '0', width: '100%' }}>
+    <div style={{ position: 'relative', paddingBottom: 'calc(43.072916666666664% + 41px)', height: '0', width: '100%' }}>
       <iframe
-        src="https://demo.arcade.software/ZXzU0op5ToanMHZZrRtn?embed&embed_mobile=tab&embed_desktop=inline&show_copy_link=true"
-        title="Academic Oracle Guide"
+        src="https://demo.arcade.software/vfQU6Su4Dh6DmjWTNj9m?embed&embed_mobile=tab&embed_desktop=inline&show_copy_link=true"
+        title="Academic Oracle"
         frameBorder="0"
         loading="lazy"
         allowFullScreen

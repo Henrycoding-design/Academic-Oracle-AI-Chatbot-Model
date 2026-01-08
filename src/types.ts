@@ -19,4 +19,5 @@ export interface ChatHistoryItem {
 export type OracleResponse = {
   answer: string;
   memory?: string;
+  model: string;
 };

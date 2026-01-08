@@ -44,12 +44,104 @@
       .animate-fade-in-up {
         animation: fade-in-up 0.3s ease-out forwards;
       }
+      #seo-fallback {
+        opacity: 0;
+        pointer-events: none;
+        position: absolute;
+        left: -9999px;
+      }
+
+      noscript #seo-fallback {
+        opacity: 1;
+        position: static;
+      }
     </style>
   </head>
 
   <body class="bg-slate-50 dark:bg-slate-950 transition-colors duration-300">
-    <div id="root"></div>
-    <script data-name="BMC-Widget" data-cfasync="false" src="https://cdnjs.buymeacoffee.com/1.0.0/widget.prod.min.js" data-id="VoTanBinh" data-description="Support me on Buy me a coffee!" data-color="#5F7FFF" data-position="Right" data-x_margin="18" data-y_margin="18"></script>
+    <div id="root">
+      <div id="seo-fallback">
+        <h1>Universal Academic Oracle</h1>
+
+        <p>
+          Universal Academic Oracle is an AI-powered academic tutor designed to support students,
+          self-learners, and professionals across a full spectrum of disciplines — from foundational
+          education to advanced university-level and industrial topics.
+        </p>
+
+        <p>
+          The system functions as a personalized learning assistant that adapts to each user’s goals,
+          academic level, and learning pace. It provides clear explanations, step-by-step reasoning,
+          and conceptual insight rather than shallow or memorized answers.
+        </p>
+
+        <h2>Subjects and Learning Domains</h2>
+
+        <p>
+          Universal Academic Oracle supports a wide range of subjects, including but not limited to:
+        </p>
+
+        <ul>
+          <li>Mathematics — from basic algebra and calculus to advanced applied mathematics</li>
+          <li>Science — physics, chemistry, biology, and interdisciplinary scientific reasoning</li>
+          <li>Computer Science — programming, algorithms, data structures, and software engineering</li>
+          <li>Artificial Intelligence and Machine Learning fundamentals</li>
+          <li>Exam preparation — IGCSE, SAT, AP, IELTS, and other standardized assessments</li>
+          <li>University-level coursework and academic research topics</li>
+          <li>Industrial and professional practices in technology and engineering</li>
+        </ul>
+
+        <h2>How the Academic Oracle Works</h2>
+
+        <p>
+          The Academic Oracle combines conversational context with long-term learning memory to deliver
+          accurate, structured, and personalized responses. It is designed to function as a supportive
+          mentor — validating correct reasoning, identifying misconceptions, and guiding learners
+          toward deeper understanding.
+        </p>
+
+        <p>
+          For mathematics, science, and programming topics, the system emphasizes rigorous reasoning,
+          precise notation, and clean explanations. Complex concepts are broken down using analogies,
+          real-world examples, and stepwise logic when appropriate.
+        </p>
+
+        <h2>Learning Philosophy</h2>
+
+        <p>
+          Rather than providing instant answers alone, Universal Academic Oracle encourages active
+          learning. When a learner is close to a solution, the system uses guided questioning and hints.
+          When a topic is unfamiliar or conceptually difficult, it provides direct and thorough
+          explanations to build strong foundations.
+        </p>
+
+        <p>
+          The goal is not only to help users solve problems, but to help them think more clearly,
+          reason more effectively, and gain confidence in their academic abilities.
+        </p>
+
+        <h2>Who This Platform Is For</h2>
+
+        <p>
+          Universal Academic Oracle is suitable for:
+        </p>
+
+        <ul>
+          <li>Students preparing for exams or struggling with difficult subjects</li>
+          <li>Independent learners seeking structured explanations</li>
+          <li>University students working through advanced coursework</li>
+          <li>Developers and engineers reviewing technical concepts</li>
+          <li>Anyone who values deep understanding over surface-level answers</li>
+        </ul>
+
+        <p>
+          The platform is continuously evolving, with a focus on accuracy, clarity, and responsible
+          use of artificial intelligence in education.
+        </p>
+
+      </div>
+    </div>
+    <!-- <script data-name="BMC-Widget" data-cfasync="false" src="https://cdnjs.buymeacoffee.com/1.0.0/widget.prod.min.js" data-id="VoTanBinh" data-description="Support me on Buy me a coffee!" data-color="#5F7FFF" data-position="Right" data-x_margin="18" data-y_margin="18"></script> -->
     <script type="module" src="/src/index.tsx"></script>
   </body>
 </html>

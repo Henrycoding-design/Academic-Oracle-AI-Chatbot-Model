@@ -207,6 +207,7 @@ export const sendMessageToBot = async (params: {
       return {
         answer: parsed.answer,
         memory: parsed.memory,
+        model: model,
       };
     } catch (err: any) {
       lastError = err;
@@ -216,4 +217,88 @@ export const sendMessageToBot = async (params: {
     }
   }
   throw lastError;
+};
+
+
+// Generate structured session summary using Gemini
+const SUMMARY_SYSTEM_INSTRUCTION = `You are an advanced Educational Data Analyst. 
+Your specific task is to condense a raw student-AI dialogue into a structured JSON summary for local storage and review.
+
+INPUT DATA:
+- Student Profile (Memory)
+- Chat History
+- Contextual Instructions
+
+OUTPUT OBJECTIVE:
+Generate a valid JSON object summarizing the learning session.
+
+STRICT JSON SCHEMA:
+{
+  "profile": {
+    "name": "Student Name or 'Unknown'",
+    "level": "Academic Level or 'General'",
+    "focus": "Current Study Topic or 'General'"
+  },
+  "topics": [
+    {
+      "title": "Topic Name",
+      "formulas": ["Equation 1 in LaTeX", "Equation 2"],
+      "theories": ["Theory name", "Concept definition"],
+      "key_points": ["Bullet point 1", "Bullet point 2"],
+      "completion": "Estimated understanding (e.g., '3/5', 'Pending Practice')"
+    }
+  ],
+  "overall_completion": "Brief sentence on session progress"
+}
+
+CRITICAL RULES:
+1. **FORMAT:** Output MUST be raw JSON. Do not use Markdown code fences.
+2. **LATEX:** If math formulas appear, use LaTeX notation. You MUST double-escape backslashes (e.g., "\\\\frac" for fraction).
+3. **NO HALLUCINATIONS:** Only summarize what was actually discussed. If a field (like formulas) was not discussed, return an empty array [].
+4. **OBJECTIVITY:** Remove conversational filler. Focus on educational value.
+`;
+
+export const generateSessionSummary = async (params: {
+  history: { role: "user" | "model"; content: string }[];
+  memory?: string | null;
+  encryptedKeyPayload: any;
+}) => {
+  const { history, memory, encryptedKeyPayload } = params;
+
+  if (!isEncryptedPayload(encryptedKeyPayload)) {
+    throw new Error("Invalid encrypted API key payload");
+  }
+
+  const api_key = await decryptApiKey(encryptedKeyPayload);
+
+  const inputBlock = `
+ANALYZE THIS SESSION DATA:
+
+STUDENT PROFILE (Long Term Memory):
+${memory ?? "No prior profile data."}
+
+CURRENT SESSION HISTORY:
+${history.map((h) => `${h.role.toUpperCase()}: ${h.content}`).join("\n\n")}
+`.trim();
+
+
+  for (const model of MODEL_FALLBACK_CHAIN) {
+    try {
+      const ai = new GoogleGenAI({ apiKey: api_key });
+
+      const chat = ai.chats.create({
+        model: model,
+        config: { systemInstruction: SUMMARY_SYSTEM_INSTRUCTION },
+      });
+
+      const res = await chat.sendMessage({ message: inputBlock });
+
+      return extractAndParseJSON(res.text);
+    } catch (err) {
+      // If it's a rate limit, try the next model in the chain
+      if (isRateLimitError(err)) continue;
+      throw err;
+    }
+  }
+  throw new Error("All models rate limited or failed for session summary");
 };

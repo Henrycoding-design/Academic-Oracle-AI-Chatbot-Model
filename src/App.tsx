@@ -10,6 +10,12 @@ import { supabase } from "./services/supabaseClient";
 import { readFileAsText } from "./services/fileReader";
 import 'katex/dist/katex.min.css';
 import ArcadeDemo from "./components/ArcadeDemo";
+import { createPortal } from "react-dom";
+import { useClickOutside } from './services/useClickOutsite';
+import { generateSessionSummary } from './services/geminiService.ts';
+import { createSummaryDoc } from './services/createSummaryDoc.ts';
+import { SquarePen, ScrollText, ChevronDown} from 'lucide-react';
+import ProfilePage from './ProfilePage.tsx';
 
 const SunIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
@@ -23,7 +29,7 @@ const MoonIcon = () => (
   </svg>
 );
 
-const SystemStatus: React.FC<{ status: 'ok' | 'loading' | 'error' }> = ({ status }) => {
+const SystemStatus: React.FC<{ status: 'ok' | 'loading' | 'error', model: string }> = ({ status, model }) => {
     const colors = {
         ok: 'bg-emerald-400',
         loading: 'bg-amber-400',
@@ -37,10 +43,31 @@ const SystemStatus: React.FC<{ status: 'ok' | 'loading' | 'error' }> = ({ status
     };
 
     return (
-        <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-sm border border-white/20">
-            <div className={`w-2 h-2 rounded-full ${colors[status]} ${status === 'loading' ? 'animate-pulse' : ''}`}></div>
-            <span className="text-[10px] font-bold uppercase tracking-widest opacity-90 hidden sm:inline">{labels[status]}</span>
+      <div className="px-3 py-1.5 rounded-xl bg-white/10 backdrop-blur-sm border border-white/20">
+        {/* Top row: status */}
+        <div className="flex items-center gap-2">
+          <div
+            className={`w-2 h-2 rounded-full ${colors[status]} ${
+              status === "loading" ? "animate-pulse" : ""
+            }`}
+          />
+          <span className="text-[10px] font-bold uppercase tracking-widest opacity-90">
+            {labels[status]}
+          </span>
         </div>
+
+        {/* Bottom row: model name */}
+        <div className="mt-1">
+          <span className="
+            text-[10px] font-mono
+            bg-white/10 px-2 py-0.5
+            rounded-full border border-white/20
+            whitespace-nowrap
+          ">
+            {model}
+          </span>
+        </div>
+      </div>
     );
 };
 
@@ -70,6 +97,20 @@ function trimHistory(history: ChatHistoryItem[]) {
 }
 
 const App: React.FC = () => {
+  const [session, setSession] = useState<any | null>(null);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => {
+      setSession(data.session);
+    });
+
+    const { data: sub } = supabase.auth.onAuthStateChange(
+      (_event, session) => setSession(session)
+    );
+
+    return () => sub.subscription.unsubscribe();
+  }, []);
+
   const [encryptedApiKey, setEncryptedApiKey] = useState<any | null>(null);
   const [messages, setMessages] = useState<Message[]>(() => {
     if (typeof window === "undefined") return [];
@@ -142,7 +183,32 @@ const App: React.FC = () => {
     }
     return false;
   });
+  const [isOracleOpen, setIsOracleOpen] = useState(false);
+  const [oraclePos, setOraclePos] = useState<{ top: number; left: number } | null>(null);
+  const oracleButtonRef = useRef<HTMLButtonElement>(null);
+  const oracleMenuRef = useRef<HTMLDivElement>(null);
+  useClickOutside([oracleButtonRef, oracleMenuRef], () => setIsOracleOpen(false), isOracleOpen); // hook to close oracle status on outside click
+
+  const [showProfile, setShowProfile] = useState(false); // set state for profile page
+
+  useEffect(() => {
+    if (isOracleOpen && oracleButtonRef.current) {
+      const rect = oracleButtonRef.current.getBoundingClientRect();
+      setOraclePos({
+        top: rect.bottom + 8,
+        left: rect.left,
+      });
+    }
+  }, [isOracleOpen]);
+
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const userButtonRef = useRef<HTMLButtonElement>(null);
+  const userMenuRef = useRef<HTMLDivElement>(null);
+  useClickOutside([userButtonRef, userMenuRef], () => setIsUserMenuOpen(false), isUserMenuOpen); // hook to close user menu on outside click
+
+  const [model, setModel] = useState<string>('gemini-3-flash-preview'); // default model
   const chatEndRef = useRef<HTMLDivElement>(null);
+  
 
   // ⚡ Theme handling
   useEffect(() => {
@@ -156,7 +222,9 @@ const App: React.FC = () => {
   }, [isDark]);
 
   useEffect(() => {
-    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    chatEndRef.current?.scrollIntoView({
+      behavior: window.innerWidth < 640 ? 'auto' : 'smooth',
+    });
   }, [messages, isLoading]);
 
   useEffect(() => { // update oracle-api-key and only save it as string format
@@ -238,7 +306,7 @@ const App: React.FC = () => {
       };
 
       // 🔁 Stateless call with full history
-      const { answer, memory } = await sendMessageToBot({
+      const { answer, memory, model } = await sendMessageToBot({
         history: outgoingHistory,
         memory: oracleMemory,
         encryptedKeyPayload: encryptedApiKey,
@@ -261,6 +329,10 @@ const App: React.FC = () => {
       // Student profile/memory
       if (memory) {
         setOracleMemory(memory);
+      }
+
+      if (model) {
+        setModel(model);
       }
 
     } catch (err: unknown) {
@@ -357,6 +429,40 @@ const App: React.FC = () => {
     return 'ok';
   };
 
+  const resetChat = () => { // for new chat
+    // 🧹 wipe persisted chat state
+    sessionStorage.removeItem("academic-oracle-chat");
+    sessionStorage.removeItem("academic-oracle-history");
+
+    // ⚠️ optional: keep or wipe memory?
+    // sessionStorage.removeItem("academic-oracle-memory");
+
+    // 🖼️ reset UI messages
+    setMessages([
+      {
+        role: "model",
+        content:
+          "Welcome to the Universal Academic Oracle. From SATs and IELTS to University research and Industrial practices, I am here to guide your journey.\n\nBefore we begin, what should I call you, and what academic challenge are we tackling today?",
+      },
+    ]);
+
+    // 🧠 reset model context
+    setChatHistory([
+      {
+        role: "model",
+        content:
+          "Welcome to the Universal Academic Oracle. From SATs and IELTS to University research and Industrial practices, I am here to guide your journey.",
+      },
+    ]);
+
+    // 🔁 optional: wipe student profile
+    // setOracleMemory(null); //no need to wipe profile on new chat
+
+    // clean UI state
+    setError(null);
+    setIsLoading(false);
+  };
+
   const handleLogout = async () => {
     await supabase.auth.signOut(); // 🔐 kill auth
     // resetChat();                  // 🧠 wipe AI memory
@@ -388,6 +494,32 @@ const App: React.FC = () => {
 
   };
 
+  const handleGenerateSummary = async () => { // generate summary docx
+    if (!encryptedApiKey) return;
+    if (chatHistory.length <=1 || !oracleMemory) {
+      alert("No chat history or memory to summarize.");
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+
+      const summary = await generateSessionSummary({
+        history: chatHistory,
+        memory: oracleMemory,
+        encryptedKeyPayload: encryptedApiKey,
+      });
+
+      await createSummaryDoc(summary);
+    } catch (err) {
+      console.error(err);
+      alert("Failed to generate summary 😬");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+
   if (showDemo) {
     return <ArcadeDemo />;
   }
@@ -400,76 +532,151 @@ const App: React.FC = () => {
     />;
   }
 
+  const user = session?.user;
+
+  const avatarUrl =
+    user?.user_metadata?.avatar_url ||
+    user?.user_metadata?.picture ||
+    `https://api.dicebear.com/7.x/identicon/svg?seed=${user?.id}`;
+
   return (
-    <div className="flex flex-col h-screen font-sans antialiased text-gray-800 dark:text-gray-100 bg-slate-50 dark:bg-slate-950 overflow-hidden transition-colors duration-300">
-      <header className="px-6 py-4 bg-slate-900 text-white shadow-xl z-20 flex items-center justify-between border-b border-white/10">
-        <h1 className="text-xl font-black tracking-tighter flex items-center">
-          <span className="bg-indigo-500 text-white text-[10px] px-1.5 py-0.5 rounded-sm mr-2 shadow-[0_0_10px_rgba(99,102,241,0.5)]">UNIV</span>
-          Academic Oracle
-        </h1>
-        <div className="flex items-center gap-4">
-          <button
-            onClick={handleLogout}
-            className="px-3 py-1.5 text-xs font-semibold rounded-full
-                      bg-white/10 hover:bg-white/20
-                      text-slate-300 hover:text-white
-                      transition-colors"
-          >
-            Logout
-          </button>
-          <button 
-            onClick={() => setIsDark(!isDark)}
-            className="p-2 rounded-full hover:bg-white/10 transition-colors text-slate-300 hover:text-white"
-            aria-label="Toggle theme"
-          >
-            {isDark ? <SunIcon /> : <MoonIcon />}
-          </button>
-          <SystemStatus status={getStatus()} />
-        </div>
-      </header>
-
-      <main className="flex-grow overflow-y-auto pb-32 scrollbar-thin scrollbar-thumb-slate-300 dark:scrollbar-thumb-slate-800">
-        <div className="max-w-4xl mx-auto px-4 pt-8">
-          {messages.map((msg, index) => (
-            <ChatMessage key={index} message={msg} />
-          ))}
-          {isLoading && <LoadingIndicator />}
-          {error && (
-            <div className="bg-rose-100/80 dark:bg-rose-900/20 text-rose-600 dark:text-rose-400 p-4 rounded-2xl text-center my-6 border border-rose-200 dark:border-rose-800/30 backdrop-blur-sm">
-              <p className="whitespace-pre-line text-sm">{error}</p>
-
-              <div className="mt-3 flex justify-center gap-3">
-                <button
-                  onClick={handleRetry}
-                  className="px-4 py-1.5 text-xs font-semibold rounded-full
-                            bg-rose-500 hover:bg-rose-600
-                            text-white transition-colors"
-                >
-                  Retry
-                </button>
-
-                <button
-                  onClick={() => setError(null)}
-                  className="px-4 py-1.5 text-xs font-semibold rounded-full
-                            bg-white/50 dark:bg-white/10
-                            hover:bg-white/70 dark:hover:bg-white/20
-                            transition-colors"
-                >
-                  Dismiss
-                </button>
-              </div>
+    showProfile ? (
+      <ProfilePage
+        user={user}
+        encryptedApiKey={encryptedApiKey}
+        onSave={(key) => setEncryptedApiKey(key)}
+        onBack={() => setShowProfile(false)}
+      />
+    ) : (
+      /* Use flex-col and h-screen to ensure the container fills the viewport */
+      <div className="flex h-screen w-full overflow-hidden bg-slate-50 dark:bg-slate-950 font-sans antialiased">
+        
+        {/* 1. Sidebar - Kept as is, but removed fixed to let Flex handle it */}
+        <aside className="w-14 flex flex-col items-center pt-4 pb-4 bg-white/30 dark:bg-white/5 backdrop-blur-md border-r border-black/5 dark:border-white/10 z-30">
+            <div className="mb-6">
+              <span className="text-[10px] px-1.5 py-0.5 rounded-sm bg-indigo-500/90 text-white tracking-wide">UNIV</span>
             </div>
-          )}
-          <div ref={chatEndRef} />
-        </div>
-      </main>
+            <div className="flex flex-col gap-3 mt-2">
+              <button className="p-2 rounded-lg hover:bg-black/5 dark:hover:bg-white/10 text-slate-700 dark:text-slate-200" onClick={handleGenerateSummary} title="Generate Summary Doc"> {/* Summary btn*/}
+                <ScrollText size={18} />
+              </button>
 
-      <footer className="fixed bottom-0 left-0 w-full z-30 pointer-events-none">
-        <div className="pointer-events-auto bg-gradient-to-t from-slate-50 dark:from-slate-950 via-slate-50/80 dark:via-slate-950/80 to-transparent transition-colors duration-300">
-          <ChatInput onSendMessage={handleSendMessage} isLoading={isLoading} />
+              <button className="p-2 rounded-lg hover:bg-black/5 dark:hover:bg-white/10 text-slate-700 dark:text-slate-200" onClick={resetChat} title="Start New Chat">
+                <SquarePen size={18} />
+              </button>
+            </div>
+            <div className="mt-auto relative">
+              <button ref={userButtonRef} className="w-8 h-8 rounded-full overflow-hidden border border-white/20"
+              onClick={() => setIsUserMenuOpen(prev => !prev)}>
+                <img
+                  src={avatarUrl}
+                  alt="User avatar"
+                  className="w-full h-full object-cover"
+                />
+              </button>
+
+              {isUserMenuOpen &&
+                createPortal(
+                  <div 
+                  ref ={userMenuRef}
+                  className="
+                    absolute left-4 bottom-14 mb-1
+                    w-32 rounded-xl
+                    bg-white dark:bg-slate-900
+                    text-black dark:text-slate-200
+                    shadow-xl
+                    border border-black/5 dark:border-white/10
+                    text-sm z-[9999]
+                  ">
+                    <button className="block w-full px-3 py-2 text-left hover:bg-black/5" onClick={() => {setShowProfile(true)}}>
+                      Profile
+                    </button>
+                    <button
+                      onClick={handleLogout}
+                      className="block w-full px-3 py-2 text-left text-rose-600 hover:bg-black/5"
+                    >
+                      Log out
+                    </button>
+                  </div>,
+                  document.body
+                )
+              }
+            </div>
+        </aside>
+
+        {/* 2. Right Side Content Area */}
+        <div className="flex flex-col flex-1 h-full overflow-hidden relative">
+          
+          {/* Header - Fixed height */}
+          <header className="h-16 flex items-center justify-between px-6 bg-slate-50/70 dark:bg-slate-950/70 backdrop-blur-md border-b border-black/5 dark:border-white/10 z-20">
+            <button 
+              ref={oracleButtonRef}
+              className="text-lg font-medium text-slate-900 dark:text-slate-100 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
+              onClick={() => setIsOracleOpen(prev => !prev)}>
+                Academic Oracle <ChevronDown size={16} className="inline-block ml-1 mb-0.5" />
+            </button>
+            {isOracleOpen && oraclePos &&
+              createPortal(
+                <div
+                  ref={oracleMenuRef}
+                  className="
+                    fixed
+                    w-48 rounded-xl
+                    bg-white dark:bg-slate-900
+                    txt-black dark:text-slate-200
+                    shadow-xl
+                    border border-black/5 dark:border-white/10
+                    text-sm z-[9999]
+                  "
+                  style={{
+                    top: oraclePos.top,
+                    left: oraclePos.left,
+                  }}
+                >
+                  <div className="px-4 py-3 border-b border-black/5 dark:border-white/10">
+                    <p className="text-xs uppercase tracking-wide text-slate-500">
+                      Oracle Status
+                    </p>
+                  </div>
+
+                  <div className="px-4 py-3">
+                    <SystemStatus status={getStatus()} model={model} />
+                  </div>
+                </div>,
+                document.body
+              )
+            }
+            <button onClick={() => setIsDark(!isDark)} className="p-2 rounded-full bg-white/60 dark:bg-slate-950 text-slate-700 dark:text-slate-200 hover:bg-white/80 dark:hover:bg-slate-700 transition-colors">
+              {isDark ? <SunIcon /> : <MoonIcon />}
+            </button>
+          </header>
+
+          {/* Main Chat Area - THIS IS THE SCROLLING PART */}
+          <main className="flex-1 overflow-y-auto scroll-smooth custom-scrollbar">
+            <div className="max-w-4xl mx-auto px-4 pt-8 pb-32">
+              {messages.map((msg, index) => (
+                <ChatMessage key={index} message={msg} />
+              ))}
+              {isLoading && <LoadingIndicator />}
+              {error && (
+                <div className="bg-rose-100/80 dark:bg-rose-900/20 text-rose-600 p-4 rounded-2xl text-center my-6">
+                  <p>{error}</p>
+                  <button onClick={handleRetry} className="mt-2 bg-rose-500 text-white px-4 py-1 rounded-full text-xs">Retry</button>
+                </div>
+              )}
+              <div ref={chatEndRef} />
+            </div>
+          </main>
+
+          {/* Footer / Input - Sticks to bottom of the flex container */}
+          <footer className="absolute bottom-0 left-0 right-0 z-30 pointer-events-none">
+            <div className="pointer-events-auto bg-gradient-to-t from-slate-50 dark:from-slate-950 via-slate-50/90 to-transparent">
+              <ChatInput onSendMessage={handleSendMessage} isLoading={isLoading} />
+            </div>
+          </footer>
         </div>
-      </footer>
-    </div>
+      </div>
+    )
   );
 };
 

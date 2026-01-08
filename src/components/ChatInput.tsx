@@ -79,7 +79,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, isLoading }
   return (
     <div className="w-full px-4 pb-6 pt-2">
       <div className="max-w-4xl mx-auto">
-        <div className="flex items-end gap-3 p-2 rounded-2xl bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border border-slate-200 dark:border-slate-800 shadow-2xl transition-all duration-300">
+        <div className="flex items-end gap-3 p-2 rounded-2xl bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl border border-slate-200 dark:border-slate-800 shadow-xl transition-all duration-300">
           <button
             type="button"
             onClick={() => fileInputRef.current?.click()}

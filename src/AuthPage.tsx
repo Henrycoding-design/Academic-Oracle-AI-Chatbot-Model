@@ -1,13 +1,33 @@
 import React, { useEffect, useRef, useState } from "react";
 import { supabase } from "./services/supabaseClient";
 import { encryptApiKey } from "./services/edgeCrypto";
+import { ArrowBigLeftIcon } from "lucide-react";
 
-
-const AuthPage: React.FC<{ onLogin: (apiKey: string) => void ; onViewDemo: () => void;}> = ({ onLogin , onViewDemo}) => {
+const AuthPage: React.FC<{
+  onLogin: (apiKey: string) => void;
+  onViewDemo: () => void;
+}> = ({ onLogin, onViewDemo }) => {
   const [loading, setLoading] = useState(true);
+  const [needsApiKey, setNeedsApiKey] = useState(false);
+  const [apiKeyInput, setApiKeyInput] = useState("");
+  const [user, setUser] = useState<any>(null);
+  const [apiError, setApiError] = useState<string | null>(null);
+
   const ranRef = useRef(false);
 
-  // 🔁 Runs AFTER OAuth redirect
+  const validateApiKey = (key: string) => {
+    // Basic validation for API key format
+    return /^AIzaSy[a-zA-Z0-9_-]{30,}$/.test(key);
+  }
+
+  const resetToAuthPage = () => {
+    setNeedsApiKey(false);
+    setApiKeyInput("");
+    setApiError(null);
+    setUser(null);
+    ranRef.current = false;
+  }
+
   useEffect(() => {
     if (ranRef.current) return;
     ranRef.current = true;
@@ -22,89 +42,180 @@ const AuthPage: React.FC<{ onLogin: (apiKey: string) => void ; onViewDemo: () =>
         return;
       }
 
+      setUser(user);
+
       const { data: profile } = await supabase
         .from("profiles")
         .select("api_key")
         .eq("id", user.id)
         .single();
 
-      // 🟢 Existing user
       if (profile?.api_key) {
         setLoading(false);
         onLogin(profile.api_key);
         return;
       }
 
-      // 🆕 New user
-      const apiKey = prompt(
-        "Welcome! Please paste your GG AI Studio API Key to continue:"
-      );
-
-      if (!apiKey) {
-        alert("API Key is required.");
-        await supabase.auth.signOut();
-        setLoading(false);
-        return;
-      }
-
-      const encrypted = await encryptApiKey(apiKey);
-
-      const { error } = await supabase.from("profiles").insert({
-        id: user.id,
-        email: user.email,
-        api_key: encrypted,
-      });
-
-      if (error) {
-        alert("Failed to save API key.");
-        setLoading(false);
-        return;
-      }
-
+      // 🆕 New user → show API setup screen
+      setNeedsApiKey(true);
       setLoading(false);
-      onLogin(encrypted);
     };
 
     initAuth();
   }, [onLogin]);
 
-  // 🚀 OAuth trigger
+  const handleSaveApiKey = async () => {
+    setApiError(null);
+
+    const key = apiKeyInput.trim();
+
+    if (!key) { setApiError("API key can’t be empty."); return; };
+
+    if (!validateApiKey(key)) {
+      setApiError("Please enter a valid Google AI Studio API key.");
+      return;
+    }
+
+    const encrypted = await encryptApiKey(key);
+
+    const { error } = await supabase.from("profiles").insert({
+      id: user.id,
+      email: user.email,
+      api_key: encrypted,
+    });
+
+    if (error) {
+      setApiError("Failed to save API key 😬");
+      return;
+    }
+
+    onLogin(encrypted);
+  };
+
   const handleLogin = async () => {
     await supabase.auth.signInWithOAuth({
       provider: "google",
-      options: {
-        redirectTo: window.location.origin
-      }
+      options: { redirectTo: window.location.origin },
     });
   };
 
   if (loading) {
     return (
-      <div className="h-screen flex items-center justify-center text-slate-600 dark:text-slate-300 
-                bg-slate-50 dark:bg-slate-950">
+      <div className="h-screen flex items-center justify-center
+                      bg-slate-50 dark:bg-slate-950
+                      text-slate-600 dark:text-slate-300">
         Initializing Oracle…
       </div>
     );
   }
 
+  // 🔑 API SETUP SCREEN
+  if (needsApiKey) {
+    return (
+      <div className="h-screen relative flex flex-col items-center justify-center
+                      bg-slate-50 dark:bg-slate-950 px-6 text-center">
+
+        {/* ← Back button */}
+        <button
+          onClick={resetToAuthPage}
+          className="absolute top-6 left-6 p-2 rounded-lg
+                    text-slate-600 dark:text-slate-300
+                    hover:bg-slate-200 dark:hover:bg-slate-800
+                    transition"
+          aria-label="Back"
+        >
+          <ArrowBigLeftIcon size={24} />
+        </button>
+
+        <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100 mb-4">
+          One last step ✨
+        </h1>
+
+        <p className="text-slate-600 dark:text-slate-400 max-w-md mb-6">
+          Academic Oracle uses your{" "}
+          <a
+            href="https://aistudio.google.com/api-keys"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-indigo-600 dark:text-indigo-400 hover:underline"
+          >
+            GG AI Studio API key
+          </a>{" "}
+          to generate answers.  
+          Your key is encrypted and stored securely.
+        </p>
+
+        <input
+          type="password"
+          placeholder="Paste your API key here"
+          value={apiKeyInput}
+          onChange={(e) => setApiKeyInput(e.target.value)}
+          className="w-full max-w-md px-4 py-3 rounded-lg
+                    border border-slate-300 dark:border-slate-700
+                    bg-white dark:bg-slate-900
+                    text-slate-900 dark:text-slate-100 mb-2"
+        />
+
+        {apiError && (
+          <div className="text-sm text-red-600 dark:text-red-400 mb-3">
+            {apiError}
+          </div>
+        )}
+
+        <button
+          onClick={handleSaveApiKey}
+          className="w-full max-w-md px-6 py-3
+                    bg-indigo-600 text-white rounded-lg
+                    hover:bg-indigo-700 transition-colors"
+        >
+          Save & Enter Oracle 🚀
+        </button>
+
+        <button
+          onClick={onViewDemo}
+          className="mt-4 text-indigo-600 hover:underline"
+        >
+          Try the interactive demo instead
+        </button>
+      </div>
+    );
+  }
+
+
+  // 🔐 LOGIN SCREEN
   return (
-    <div className="h-screen flex flex-col items-center justify-center bg-slate-50 dark:bg-slate-950">
-      <h1 className="text-3xl font-bold mb-6 text-slate-900 dark:text-slate-100">Academic Oracle</h1>
+    <div className="h-screen flex flex-col items-center justify-center
+                    bg-slate-50 dark:bg-slate-950">
+      <h1 className="text-3xl font-bold mb-6 text-slate-900 dark:text-slate-100">
+        Academic Oracle
+      </h1>
+
       <button
         onClick={handleLogin}
-        className="px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+        className="px-6 py-3 bg-indigo-600 text-white rounded-lg
+                   hover:bg-indigo-700 transition-colors"
       >
         Continue with Google
       </button>
+
       <button
         onClick={onViewDemo}
         className="mt-4 px-6 py-3 border border-indigo-600 text-indigo-600
-                  rounded-lg hover:bg-indigo-50 dark:hover:bg-slate-900
-                  transition-colors"
+                   rounded-lg hover:bg-indigo-50 dark:hover:bg-slate-900
+                   transition-colors"
       >
         View Interactive Guide
       </button>
+      <button
+        className="absolute bottom-8 text-sm text-slate-600 dark:text-slate-300
+                  hover:text-indigo-600 dark:hover:text-indigo-400
+                  transition-colors"
+        onClick={() => window.open("https://buymeacoffee.com/votanbinh", "_blank")}
+        >
+          Created by Vo Tan Binh (Parent: Ngo Ngoc Cuong)
+      </button>
     </div>
+
   );
 };
 
