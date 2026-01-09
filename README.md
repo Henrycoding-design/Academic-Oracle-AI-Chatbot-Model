@@ -86,7 +86,7 @@ If Academic Oracle helps your learning:
 
 * ⭐ Star the repository
 
-* ☕ Support via [Buy Me a Coffee]("https://buymeacoffee.com/votanbinh")
+* ☕ Support via [Buy Me a Coffee](https://buymeacoffee.com/votanbinh)
 
 * 🧠 Use it, break it, and learn from it
 
