@@ -73,7 +73,7 @@ You don’t just learn faster — you learn *properly*.
    ```env.local
    VITE_SUPABASE_URL=YOUR_SUPABASE_URL
    VITE_SUPABASE_ANON_KEY=YOUR_SUPABASE_ANON_KEY
-   
+
 3. Start development server:
    ```bash
    npm run dev
@@ -86,7 +86,7 @@ If Academic Oracle helps your learning:
 
 * ⭐ Star the repository
 
-* ☕ Support via Buy Me a Coffee
+* ☕ Support via [Buy Me a Coffee]("https://buymeacoffee.com/votanbinh")
 
 * 🧠 Use it, break it, and learn from it
 
