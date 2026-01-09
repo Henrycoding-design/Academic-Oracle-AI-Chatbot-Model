@@ -1,20 +1,93 @@
 <div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
+  <!-- Replace the src below with your latest banner/image -->
+  <img width="1200" height="475" alt="Academic Oracle Banner" src="bg_img.png" />
 </div>
 
-# Run and deploy your AI Studio app
+# Academic Oracle
 
-This contains everything you need to run your app locally.
+**Academic Oracle** is a learning-focused AI platform designed to maximize understanding, not passive consumption.
 
-View your app in AI Studio: https://ai.studio/apps/drive/1FNjVmRNVm6J_ZXD6lUNCeJcOgwYYUonJ
+Instead of immediately giving answers, Academic Oracle follows a scientifically grounded flow:
 
-## Run Locally
+> **Ask → Think → Hint → Pattern → Insight**
 
-**Prerequisites:**  Node.js
+The goal is not memorization — it’s *deep, durable learning*.
 
+---
+
+## Why Academic Oracle?
+
+Most AI tools optimize for speed.  
+Academic Oracle optimizes for **retention, intuition, and reasoning**.
+
+### Core Learning Principles
+- Active recall before answers
+- Progressive hinting instead of instant solutions
+- Pattern discovery over rote explanation
+- Minimal UI disruption to maintain cognitive flow
+
+You don’t just learn faster — you learn *properly*.
+
+---
+
+## Features
+
+- 🧠 **Hint-based reasoning flow** (ask first, reveal later)
+- 🧮 **Robust Markdown rendering**
+  - Math (KaTeX)
+  - Tables
+  - Code blocks
+- 🎨 **Dark / Light mode**
+- 🔐 **AES-GCM-256 encryption** for API key storage
+- 🧩 **Arcade-style onboarding tutorial**
+- 👤 **User profile & session continuity**
+- 🖥️ **Responsive UI** (desktop & mobile)
+- 🛑 **Fail-in-console design** (errors never break the UI)
+- ☕ **Buy Me a Coffee support link**
+
+---
+
+## Tech Stack
+
+- **Frontend:** React + TypeScript
+- **Styling:** Tailwind CSS
+- **Math Rendering:** KaTeX
+- **State & UX:** Custom lightweight logic (no heavy frameworks)
+- **Security:** AES-GCM-256 encryption for sensitive keys
+- **AI Provider:** Gemini API (user-supplied key)
+
+---
+
+## Running Locally
+
+### Prerequisites
+- **Node.js** (v18+ recommended)
+
+### Setup
 
 1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+   ```bash
+   npm install
+
+2. Setup Environment Variables:
+   ```env.local
+   VITE_SUPABASE_URL=YOUR_SUPABASE_URL
+   VITE_SUPABASE_ANON_KEY=YOUR_SUPABASE_ANON_KEY
+   
+3. Start development server:
+   ```bash
+   npm run dev
+
+*API Key will be asked during initial signup for an account*
+
+### Support
+
+If Academic Oracle helps your learning:
+
+* ⭐ Star the repository
+
+* ☕ Support via Buy Me a Coffee
+
+* 🧠 Use it, break it, and learn from it
+
+Recognition means a lot — but impact matters more.

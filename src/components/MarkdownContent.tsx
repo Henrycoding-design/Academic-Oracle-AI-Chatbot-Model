@@ -41,6 +41,60 @@ const InlineCode: React.FC<{ code: string }> = ({ code }) => {
   );
 };
 
+const isTableLine = (line: string) => {
+  return line.includes('|') && line.trim().startsWith('|') && line.trim().endsWith('|');
+};
+
+const TableBlock: React.FC<{ lines: string[] }> = ({ lines }) => {
+  const rows = lines.map(line =>
+    line
+      .trim()
+      .slice(1, -1)
+      .split('|')
+      .map(cell => cell.trim()) // arrow function syntax, equivalent to .map(function(cell) { return cell.trim(); }
+  );
+
+  const header = rows[0];
+  const body = rows.slice(2); // skip separator row
+
+  return (
+    <div className="my-6 overflow-x-auto">
+      <table className="min-w-full border border-slate-300 dark:border-slate-700 rounded-lg overflow-hidden">
+        <thead className="bg-slate-100 dark:bg-slate-800">
+          <tr>
+            {header.map((cell, i) => (
+              <th
+                key={i}
+                className="px-4 py-2 text-left text-sm font-semibold text-slate-900 dark:text-white border-b"
+              >
+                {cell}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {body.map((row, rIdx) => ( // map syntax: .map((element, index, array) => ...)
+            <tr
+              key={rIdx}
+              className="odd:bg-white even:bg-slate-50 dark:odd:bg-slate-900 dark:even:bg-slate-800"
+            >
+              {row.map((cell, cIdx) => (
+                <td
+                  key={cIdx}
+                  className="px-4 py-2 text-sm text-slate-700 dark:text-slate-300 border-b"
+                >
+                  {cell}
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+};
+
+
 export const MarkdownContent: React.FC<MarkdownContentProps> = ({ content }) => {
   const lines = content.split('\n');
   const elements: React.ReactNode[] = [];
@@ -50,6 +104,9 @@ export const MarkdownContent: React.FC<MarkdownContentProps> = ({ content }) => 
   let codeBlockLines: string[] = [];
   let inMathBlock = false;
   let mathBlockLines: string[] = [];
+  let inTable = false;
+  let tableLines: string[] = [];
+
 
   const flushList = (key: number) => {
     if (currentList.length > 0) {
@@ -159,6 +216,23 @@ export const MarkdownContent: React.FC<MarkdownContentProps> = ({ content }) => 
     if (inMathBlock) {
       mathBlockLines.push(line);
       continue;
+    }
+
+    // TABLE START / CONTINUE
+    if (isTableLine(line)) {
+      flushList(i); // Flush any ongoing list before starting table
+      inTable = true;
+      tableLines.push(line);
+      continue;
+    }
+
+    // TABLE END
+    if (inTable && !isTableLine(line)) {
+      elements.push(
+        <TableBlock key={`table-${i}`} lines={[...tableLines]} />
+      );
+      tableLines = [];
+      inTable = false;
     }
 
     // 3. Headers
