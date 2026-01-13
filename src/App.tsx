@@ -554,7 +554,10 @@ const App: React.FC = () => {
         {/* 1. Sidebar - Kept as is, but removed fixed to let Flex handle it */}
         <aside className="w-14 flex flex-col items-center pt-4 pb-4 bg-white/30 dark:bg-white/5 backdrop-blur-md border-r border-black/5 dark:border-white/10 z-30">
             <div className="mb-6">
-              <span className="text-[10px] px-1.5 py-0.5 rounded-sm bg-indigo-500/90 text-white tracking-wide">UNIV</span>
+              {/* <span className="text-[10px] px-1.5 py-0.5 rounded-sm bg-indigo-500/90 text-white tracking-wide">UNIV</span> */}
+              <div className="p-1 rounded-[8px] transition-colors hover:bg-black/5 dark:hover:bg-white/10">
+              <img src="./icon.png" alt="Academic Oracle Logo" className="w-8 h-7 select-none"/>
+            </div>
             </div>
             <div className="flex flex-col gap-3 mt-2">
               <button className="p-2 rounded-lg hover:bg-black/5 dark:hover:bg-white/10 text-slate-700 dark:text-slate-200" onClick={handleGenerateSummary} title="Generate Summary Doc"> {/* Summary btn*/}
