@@ -190,9 +190,13 @@ const AuthPage: React.FC<{
             // 1. Update the database so it remembers this choice
             const { error } = await supabase
               .from("profiles")
-              .update({ mode: 'free' })
-              .eq('id', user.id);
-
+              .upsert({ 
+                id: user.id,
+                email: user.email,
+                api_key: null,
+                mode: 'free' 
+              })
+              
             if (error) {
               setApiError("Failed to save preference.");
               return;
