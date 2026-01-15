@@ -1,6 +1,6 @@
 <div align="center">
 
-  <img src="bg_img.png" alt="Academic Oracle Logo" width="100%" height="80%" style="max-width: 1000px;" />
+  <img src="bg_img.png" alt="Academic Oracle Logo" width="100%" style="max-width: 1000px;" /> 
 
   <p><strong>Clarity for Every Concept. Where Knowledge Becomes Insight.</strong></p>
 
