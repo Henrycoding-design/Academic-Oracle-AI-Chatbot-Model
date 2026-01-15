@@ -625,8 +625,8 @@ const App: React.FC = () => {
             <div className="mb-6">
               {/* <span className="text-[10px] px-1.5 py-0.5 rounded-sm bg-indigo-500/90 text-white tracking-wide">UNIV</span> */}
               <div className="p-1 rounded-[8px] transition-colors hover:bg-black/5 dark:hover:bg-white/10">
-              <img src="./icon.png" alt="Academic Oracle Logo" className="w-8 h-7 select-none"/>
-            </div>
+                <img src="/icon.png" alt="Academic Oracle Logo" className="w-8 h-7 select-none"/>
+              </div>
             </div>
             <div className="flex flex-col gap-3">
               <button className="p-2 rounded-lg hover:bg-black/5 dark:hover:bg-white/10 text-slate-700 dark:text-slate-200" onClick={handleGenerateSummary} title="Generate Summary Doc"> {/* Summary btn*/}
