@@ -1,6 +1,30 @@
 <div align="center">
-  <!-- Replace the src below with your latest banner/image -->
-  <img width="1200" height="475" alt="Academic Oracle Banner" src="bg_img.png" />
+
+  <img src="bg_img.png" alt="Academic Oracle Logo" width="100%" style="max-width: 1000px;" />
+
+  <p><strong>Clarity for Every Concept. Where Knowledge Becomes Insight.</strong></p>
+
+  <p>
+    <a href="#features">Features</a> •
+    <a href="#tech-stack">Tech Stack</a> •
+    <a href="#support">Support</a>
+  </p>
+
+  <p>
+    <img src="https://img.shields.io/badge/license-MIT-blue.svg" />
+    <img src="https://img.shields.io/badge/status-beta-orange.svg" />
+    <img src="https://img.shields.io/github/stars/Henrycoding-design/Academic-Oracle-AI-Chatbot-Model" />
+    <img src="https://img.shields.io/github/last-commit/Henrycoding-design/Academic-Oracle-AI-Chatbot-Model" />
+  </p>
+
+  <p>
+    <img src="https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=000000" />
+    <img src="https://img.shields.io/badge/Vite-6-646CFF?logo=vite&logoColor=white" />
+    <img src="https://img.shields.io/badge/TypeScript-5.8-3178C6?logo=typescript&logoColor=white" />
+    <img src="https://img.shields.io/badge/Supabase-Postgres-3ECF8E?logo=supabase&logoColor=white" />
+    <img src="https://img.shields.io/badge/Google-GenAI-4285F4?logo=google&logoColor=white" />
+  </p>
+
 </div>
 
 # Academic Oracle
@@ -80,7 +104,7 @@ You don’t just learn faster — you learn *properly*.
 
 *API Key will be asked during initial signup for an account*
 
-### Support
+## Support
 
 If Academic Oracle helps your learning:
 
