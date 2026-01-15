@@ -45,7 +45,7 @@ const isTableLine = (line: string) => {
   return line.includes('|') && line.trim().startsWith('|') && line.trim().endsWith('|');
 };
 
-const TableBlock: React.FC<{ lines: string[] }> = ({ lines }) => {
+const TableBlock: React.FC<{ lines: string[], parseInline: (text: string) => React.ReactNode[] }> = ({ lines , parseInline }) => {
   const rows = lines.map(line =>
     line
       .trim()
@@ -67,7 +67,7 @@ const TableBlock: React.FC<{ lines: string[] }> = ({ lines }) => {
                 key={i}
                 className="px-4 py-2 text-left text-sm font-semibold text-slate-900 dark:text-white border-b"
               >
-                {cell}
+                {parseInline(cell)} {/* using parseInline for header cells as well */}
               </th>
             ))}
           </tr>
@@ -83,7 +83,7 @@ const TableBlock: React.FC<{ lines: string[] }> = ({ lines }) => {
                   key={cIdx}
                   className="px-4 py-2 text-sm text-slate-700 dark:text-slate-300 border-b"
                 >
-                  {cell}
+                  {parseInline(cell)} {/* using parseInline for body cells */}
                 </td>
               ))}
             </tr>
@@ -229,7 +229,7 @@ export const MarkdownContent: React.FC<MarkdownContentProps> = ({ content }) => 
     // TABLE END
     if (inTable && !isTableLine(line)) {
       elements.push(
-        <TableBlock key={`table-${i}`} lines={[...tableLines]} />
+        <TableBlock key={`table-${i}`} lines={[...tableLines]} parseInline={parseInline} />
       );
       tableLines = [];
       inTable = false;

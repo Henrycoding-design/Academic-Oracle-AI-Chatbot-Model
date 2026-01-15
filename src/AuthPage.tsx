@@ -4,7 +4,7 @@ import { encryptApiKey } from "./services/edgeCrypto";
 import { ArrowBigLeftIcon } from "lucide-react";
 
 const AuthPage: React.FC<{
-  onLogin: (apiKey: string) => void;
+  onLogin: (apiKey: any | null, mode: 'free' | 'full') => void;
   onViewDemo: () => void;
 }> = ({ onLogin, onViewDemo }) => {
   const [loading, setLoading] = useState(true);
@@ -46,13 +46,17 @@ const AuthPage: React.FC<{
 
       const { data: profile } = await supabase
         .from("profiles")
-        .select("api_key")
+        .select("api_key, mode")
         .eq("id", user.id)
         .single();
 
-      if (profile?.api_key) {
-        setLoading(false);
-        onLogin(profile.api_key);
+      if (profile?.mode === 'full' && profile.api_key) {
+        onLogin(profile.api_key, "full"); // full mode
+        return;
+      }
+
+      if (profile?.mode === 'free') {
+        onLogin(null, "free"); // free mode
         return;
       }
 
@@ -78,18 +82,21 @@ const AuthPage: React.FC<{
 
     const encrypted = await encryptApiKey(key);
 
-    const { error } = await supabase.from("profiles").insert({
-      id: user.id,
-      email: user.email,
-      api_key: encrypted,
-    });
+    const { error } = await supabase
+      .from("profiles")
+      .upsert({
+        id: user.id,
+        email: user.email,
+        api_key: encrypted,
+        mode: "full",
+      });
 
     if (error) {
       setApiError("Failed to save API key 😬");
       return;
     }
 
-    onLogin(encrypted);
+    onLogin(encrypted, "full");
   };
 
   const handleLogin = async () => {
@@ -176,6 +183,27 @@ const AuthPage: React.FC<{
           className="mt-4 text-indigo-600 hover:underline"
         >
           Try the interactive demo instead
+        </button>
+
+        <button
+          onClick={async () => {
+            // 1. Update the database so it remembers this choice
+            const { error } = await supabase
+              .from("profiles")
+              .update({ mode: 'free' })
+              .eq('id', user.id);
+
+            if (error) {
+              setApiError("Failed to save preference.");
+              return;
+            }
+
+            // 2. Trigger the login in the parent App
+            onLogin(null, "free");
+          }}
+          className="mt-3 text-sm text-slate-500 hover:underline"
+        >
+          Skip for now (limited free access) 
         </button>
       </div>
     );

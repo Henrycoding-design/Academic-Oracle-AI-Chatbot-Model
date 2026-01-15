@@ -2,6 +2,7 @@
 import { GoogleGenAI, Chat, GenerateContentResponse } from "@google/genai";
 import type { Message, OracleResponse } from '../types';
 import { decryptApiKey } from "./edgeCrypto";
+import { getNextEnvKey } from "./envKeys";
 
 // const SYSTEM_INSTRUCTION = `You are the 'Academic Oracle', a world-class polymath and supportive mentor. 
 // Your scope is UNLIMITED: from primary education and competitive exams (IGCSE, SAT, AP, IELTS) to University-level research and professional Industrial practices.
@@ -181,12 +182,25 @@ export const sendMessageToBot = async (params: {
     ${history.map(h => `${h.role.toUpperCase()}: ${h.content}`).join("\n\n")}
     `.trim();
 
-  // 🔓 decrypt JUST-IN-TIME with jsonb type guard
-  if (!isEncryptedPayload(encryptedKeyPayload)) {
-    throw new Error("Invalid encrypted API key payload");
+  let api_key: string | null = null;
+  
+  if (!encryptedKeyPayload) {
+    // Use environment key
+    api_key = getNextEnvKey();
+  } else {
+    // Decrypt user key
+
+    // 🔓 decrypt JUST-IN-TIME with jsonb type guard
+    if (!isEncryptedPayload(encryptedKeyPayload)) {
+      throw new Error("Invalid encrypted API key payload");
+    }
+
+    api_key = await decryptApiKey(encryptedKeyPayload);
   }
 
-  const api_key = await decryptApiKey(encryptedKeyPayload);
+  if (!api_key) { // should never happen
+    throw new Error("No API key available for free mode.");
+  }
 
   let lastError: any = null;
   for (const model of MODEL_FALLBACK_CHAIN) {
@@ -252,7 +266,7 @@ STRICT JSON SCHEMA:
 }
 
 CRITICAL RULES:
-1. **FORMAT:** Output MUST be raw JSON. Do not use Markdown code fences.
+1. **FORMAT:** Output MUST be raw JSON: use {content inside}). Do not use Markdown code fences.
 2. **LATEX:** If math formulas appear, use LaTeX notation. You MUST double-escape backslashes (e.g., "\\\\frac" for fraction).
 3. **NO HALLUCINATIONS:** Only summarize what was actually discussed. If a field (like formulas) was not discussed, return an empty array [].
 4. **OBJECTIVITY:** Remove conversational filler. Focus on educational value.
@@ -265,11 +279,21 @@ export const generateSessionSummary = async (params: {
 }) => {
   const { history, memory, encryptedKeyPayload } = params;
 
-  if (!isEncryptedPayload(encryptedKeyPayload)) {
-    throw new Error("Invalid encrypted API key payload");
+  let api_key: string | null = null;
+
+  if (!encryptedKeyPayload) {
+    api_key = getNextEnvKey();
+  } else {
+    // 🔓 decrypt JUST-IN-TIME with jsonb type guard
+    if (!isEncryptedPayload(encryptedKeyPayload)) {
+      throw new Error("Invalid encrypted API key payload");
+    }
+    api_key = await decryptApiKey(encryptedKeyPayload);
   }
 
-  const api_key = await decryptApiKey(encryptedKeyPayload);
+  if (!api_key) { // should never happen
+    throw new Error("No API key available for free mode.");
+  }
 
   const inputBlock = `
 ANALYZE THIS SESSION DATA:

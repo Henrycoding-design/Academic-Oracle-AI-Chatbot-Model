@@ -1,6 +1,7 @@
 import React, { useState } from "react";
-import { Pencil, Save , ArrowBigLeftIcon} from "lucide-react";
-import { decryptApiKey, encryptApiKey } from './services/edgeCrypto.ts';
+import { Pencil, Save , ArrowBigLeftIcon, Plus} from "lucide-react";
+import { decryptApiKey, encryptApiKey} from './services/edgeCrypto.ts';
+import { supabase } from "./services/supabaseClient";
 
 interface ProfilePageProps {
   user: any;
@@ -19,6 +20,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({
 }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [apiKeyPlain, setApiKeyPlain] = useState("");
+  const hasApiKey = Boolean(encryptedApiKey);
 
   const avatarUrl =
     user?.user_metadata?.avatar_url ||
@@ -26,8 +28,18 @@ const ProfilePage: React.FC<ProfilePageProps> = ({
     `https://api.dicebear.com/7.x/identicon/svg?seed=${user?.id}`;
 
   const handleEdit = async () => {
-    setApiKeyPlain(await decryptApiKey(encryptedApiKey));
-    setIsEditing(true);
+    if (!hasApiKey) {
+      setApiKeyPlain("");
+      setIsEditing(true);
+      return;
+    }
+    try {
+      setApiKeyPlain(await decryptApiKey(encryptedApiKey));
+      setIsEditing(true);
+    } catch (e) {
+      console.error(e);
+      alert("Failed to load API key.");
+    }
   };
 
   const validateApiKey = (key: string) => {
@@ -36,14 +48,35 @@ const ProfilePage: React.FC<ProfilePageProps> = ({
   }
 
   const handleSave = async () => {
-    if (!validateApiKey(apiKeyPlain)) { // Validate API key format
+    if (!validateApiKey(apiKeyPlain)) {
       alert("Invalid API Key format.");
       return;
     }
-    const encrypted = await encryptApiKey(apiKeyPlain);
-    onSave(encrypted);
-    setIsEditing(false);
-    setApiKeyPlain("");
+
+    try {
+      const encrypted = await encryptApiKey(apiKeyPlain);
+
+      // ✅ Persist to DB
+      const { error } = await supabase
+      .from("profiles")
+      .upsert({
+        id: user.id,
+        email: user.email,
+        api_key: encrypted,
+        mode: "full",
+      });
+
+      if (error) throw error;
+
+      // 🔔 Notify App (runtime update)
+      onSave(encrypted);
+
+      setIsEditing(false);
+      setApiKeyPlain("");
+    } catch (err) {
+      console.error(err);
+      alert("Failed to save API key.");
+    }
   };
 
   return (
@@ -88,7 +121,8 @@ const ProfilePage: React.FC<ProfilePageProps> = ({
             <input
               type={isEditing ? "text" : "password"}
               disabled={!isEditing}
-              value={isEditing ? apiKeyPlain : "••••••••••••••••••••••"}
+              value={isEditing ? apiKeyPlain : hasApiKey ? "••••••••••••••••••••••" : ""}
+              placeholder={!hasApiKey && !isEditing ? "No API Key set" : undefined}
               onChange={(e) => setApiKeyPlain(e.target.value)}
               className="
                 flex-1 px-3 py-2 rounded-lg
@@ -105,13 +139,20 @@ const ProfilePage: React.FC<ProfilePageProps> = ({
               <button
                 onClick={handleEdit}
                 className="p-2 rounded-lg bg-slate-100 dark:bg-slate-800
-                          hover:bg-black/5 dark:hover:bg-white/10 transition text-slate-900 dark:text-slate-100"
-                title="Edit API Key"
+                          hover:bg-black/5 dark:hover:bg-white/10 transition
+                          text-slate-900 dark:text-slate-100"
+                title={hasApiKey ? "Edit API Key" : "Add API Key"}
               >
-                <Pencil size={16} />
+                {hasApiKey ? <Pencil size={16} /> : <Plus size={16} />}
               </button>
             )}
+
           </div>
+          {!hasApiKey && !isEditing && (
+            <div className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+              No API key added yet. Click the plus button to add one.
+            </div>
+          )}
         </div>
       </div>
 

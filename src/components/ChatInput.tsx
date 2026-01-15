@@ -1,10 +1,17 @@
 
-import React, { useLayoutEffect, useRef, useState } from 'react';
+import React, { useLayoutEffect, useRef, useState} from 'react';
 
 interface ChatInputProps {
   onSendMessage: (message: string, file?: File | null) => void;
   isLoading: boolean;
 }
+
+const PLACEHOLDERS = {
+  full: "Type your academic inquiry here…",
+  medium: "Type your academic question…",
+  short: "Ask a question…",
+};
+
 
 const SendIcon = ({ className }: { className: string }) => (
   <svg
@@ -24,6 +31,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, isLoading }
   const [inputValue, setInputValue] = useState('');
   const [isComposing, setIsComposing] = useState(false);
   const [attachedFile, setAttachedFile] = useState<File | null>(null);
+  const [placeholder, setPlaceholder] = useState(PLACEHOLDERS.full);
   const taRef = useRef<HTMLTextAreaElement | null>(null);
 
   const handleSubmit = () => {
@@ -51,6 +59,23 @@ export const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, isLoading }
     autosize();
   }, [inputValue]);
 
+  useLayoutEffect(() => {
+    if (typeof window === "undefined") return; // SSR guard
+
+    const updatePlaceholder = () => {
+      const w = window.innerWidth;
+
+      if (w < 480) setPlaceholder(PLACEHOLDERS.short);
+      else if (w < 768) setPlaceholder(PLACEHOLDERS.medium);
+      else setPlaceholder(PLACEHOLDERS.full);
+    };
+
+    updatePlaceholder();
+    window.addEventListener("resize", updatePlaceholder);
+
+    return () => window.removeEventListener("resize", updatePlaceholder);
+  }, []);
+
   const fileIconFor = (name?: string) => {
     const t = (name || "").toLowerCase();
 
@@ -77,7 +102,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, isLoading }
 
 
   return (
-    <div className="w-full px-4 pb-6 pt-2">
+    <div className="w-full px-4 pb-3 pt-2">
       <div className="max-w-4xl mx-auto">
         <div className="flex items-end gap-3 p-2 rounded-2xl bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl border border-slate-200 dark:border-slate-800 shadow-xl transition-all duration-300">
           <button
@@ -105,7 +130,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, isLoading }
             onKeyDown={onKeyDown}
             onCompositionStart={() => setIsComposing(true)}
             onCompositionEnd={() => setIsComposing(false)}
-            placeholder="Type your academic inquiry here..."
+            placeholder={placeholder}
             disabled={isLoading}
             rows={1}
             className="
@@ -150,6 +175,9 @@ export const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, isLoading }
             <SendIcon className="w-6 h-6" />
           </button>
         </div>
+      </div>
+      <div className="mt-3 text-center text-[10.5px] leading-snug text-slate-400 dark:text-slate-500 select-none opacity-80">
+        Academic Oracle may generate inaccurate or incomplete information. Verify all results independently before relying on them.
       </div>
     </div>
   );

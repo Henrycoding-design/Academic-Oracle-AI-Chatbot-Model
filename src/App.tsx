@@ -16,6 +16,7 @@ import { generateSessionSummary } from './services/geminiService.ts';
 import { createSummaryDoc } from './services/createSummaryDoc.ts';
 import { SquarePen, ScrollText, ChevronDown} from 'lucide-react';
 import ProfilePage from './ProfilePage.tsx';
+import { getQuota, isOutOfQuota, saveQuota } from './services/sessionMarker.ts';
 
 const SunIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
@@ -152,6 +153,8 @@ const App: React.FC = () => {
   });
 
   const [showDemo, setShowDemo] = useState(false);
+  // const [isFreeMode, setIsFreeMode] = useState(false);
+  const [mode, setMode] = useState<'free' | 'full' | 'none'>('none');
 
   useEffect(() => { // for student profile
     if (oracleMemory) {
@@ -190,6 +193,19 @@ const App: React.FC = () => {
   useClickOutside([oracleButtonRef, oracleMenuRef], () => setIsOracleOpen(false), isOracleOpen); // hook to close oracle status on outside click
 
   const [showProfile, setShowProfile] = useState(false); // set state for profile page
+  const [isAuthenticated, setIsAuthenticated] = useState(false); // auth state -> easier management
+
+  useEffect(() => {
+    setIsAuthenticated(encryptedApiKey !== null || mode === 'free');
+  }, [encryptedApiKey, mode]);
+
+  useEffect(() => {
+    if (!session) {
+      setMode('none');
+      setEncryptedApiKey(null);
+      setIsAuthenticated(false);
+    }
+  }, [session]);
 
   useEffect(() => {
     if (isOracleOpen && oracleButtonRef.current) {
@@ -206,7 +222,7 @@ const App: React.FC = () => {
   const userMenuRef = useRef<HTMLDivElement>(null);
   useClickOutside([userButtonRef, userMenuRef], () => setIsUserMenuOpen(false), isUserMenuOpen); // hook to close user menu on outside click
 
-  const [model, setModel] = useState<string>('gemini-3-flash-preview'); // default model
+  const [model, setModel] = useState<string>('gemini-3-flash-preview'); // default model -> never empty/crash on this optional feature
   const chatEndRef = useRef<HTMLDivElement>(null);
   
 
@@ -235,7 +251,7 @@ const App: React.FC = () => {
 
   useEffect(() => { // set encryptedApiKey on sessionStorage oracle-api-key change (changed to JSON object)
     const key = sessionStorage.getItem("oracle-api-key");
-    if (key) setEncryptedApiKey(JSON.parse(key));
+    if (key && !encryptedApiKey) setEncryptedApiKey(JSON.parse(key)); // prevent overwrite if the oracle-api-key is older than current state
   }, []);
 
   useEffect(() => {
@@ -247,13 +263,30 @@ const App: React.FC = () => {
     });
   }, []);
 
+  const currentChatIdRef = useRef<string>(crypto.randomUUID());
+
   // ✅ Handle sending messages with dynamic encryptedApiKey
   const handleSendMessage = async (
     userMessage: string,
     file?: File | null,
     isRetry = false
   ) => {
-    if (!encryptedApiKey) return;
+    const quota = getQuota();
+    if (!encryptedApiKey) {
+      if (isOutOfQuota(quota)) {
+        setError(
+          "Free session limit reached 🚧\n\n" +
+          "Create your own API key for unlimited access in Profile Page,\n" +
+          "or support on <a href='https://buymeacoffee.com/votanbinh' target='_blank' class='underline'>Buy Me A Coffee</a> to keep Oracle running smoothly!"
+        );
+        return;
+      } else {
+        quota.used += 1;
+        quota.chats[currentChatIdRef.current] ??= 0;
+        quota.chats[currentChatIdRef.current] += 1;
+        saveQuota(quota);
+      }
+    }
 
     setIsLoading(true);
     setError(null);
@@ -394,16 +427,17 @@ const App: React.FC = () => {
 
       if (status === 429) {
         setError(
-          "You’ve hit the free rate limit 😅\n\n" +
+          "You’ve hit the rate limit of the API Key.\n\n" +
           `⏳ ${
             extractedRetryDelay
               ? "Try again after " + extractedRetryDelay
               : "Try again later"
           }, or\n` +
-          "❤️ Support the project to unlock higher limits"
+          "❤️ Support the project to unlock higher limits: <a href='https://buymeacoffee.com/votanbinh' target='_blank' class='underline'>Buy Me A Coffee</a>. Thank you!"
         );
       } else {
-        setError(message);
+        // setError(message); debug only
+        setError("There was an error processing your request. Please try again."); // never expose raw error to user
       }
 
     } finally {
@@ -430,12 +464,28 @@ const App: React.FC = () => {
   };
 
   const resetChat = () => { // for new chat
+
+    if (isLoading) return; // prevent reset during loading
+    if (chatHistory.length <=1 || !oracleMemory) { // no existing chat or profile
+      alert("No existing chat or profile to reset.");
+      return;
+    }
+
     // 🧹 wipe persisted chat state
     sessionStorage.removeItem("academic-oracle-chat");
     sessionStorage.removeItem("academic-oracle-history");
 
     // ⚠️ optional: keep or wipe memory?
-    // sessionStorage.removeItem("academic-oracle-memory");
+    if (window.confirm("Do you want to wipe your student profile as well? Click 'Cancel' to keep it.")) {
+      sessionStorage.removeItem("academic-oracle-memory");
+      setOracleMemory(null);
+    }
+
+    // 🗄️ reset quota
+    const quota = getQuota();
+    currentChatIdRef.current = crypto.randomUUID();
+    quota.chats[currentChatIdRef.current] = 0;
+    saveQuota(quota);
 
     // 🖼️ reset UI messages
     setMessages([
@@ -467,6 +517,10 @@ const App: React.FC = () => {
     await supabase.auth.signOut(); // 🔐 kill auth
     // resetChat();                  // 🧠 wipe AI memory
     setEncryptedApiKey(null);           // 🚪 back to AuthPage
+    // setIsFreeMode(false); // disable so that the App redirects to AuthPage (see conditional render below)
+    setMode('none'); // reset mode - important! otherwise stays in 'free' mode and skips AuthPage -> a loop bug where the AuthPage stays loading forever
+    setIsAuthenticated(false); // reset auth state
+    setSession(null); // reset supabase session
 
     sessionStorage.removeItem("academic-oracle-chat"); // 🧹 wipe chat
     sessionStorage.removeItem("academic-oracle-history"); // wipe history
@@ -495,9 +549,20 @@ const App: React.FC = () => {
   };
 
   const handleGenerateSummary = async () => { // generate summary docx
-    if (!encryptedApiKey) return;
+    if (!isAuthenticated) {
+      alert("Please log in to generate summary document.");
+      return;
+    }
     if (chatHistory.length <=1 || !oracleMemory) {
       alert("No chat history or memory to summarize.");
+      return;
+    }
+    if (isLoading) {
+      alert("Please wait for the current operation to finish.");
+      return;
+    }
+    if (isOutOfQuota(getQuota())) {
+      alert("You have reached your free session quota. Cannot generate summary document.");
       return;
     }
 
@@ -524,12 +589,16 @@ const App: React.FC = () => {
     return <ArcadeDemo />;
   }
 
-  // ✅ Show AuthPage first if encryptedApiKey is missing
-  if (!encryptedApiKey) {
-    return <AuthPage
-      onLogin={(key) => setEncryptedApiKey(key)}
-      onViewDemo={() => setShowDemo(true)}
-    />;
+  if (!isAuthenticated) { // use state for auth check -> easier management -> unified for both free/full modes
+    return (
+      <AuthPage
+        onLogin={(key, userMode) => {
+          setEncryptedApiKey(key);
+          setMode(userMode);
+        }}
+        onViewDemo={() => setShowDemo(true)}
+      />
+    );
   }
 
   const user = session?.user;
@@ -559,7 +628,7 @@ const App: React.FC = () => {
               <img src="./icon.png" alt="Academic Oracle Logo" className="w-8 h-7 select-none"/>
             </div>
             </div>
-            <div className="flex flex-col gap-3 mt-2">
+            <div className="flex flex-col gap-3">
               <button className="p-2 rounded-lg hover:bg-black/5 dark:hover:bg-white/10 text-slate-700 dark:text-slate-200" onClick={handleGenerateSummary} title="Generate Summary Doc"> {/* Summary btn*/}
                 <ScrollText size={18} />
               </button>
