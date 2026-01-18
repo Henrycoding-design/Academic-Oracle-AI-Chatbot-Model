@@ -112,6 +112,24 @@ const App: React.FC = () => {
     return () => sub.subscription.unsubscribe();
   }, []);
 
+  // catch routes from other pages
+  const [route, setRoute] = useState(window.location.pathname);
+  useEffect(() => {
+    const onPopState = () => {
+      setRoute(window.location.pathname);
+    };
+
+    window.addEventListener("popstate", onPopState);
+    return () => window.removeEventListener("popstate", onPopState);
+  }, []);
+
+  // Route and Popstate helper
+  const navigate = (path: string) => {
+    window.history.pushState({}, "", path);
+    setRoute(path);
+  };
+
+
   const [encryptedApiKey, setEncryptedApiKey] = useState<any | null>(null);
   const [messages, setMessages] = useState<Message[]>(() => {
     if (typeof window === "undefined") return [];
@@ -553,16 +571,16 @@ const App: React.FC = () => {
       alert("Please log in to generate summary document.");
       return;
     }
-    if (chatHistory.length <=1 || !oracleMemory) {
-      alert("No chat history or memory to summarize.");
+    if (isOutOfQuota(getQuota())) {
+      alert("You have reached your free session quota. Cannot generate summary document.");
       return;
     }
     if (isLoading) {
       alert("Please wait for the current operation to finish.");
       return;
     }
-    if (isOutOfQuota(getQuota())) {
-      alert("You have reached your free session quota. Cannot generate summary document.");
+    if (chatHistory.length <=5 || !oracleMemory) { // need enough context
+      alert("Not enough chat history or student profile to generate a meaningful summary.");
       return;
     }
 
@@ -607,9 +625,26 @@ const App: React.FC = () => {
     user?.user_metadata?.avatar_url ||
     user?.user_metadata?.picture ||
     `https://api.dicebear.com/7.x/identicon/svg?seed=${user?.id}`;
+  
+  // normalize routes (for routing from other pages. Ex: src/pages/home/Navbar.tsx)
+  const isProfileRoute =
+  route === "/profile" || route === "/account";
+
+  if (isProfileRoute) {
+    return (
+      <ProfilePage
+        user={user}
+        encryptedApiKey={encryptedApiKey}
+        onSave={(key) => setEncryptedApiKey(key)}
+        onBack={() => 
+          navigate("/")
+        }
+      />
+    );
+  }
 
   return (
-    showProfile ? (
+    showProfile ? ( // still keep this, reduce refractors of code
       <ProfilePage
         user={user}
         encryptedApiKey={encryptedApiKey}
@@ -625,7 +660,9 @@ const App: React.FC = () => {
             <div className="mb-6">
               {/* <span className="text-[10px] px-1.5 py-0.5 rounded-sm bg-indigo-500/90 text-white tracking-wide">UNIV</span> */}
               <div className="p-1 rounded-[8px] transition-colors hover:bg-black/5 dark:hover:bg-white/10">
+              <a href="/home">
                 <img src="/icon.png" alt="Academic Oracle Logo" className="w-8 h-7 select-none"/>
+              </a>
               </div>
             </div>
             <div className="flex flex-col gap-3">
