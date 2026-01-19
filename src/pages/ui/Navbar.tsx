@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState , useRef} from "react";
 import { ChevronDown, Github, MessageSquare } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, easeOut } from "framer-motion";
 import { supabase } from "../../services/supabaseClient";
 import {Link} from "react-router-dom";
 
@@ -126,12 +126,18 @@ function NavItem({
   items?: { label: string; href: string }[];
 }) {
   const [open, setOpen] = useState(false);
+  const closeTimeout = useRef<NodeJS.Timeout | null>(null);
 
   return (
     <div
       className="relative"
-      onMouseEnter={() => setOpen(true)}
-      onMouseLeave={() => setOpen(false)}
+      onMouseEnter={() => {
+        if (closeTimeout.current) clearTimeout(closeTimeout.current);
+        setOpen(true);
+      }}
+      onMouseLeave={() => { 
+        closeTimeout.current = setTimeout(()=> setOpen(false), 80)
+      }}
     >
       <Link
         to={href ?? "#"}
@@ -140,7 +146,14 @@ function NavItem({
           ${open ? "text-indigo-400" : "text-white/70 hover:text-indigo-400"}`}
       >
         {label}
-        {dropdown && <ChevronDown size={14} />}
+        {dropdown && (
+          <motion.span
+          animate={{rotate: open ? 180 : 0}}
+          transition={{duration: 0.2, easeOut}}
+          className="flex items-center">
+            <ChevronDown size={14} />
+          </motion.span>
+        )}
       </Link>
 
       {dropdown && (
@@ -150,7 +163,7 @@ function NavItem({
               initial={{ opacity: 0, y: -8 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -8 }}
-              className="absolute top-full mt-3 w-44 rounded-xl bg-[#0b1225]/95 border border-blue-400/20 overflow-hidden"
+              className="absolute top-full mt-4 w-44 rounded-xl bg-[#0b1225]/95 border border-blue-400/20 overflow-hidden"
             >
               {items.map(item => (
                 <Link
