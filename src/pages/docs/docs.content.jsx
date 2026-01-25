@@ -1,9 +1,11 @@
 import GettingStarted from "./contents/GettingStarted";
-import ApiReference from "./contents/Api";
-import Architecture from "./contents/Architecture";
+import Auth from "./contents/Auth";
+import GGAIStudio from "./contents/GGAIStudio";
+import ChatFlow from "./contents/ChatFlow";
 
 export const docsContent = {
   "getting-started": <GettingStarted />,
-  api: <ApiReference />,
-  architecture: <Architecture />,
+  auth: <Auth />,
+  ggaistudio: <GGAIStudio />,
+  chatflow: <ChatFlow />
 };

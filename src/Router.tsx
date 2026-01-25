@@ -8,6 +8,7 @@ import Home from "./pages/home/Home";
 import Products from "./pages/products/Products";
 import Developers from "./pages/developers/Developers";
 import Changelog from "./pages/changelog/Changelog";
+import Policy from "./pages/policy/Policy";
 
 // docs
 import DocPage from "./pages/docs/DocPage";
@@ -29,6 +30,10 @@ export const Router = createBrowserRouter([
   {
     path: "/changelog",
     element: <Changelog />,
+  },
+  {
+    path: "/policy",
+    element: <Policy />,
   },
 
   // 🔹 Docs system

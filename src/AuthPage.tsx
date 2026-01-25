@@ -149,7 +149,15 @@ const AuthPage: React.FC<{
             GG AI Studio API key
           </a>{" "}
           to generate answers.  
-          Your key is encrypted and stored securely.
+          Your key is encrypted and stored securely. {" "} 
+          <a
+            href="/policy"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-indigo-600 dark:text-indigo-400 hover:underline"
+          >
+            See more
+          </a>{" "}
         </p>
 
         <input
@@ -182,7 +190,7 @@ const AuthPage: React.FC<{
           onClick={onViewDemo}
           className="mt-4 text-indigo-600 hover:underline"
         >
-          Try the interactive demo instead
+          Show me how to do it
         </button>
 
         <button

@@ -1,14 +1,14 @@
 import React, { useRef } from "react";
 import { motion, useMotionValue , useMotionTemplate , useSpring } from "framer-motion";
-import { Brain, Globe, Shield, Sparkles, Database } from "lucide-react";
+import { Brain, Globe, Shield, Sparkles, Database , FileText} from "lucide-react";
 
 const FEATURES = [
   { id: 1, icon: Brain, title: "AI Core", span: "md:col-span-2" },
   { id: 2, icon: Database, title: "Data Layer" },
-  { id: 3, icon: Globe, title: "Platform" },
+  { id: 3, icon: FileText, title: "Mastery Export" }, // Replaced "Platform"
   { id: 4, icon: Shield, title: "Security" },
   { id: 5, icon: Sparkles, title: "Experience", span: "md:col-span-2" },
-  { id: 6, icon: Globe, title: "Platform" },
+  { id: 6, icon: Globe, title: "Universal Access" }, // Renamed to feel more expansive
 ];
 
 export default function FeatureGrid() {
@@ -78,7 +78,7 @@ export function FeatureCard({ icon: Icon, title, span }: { icon: any; title: str
         bg-[#0b1225]/70 backdrop-blur
         border border-white/10
         group transition-colors duration-1000 hover:border-blue-500/30
-        hover:scale-[1.01]
+        hover:scale-[1.00]
         ${span ?? ""}
       `}
     >

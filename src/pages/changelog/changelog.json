@@ -1,47 +1,23 @@
 [
   {
-    "version": "0.3.1",
+    "version": "1.0.0",
     "date": "2026-01-12",
     "changes": [
-      "Improved response latency",
+      "Reduced response latency",
       "Refined UI animations",
-      "Bug fixes in routing"
+      "Fixed routing-related bugs",
+      "Added skip option for API setup"
     ]
   },
   {
-    "version": "0.3.5",
-    "date": "2026-01-15",
+    "version": "1.1.0",
+    "date": "2026-01-25",
     "changes": [
-      "Improved response latency",
-      "Refined UI animations",
-      "Bug fixes in routing"
-    ]
-  },
-  {
-    "version": "5.0.0",
-    "date": "2026-01-15",
-    "changes": [
-      "Improved response latency",
-      "Refined UI animations",
-      "Bug fixes in routing"
-    ]
-  },
-  {
-    "version": "5.0.0-beta.1",
-    "date": "2026-01-20",
-    "changes": [
-      "Improved response latency",
-      "Refined UI animations",
-      "Bug fixes in routing"
-    ]
-  },
-  {
-    "version": "5.0.1",
-    "date": "2026-01-20",
-    "changes": [
-      "Improved response latency",
-      "Refined UI animations",
-      "Bug fixes in routing"
+      "Improved response quality",
+      "Refined AI prompts for better contextual understanding",
+      "Fixed API-related bugs",
+      "Integrated full website ecosystem"
     ]
   }
 ]
+

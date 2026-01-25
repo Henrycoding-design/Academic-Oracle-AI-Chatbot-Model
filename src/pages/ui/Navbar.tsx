@@ -51,21 +51,23 @@ export default function Navbar() {
             <NavItem
               label="Product"
               dropdown
-              href="/products"
+              href="/products#home"
               items={[
-                { label: "Overview", href: "/products#overview" },
                 { label: "Features", href: "/products#features" },
-                { label: "Roadmap", href: "/products#roadmap" },
+                { label: "Demo", href: "/products#demo" },
+                { label: "Guidance", href: "/products#guidance" },
+                { label: "Terms & Policy", href: "/policy"}
               ]}
             />
             <NavItem 
             label="Developers" 
             dropdown
-            href="/developers"
+            href="/developers#home"
             items={[
-              { label: "Overview", href: "/developers#overview" },
               { label: "Features", href: "/developers#features" },
-              { label: "Roadmap", href: "/developers#roadmap" },
+              { label: "Demo", href: "/developers#demo" },
+              { label: "Guidance", href: "/developers#guidance" },
+              { label: "Documentation", href: "/docs" },
             ]} />
             <NavItem label="Docs" href="/docs/getting-started" />
             <NavItem label="Changelog" href="/changelog" />
@@ -74,7 +76,19 @@ export default function Navbar() {
         </div>
 
         {/* RIGHT */}
-        <div className="flex items-center gap-5">
+        <div className="flex items-center gap-5 pr-3">
+          <button
+            onClick={() =>
+              window.open(
+                "https://github.com/Henrycoding-design/Academic-Oracle-AI-Chatbot-Model",
+                "_blank",
+                "noopener,noreferrer"
+              )
+            }
+            className="text-white/70 hover:text-white transition"
+          >
+            <Github size={20} />
+          </button>
           <a
             href="/"
             className="relative px-4 py-2 rounded-xl text-sm font-medium
@@ -94,19 +108,6 @@ export default function Navbar() {
               onClick={goToAccount}
             />
           )}
-
-          <button
-            onClick={() =>
-              window.open(
-                "https://github.com/Henrycoding-design/Academic-Oracle-AI-Chatbot-Model",
-                "_blank",
-                "noopener,noreferrer"
-              )
-            }
-            className="text-white/70 hover:text-white transition"
-          >
-            <Github size={20} />
-          </button>
         </div>
       </div>
     </nav>

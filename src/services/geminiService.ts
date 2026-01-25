@@ -54,6 +54,11 @@ Memory Update Rules (CRITICAL):
   • Raw chat summaries
 - If nothing meaningful should be updated, return the previous memory unchanged.
 
+STOPPING CRITERIA (DYNAMIC MASTERY):
+- **IGNORE MESSAGE COUNT:** Do not determine the end of a topic based on how many turns have passed.
+- **CONTENT-BASED TERMINATION:** Evaluate the user's recent responses against the "Student Profile" in memory. If the user demonstrates a synthesis of the concept that matches their target level, move to a Master Check.
+- **NEVER LOOP:** If the user has correctly applied a concept twice, do not ask further clarifying questions; progress to the next difficulty tier or conclude.
+
 Your Interaction Framework:
 1. START: If you don't know the user's name, greet them warmly and ask for their name and what they are currently studying or working on.
 2. VALIDATE: Always start by acknowledging the user's input. If they share a thought or answer, tell them exactly what they got right and where the logic might be slipping.
@@ -62,10 +67,9 @@ Your Interaction Framework:
    - If the topic is a new fundamental concept, a complex industrial process, or if the student is clearly frustrated/stuck, EXPLAIN it clearly with high-quality analogies.
 4. PACING: Ask only ONE question at a time. Do not overwhelm the user with multiple questions or a wall of text. Wait for their response before moving to the next part of the dialogue.
 5. TONE: Professional yet highly encouraging. Adapt your vocabulary to the user's level (e.g., simpler for IGCSE, more technical for University/Industrial).
-6. CONCLUDE: After helping, offer a 'Mastery Check' question or suggest a practical industrial application of the concept.
+6. CONCLUDE: Perform a 'Mastery Check' ONLY when you observe the student has self-corrected or correctly synthesized the core concept. The check must involve a practical industrial application or a "what-if" scenario to confirm deep understanding.
 
-Treat the provided long-term memory as the single source of truth for student identity, level, goals, and preferences. 
-Use it to personalize your response and update it only when new, long-term valuable information emerges.`;
+Please DOUBLE CHECK the JSON responses to ensure they follow the RULES ABOVE: Both CONTENT and SYNTAX STRUCTURE. Use the provided long-term memory as the single source of truth.`;
 
 const MODEL_FALLBACK_CHAIN = [
   "gemini-3-flash-preview",
@@ -122,6 +126,52 @@ const isRateLimitError = (err: unknown): boolean => {
     return false;
   }
 };
+
+const isUnavailableError = (err: unknown): boolean => {
+  try {
+    // Case 1: string error (Gemini SDK common case)
+    if (typeof err === "string") {
+      // Try JSON parse
+      try {
+        const parsed = JSON.parse(err);
+        return (
+          parsed?.error?.code === 503 ||
+          parsed?.error?.status === "UNAVAILABLE" ||
+          parsed?.error?.status === 503 ||
+          parsed?.error?.message?.toLowerCase().includes("overloaded") ||
+          parsed?.error?.message?.toLowerCase().includes("unavailable")
+        );
+      } catch {
+        // Plain string
+        return (
+          err.includes("503") ||
+          err.toLowerCase().includes("unavailable") ||
+          err.toLowerCase().includes("overloaded")
+        );
+      }
+    }
+
+    // Case 2: Error / object
+    const anyErr = err as any;
+
+    return (
+      anyErr?.status === 503 ||
+      anyErr?.code === 503 ||
+      anyErr?.error?.status === "UNAVAILABLE" ||
+      anyErr?.error?.status === 503 ||
+      anyErr?.error?.code === 503 ||
+      anyErr?.message?.toLowerCase().includes("unavailable") ||
+      anyErr?.message?.toLowerCase().includes("overloaded") ||
+      anyErr?.error?.message?.toLowerCase().includes("unavailable") ||
+      anyErr?.error?.message?.toLowerCase().includes("overloaded")
+    );
+  } catch {
+    // Absolute last resort — never crash fallback
+    return false;
+  }
+};
+
+
 
 function extractAndParseJSON(text: string) {
   const start = text.indexOf('{');
@@ -227,6 +277,7 @@ export const sendMessageToBot = async (params: {
       lastError = err;
       // If it's a rate limit, try the next model in the chain
       if (isRateLimitError(err)) continue;
+      if (isUnavailableError(err)) continue;
       throw err;
     }
   }
@@ -321,6 +372,7 @@ ${history.map((h) => `${h.role.toUpperCase()}: ${h.content}`).join("\n\n")}
     } catch (err) {
       // If it's a rate limit, try the next model in the chain
       if (isRateLimitError(err)) continue;
+      if (isUnavailableError(err)) continue;
       throw err;
     }
   }
