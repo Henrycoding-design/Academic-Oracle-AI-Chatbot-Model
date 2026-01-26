@@ -1,7 +1,7 @@
 import PageLayout from "@/src/layout/PageLayout";
 import PageHeader from "../ui/PageHeader";
 import ArcadeEmbed from "@/src/components/ArcadeProductDemo";
-import { AppWindow, Brain, Shield, Laptop, Database, BookOpen, Github, Cpu } from "lucide-react";
+import { AppWindow, Brain, Shield, Laptop, Database, BookOpen, Github, Cpu ,CodeXml} from "lucide-react";
 
 export default function Developers() {
   return (
@@ -9,6 +9,8 @@ export default function Developers() {
       <section id="home"></section>
       <PageHeader
         title="Developer Hub"
+        tag="Developers"
+        icon={CodeXml}
         subtitle="The high-performance stack powering Academic Oracle's Socratic Engine."
         button="View Docs"
         btnLink="/docs"

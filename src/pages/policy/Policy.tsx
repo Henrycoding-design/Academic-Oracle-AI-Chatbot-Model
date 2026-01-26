@@ -1,15 +1,19 @@
 import PageLayout from "@/src/layout/PageLayout";
 import PageHeader from "../ui/PageHeader";
+import {ShieldCheck} from "lucide-react";
 
 export default function Policy() {
   return (
     <PageLayout>
+      <section id="home"></section>
       <PageHeader
-        title="Terms and Policies"
+        title="Privacy Policy"
+        tag="Privacy"
+        icon={ShieldCheck}
         subtitle="The legal and technical framework protecting the Academic Oracle ecosystem."
         button="See more about Auth"
         btnLink="/docs/auth"
-        imgLink="./privacy.jpg"
+        imgLink="./privacy.png"
       />
 
       {/* Overview: Data Sovereignty */}

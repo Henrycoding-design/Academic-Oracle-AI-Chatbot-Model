@@ -9,6 +9,7 @@ import Products from "./pages/products/Products";
 import Developers from "./pages/developers/Developers";
 import Changelog from "./pages/changelog/Changelog";
 import Policy from "./pages/policy/Policy";
+import Terms from "./pages/policy/Terms";
 
 // docs
 import DocPage from "./pages/docs/DocPage";
@@ -34,6 +35,10 @@ export const Router = createBrowserRouter([
   {
     path: "/policy",
     element: <Policy />,
+  },
+  {
+    path: "/terms",
+    element: <Terms />,
   },
 
   // 🔹 Docs system

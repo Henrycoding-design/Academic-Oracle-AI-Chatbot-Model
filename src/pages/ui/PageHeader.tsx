@@ -1,7 +1,8 @@
-import { Sparkles } from "lucide-react";
+import { LucideIcon, Sparkles } from "lucide-react";
 
 interface PageHeaderProps {
   tag?: string; // e.g. "Products", "Developers"
+  icon?: LucideIcon;
   title: string;
   subtitle: string;
   button?: string;
@@ -11,6 +12,7 @@ interface PageHeaderProps {
 
 export default function PageHeader({
   tag = "Page",
+  icon : Icon = Sparkles,
   title,
   subtitle,
   button = "Try Now", 
@@ -24,7 +26,7 @@ export default function PageHeader({
         <div className="text-left">
           {/* Page tag */}
           <div className="flex items-center gap-2 text-sm uppercase tracking-wider text-indigo-400 mb-4">
-            <Sparkles className="w-4 h-4" />
+            <Icon className="w-4 h-4" />
             <span>{tag}</span>
           </div>
 

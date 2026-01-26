@@ -56,7 +56,8 @@ export default function Navbar() {
                 { label: "Features", href: "/products#features" },
                 { label: "Demo", href: "/products#demo" },
                 { label: "Guidance", href: "/products#guidance" },
-                { label: "Terms & Policy", href: "/policy"}
+                { label: "Privacy Policy", href: "/policy#home"},
+                { label: "Terms & Policies", href: "/terms#home"},
               ]}
             />
             <NavItem 

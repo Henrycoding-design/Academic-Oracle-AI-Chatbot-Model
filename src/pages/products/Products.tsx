@@ -1,14 +1,16 @@
 import PageLayout from "@/src/layout/PageLayout";
 import PageHeader from "../ui/PageHeader";
 import ArcadeEmbed from "@/src/components/ArcadeProductDemo";
-import { AppWindow, Brain, Shield, Layout, X, BookOpen, Github, Zap , MessageCircleIcon} from "lucide-react";
+import { AppWindow, Brain, Shield, Layout, X, BookOpen, Github, Zap , MessageCircleIcon , PackageCheckIcon} from "lucide-react";
 
 export default function Products() {
   return (
     <PageLayout>
       <section id="home"></section>
       <PageHeader
-        title="Products"
+        title="Academic Oracle"
+        tag="Products"
+        icon={PackageCheckIcon}
         subtitle="The tools and interfaces driving the Academic Oracle ecosystem."
         button="Start Learning"
         btnLink="/"
