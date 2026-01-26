@@ -1,5 +1,5 @@
 import React, { useEffect, useState , useRef} from "react";
-import { ChevronDown, Github, MessageSquare } from "lucide-react";
+import { ChevronDown, Github, MessageSquare , ParkingCircle, Rocket} from "lucide-react";
 import { motion, AnimatePresence, easeOut } from "framer-motion";
 import { supabase } from "../../services/supabaseClient";
 import {Link} from "react-router-dom";
@@ -89,6 +89,18 @@ export default function Navbar() {
             className="text-white/70 hover:text-white transition"
           >
             <Github size={20} />
+          </button>
+          <button
+            onClick={() =>
+              window.open(
+                "https://www.producthunt.com/products/academic-oracle/launches/academic-oracle",
+                "_blank",
+                "noopener,noreferrer"
+              )
+            }
+            className="text-[#ff6154] hover:text-[#f4857b] transition"
+          >
+            <Rocket size={20} />
           </button>
           <a
             href="/"
