@@ -12,7 +12,7 @@
 
   <p>
     <img src="https://img.shields.io/badge/license-MIT-blue.svg" />
-    <img src="https://img.shields.io/badge/status-beta-orange.svg" />
+    <img src="https://img.shields.io/badge/status-deployed-brightgreen.svg" />
     <img src="https://img.shields.io/github/stars/Henrycoding-design/Academic-Oracle-AI-Chatbot-Model" />
     <img src="https://img.shields.io/github/last-commit/Henrycoding-design/Academic-Oracle-AI-Chatbot-Model" />
   </p>
