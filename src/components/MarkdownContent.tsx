@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { BlockMath, InlineMath } from 'react-katex';
+import hljs from "../lib/highlight";
 
 interface MarkdownContentProps {
   content: string;
@@ -7,9 +8,92 @@ interface MarkdownContentProps {
 
 // ... (Keep CopyIcon, CheckIcon, CodeBlock, InlineCode as they are) ...
 
-const CodeBlock: React.FC<{ code: string }> = ({ code }) => {
-  // ... (Keep existing CodeBlock implementation)
+let codeLanguage: string | undefined;
+
+const LANG_ALIASES: Record<string, string> = {
+  // JavaScript / TS
+  js: "javascript",
+  jsx: "javascript",
+  javascript: "javascript",
+
+  ts: "typescript",
+  tsx: "typescript",
+  typescript: "typescript",
+
+  // Python
+  py: "python",
+  python: "python",
+
+  // Shell
+  sh: "bash",
+  shell: "bash",
+  bash: "bash",
+
+  // JSON / config
+  json: "json",
+
+  // C-family
+  c: "c",
+  h: "c",
+
+  cpp: "cpp",
+  cxx: "cpp",
+  "c++": "cpp",
+
+  cs: "csharp",
+  csharp: "csharp",
+
+  // Java / JVM
+  java: "java",
+  kotlin: "kotlin",
+  kt: "kotlin",
+
+  // Web
+  html: "xml",
+  xml: "xml",
+  css: "css",
+  scss: "scss",
+
+  // Others
+  yaml: "yaml",
+  yml: "yaml",
+  toml: "toml",
+  md: "markdown",
+};
+
+const normalizeLang = (lang?: string) =>
+  lang ? LANG_ALIASES[lang.toLowerCase()] ?? lang.toLowerCase() : undefined;
+
+const CodeBlock: React.FC<{ code: string; language?: string }> = ({
+  code,
+  language,
+}) => {
   const [copied, setCopied] = useState(false);
+  const codeRef = useRef<HTMLElement>(null);
+  const [detectedLang, setDetectedLang] = useState<string | null>(null);
+
+  useEffect(() => {
+    requestAnimationFrame(() => {
+      if (!codeRef.current) return;
+      const el = codeRef.current;
+      // if (el.dataset.highlighted) return;
+      // el.dataset.highlighted = "true";
+
+      const normalized = normalizeLang(language);
+
+      if (normalized && hljs.getLanguage(normalized)) {
+        el.classList.add(`language-${normalized}`);
+        hljs.highlightElement(el);
+      } else {
+        const result = hljs.highlightAuto(code);
+        el.innerHTML = result.value;
+        el.classList.add("hljs");
+        setDetectedLang(result.language ?? null);
+      }
+    });
+  }, [code, language]);
+
+
   const handleCopy = () => {
     navigator.clipboard.writeText(code);
     setCopied(true);
@@ -17,17 +101,29 @@ const CodeBlock: React.FC<{ code: string }> = ({ code }) => {
   };
 
   return (
-    <div className="relative group my-4 rounded-lg bg-slate-900 dark:bg-black overflow-hidden border border-slate-800">
-      <div className="absolute top-2 right-2 flex gap-2">
+    <div className="relative group my-6 rounded-xl bg-slate-50 dark:bg-[#0d1117] border border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm">
+      <div className="flex items-center justify-between px-4 py-2 bg-slate-200/50 dark:bg-white/5 border-b border-slate-200 dark:border-slate-800">
+        <span className="text-[10px] uppercase tracking-widest text-slate-500 dark:text-slate-400 font-bold">
+          {normalizeLang(language) ?? detectedLang ?? "text"}
+        </span>
         <button
           onClick={handleCopy}
-          className="p-1.5 rounded-md bg-white/10 hover:bg-white/20 text-slate-400 hover:text-white transition-all backdrop-blur-sm flex items-center gap-1.5 text-xs font-medium"
+          className="p-1.5 rounded-md hover:bg-slate-300/50 dark:hover:bg-white/10 text-slate-600 dark:text-slate-400 transition-colors flex items-center gap-1.5 text-xs font-medium"
         >
-          {copied ? <span>Copied</span> : <span>Copy</span>}
+          {copied ? "Copied!" : "Copy"}
         </button>
       </div>
-      <pre className="p-4 pt-10 overflow-x-auto text-sm text-slate-300 font-mono leading-relaxed">
-        <code>{code}</code>
+      
+      <pre className="p-4 overflow-x-auto text-sm font-mono leading-relaxed">
+        <code 
+          ref={codeRef} 
+          /* Using !text-slate-900 and dark:!text-slate-200 ensures 
+             the base code text is readable even if hljs fails 
+          */
+          className={`language-${normalizeLang(language) ?? detectedLang ?? ""} !bg-transparent !p-0 !text-slate-900 dark:!text-slate-200`}
+        >
+          {code}
+        </code>
       </pre>
     </div>
   );
@@ -174,16 +270,23 @@ export const MarkdownContent: React.FC<MarkdownContentProps> = ({ content }) => 
     if (trimmedLine.startsWith('```')) {
       if (inCodeBlock) {
         elements.push(
-          <CodeBlock key={`code-${i}`} code={codeBlockLines.join('\n')} />
+          <CodeBlock
+            key={`code-${i}`}
+            code={codeBlockLines.join('\n')}
+            language={codeLanguage}
+          />
         );
         codeBlockLines = [];
+        codeLanguage = undefined;
         inCodeBlock = false;
       } else {
         flushList(i);
         inCodeBlock = true;
+        codeLanguage = trimmedLine.slice(3).trim() || undefined;
       }
       continue;
     }
+
 
     if (inCodeBlock) {
       codeBlockLines.push(line);

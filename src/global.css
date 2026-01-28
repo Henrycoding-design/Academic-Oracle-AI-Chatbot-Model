@@ -2,6 +2,18 @@
   scroll-margin-top: 100px; /* desktop navbar height */
 }
 
+/* globals.css */
+@import "highlight.js/styles/tokyo-night-light.css"; /* Light mode by default */
+
+/* @media (prefers-color-scheme: dark) {
+  @import "highlight.js/styles/github-dark.css";
+} */
+
+/* OR if using Tailwind 'class' strategy */
+.dark {
+  @import "highlight.js/styles/tokyo-night-dark.css";
+}
+
 @media (max-width: 640px) {
   .scroll-offset {
     scroll-margin-top: 120px; /* smaller screens = taller nav */

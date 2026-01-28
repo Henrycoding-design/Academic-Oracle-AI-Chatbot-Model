@@ -21,3 +21,17 @@ export type OracleResponse = {
   memory?: string;
   model: string;
 };
+
+export class InvalidAIResponseError extends Error {
+  constructor(message = "Invalid AI JSON response") {
+    super(message);
+    this.name = "InvalidAIResponseError";
+  }
+}
+
+export class InvalidAPIError extends Error {
+  constructor(message = "Invalid API") {
+    super(message);
+    this.name = "InvalidAPIError";
+  }
+}

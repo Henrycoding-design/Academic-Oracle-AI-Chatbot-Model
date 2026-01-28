@@ -17,6 +17,7 @@ import { createSummaryDoc } from './services/createSummaryDoc.ts';
 import { SquarePen, ScrollText, ChevronDown} from 'lucide-react';
 import ProfilePage from './ProfilePage.tsx';
 import { getQuota, isOutOfQuota, saveQuota } from './services/sessionMarker.ts';
+import { InvalidAPIError } from './types';
 
 const SunIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
@@ -204,6 +205,13 @@ const App: React.FC = () => {
     }
     return false;
   });
+  useEffect(() => { //code toggle
+    const link = document.getElementById("hljs-theme") as HTMLLinkElement;
+
+    link.href = isDark
+      ? "/tokyo-night-dark.css"
+      : "/tokyo-night-light.css";
+  }, [isDark]);
   const [isOracleOpen, setIsOracleOpen] = useState(false);
   const [oraclePos, setOraclePos] = useState<{ top: number; left: number } | null>(null);
   const oracleButtonRef = useRef<HTMLButtonElement>(null);
@@ -442,8 +450,9 @@ const App: React.FC = () => {
       } catch {
         // absolutely never crash UI error handling
       }
-
-      if (status === 429) {
+      if (err instanceof InvalidAPIError) {
+        setError("Your API Key has expired/malformed. Please check again.");
+      } else if (status === 429) {
         setError(
           "You’ve hit the rate limit of the API Key.\n\n" +
           `⏳ ${
@@ -636,9 +645,13 @@ const App: React.FC = () => {
         user={user}
         encryptedApiKey={encryptedApiKey}
         onSave={(key) => setEncryptedApiKey(key)}
-        onBack={() => 
-          navigate("/")
-        }
+        onBack={() => {
+          if (window.history.length > 1) {
+            window.history.back();
+          } else {
+            navigate("/");
+          }
+        }}
       />
     );
   }

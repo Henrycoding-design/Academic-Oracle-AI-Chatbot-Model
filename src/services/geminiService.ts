@@ -3,6 +3,7 @@ import { GoogleGenAI, Chat, GenerateContentResponse } from "@google/genai";
 import type { Message, OracleResponse } from '../types';
 import { decryptApiKey } from "./edgeCrypto";
 import { getNextEnvKey } from "./envKeys";
+import { InvalidAIResponseError , InvalidAPIError} from "../types";
 
 // const SYSTEM_INSTRUCTION = `You are the 'Academic Oracle', a world-class polymath and supportive mentor. 
 // Your scope is UNLIMITED: from primary education and competitive exams (IGCSE, SAT, AP, IELTS) to University-level research and professional Industrial practices.
@@ -67,7 +68,7 @@ Your Interaction Framework:
    - If the topic is a new fundamental concept, a complex industrial process, or if the student is clearly frustrated/stuck, EXPLAIN it clearly with high-quality analogies.
 4. PACING: Ask only ONE question at a time. Do not overwhelm the user with multiple questions or a wall of text. Wait for their response before moving to the next part of the dialogue.
 5. TONE: Professional yet highly encouraging. Adapt your vocabulary to the user's level (e.g., simpler for IGCSE, more technical for University/Industrial).
-6. CONCLUDE: Perform a 'Mastery Check' ONLY when you observe the student has self-corrected or correctly synthesized the core concept. The check must involve a practical industrial application or a "what-if" scenario to confirm deep understanding.
+6. CONCLUDE: Perform a 'Mastery Check' ONLY when you observe the student has self-corrected or correctly synthesized the core concept. The check must involve a practical industrial application or a "what-if" scenario to confirm deep understanding. Limit this to exactly one Mastery Check per topic unless the user explicitly requests additional evaluation.
 
 Please DOUBLE CHECK the JSON responses to ensure they follow the RULES ABOVE: Both CONTENT and SYNTAX STRUCTURE. Use the provided long-term memory as the single source of truth.`;
 
@@ -171,19 +172,128 @@ const isUnavailableError = (err: unknown): boolean => {
   }
 };
 
+export function isRetryableAIError(err: unknown): boolean {
+  if (err instanceof InvalidAIResponseError) return true; // mostly this case as we use the custom error in validation earlier
+  if (err instanceof SyntaxError) return true;
 
-
-function extractAndParseJSON(text: string) {
-  const start = text.indexOf('{');
-  const end = text.lastIndexOf('}');
-
-  if (start === -1 || end === -1) {
-    throw new Error("Oracle returned no JSON");
+  if (err && typeof err === "object") {
+    const msg = (err as any)?.message;
+    if (typeof msg === "string") {
+      return (
+        msg.includes("Invalid JSON") ||
+        msg.includes("No balanced JSON") ||
+        msg.includes("Oracle returned no JSON")
+      );
+    }
   }
 
-  const json = text.slice(start, end + 1);
-  return JSON.parse(json);
+  return false;
 }
+
+const isInvalidApiKeyError = (err: unknown): boolean => {
+  try {
+    // Case 1: string error (SDKs love this)
+    if (typeof err === "string") {
+      // Try JSON parse first
+      try {
+        const parsed = JSON.parse(err);
+        return (
+          parsed?.error?.code === 400 ||
+          parsed?.error?.status === "INVALID_ARGUMENT" ||
+          parsed?.error?.status === 400 ||
+          parsed?.error?.message?.toLowerCase().includes("api key") ||
+          parsed?.error?.message?.toLowerCase().includes("invalid key") ||
+          parsed?.error?.message?.toLowerCase().includes("expired")
+        );
+      } catch {
+        // Plain string fallback
+        return (
+          err.includes("400") ||
+          err.toLowerCase().includes("api key") ||
+          err.toLowerCase().includes("invalid key") ||
+          err.toLowerCase().includes("expired")
+        );
+      }
+    }
+
+    // Case 2: Error / object
+    const anyErr = err as any;
+
+    return (
+      anyErr?.status === 400 ||
+      anyErr?.code === 400 ||
+      anyErr?.error?.status === "INVALID_ARGUMENT" ||
+      anyErr?.error?.status === 400 ||
+      anyErr?.error?.code === 400 ||
+      anyErr?.message?.toLowerCase().includes("api key") ||
+      anyErr?.message?.toLowerCase().includes("invalid key") ||
+      anyErr?.message?.toLowerCase().includes("expired") ||
+      anyErr?.error?.message?.toLowerCase().includes("api key") ||
+      anyErr?.error?.message?.toLowerCase().includes("invalid key") ||
+      anyErr?.error?.message?.toLowerCase().includes("expired")
+    );
+  } catch {
+    // Nuclear option: never crash prod
+    return false;
+  }
+};
+
+function extractBalancedJSON(text: string): string {
+  let depth = 0;
+  let start = -1;
+
+  for (let i = 0; i < text.length; i++) {
+    if (text[i] === "{") {
+      if (depth === 0) start = i;
+      depth++;
+    } else if (text[i] === "}") {
+      depth--;
+      if (depth === 0 && start !== -1) {
+        return text.slice(start, i + 1);
+      }
+    }
+  }
+
+  throw new Error("No balanced JSON found");
+}
+
+function sanitizeJSON(json: string): string {
+  return json
+    // smart quotes → normal quotes
+    .replace(/[“”]/g, '"')
+    .replace(/[‘’]/g, "'")
+
+    // remove trailing commas
+    .replace(/,\s*([}\]])/g, "$1")
+
+    // remove ZERO-WIDTH and BOM chars ONLY (safe)
+    .replace(/[\u200B-\u200D\uFEFF]/g, "");
+}
+
+export function extractAndParseJSONSafe(
+  text: string
+): { ok: true; data: any } | { ok: false } {
+  try {
+    const jsonString = extractBalancedJSON(text);
+    const sanitized = sanitizeJSON(jsonString);
+    return { ok: true, data: JSON.parse(sanitized) };
+  } catch {
+    return { ok: false};
+  }
+}
+
+// function extractAndParseJSON(text: string) { // this check is the main cause of error in chat (usually 2-3 per whole session): consider not throwing err but force retry on the loop: sacrifice more waiting time than err to UI 
+//   const start = text.indexOf('{'); 
+//   const end = text.lastIndexOf('}'); 
+
+//   if (start === -1 || end === -1) { 
+//     throw new Error("Oracle returned no JSON"); // BUG: we've got this error often 1/10 times 
+//   } 
+
+//   const json = text.slice(start, end + 1); 
+  
+//   return JSON.parse(json); // BUG: this error here too, the check passes but JSON.parse still fails: bad escape character: 2/10 times 
+// }
 
 export const getChat = (apiKey: string, model: string): Chat => {
   // // 🔁 Same user, same chat → full context preserved
@@ -264,13 +374,22 @@ export const sendMessageToBot = async (params: {
       const response: GenerateContentResponse = await chat.sendMessage({ message: prompt });
       
       // USE THE HYBRID PARSER HERE
-      const parsed = extractAndParseJSON(response.text);
+      const parsed = extractAndParseJSONSafe(response.text);
+
+      if (!parsed.ok || parsed.data == null) throw new InvalidAIResponseError();
+
+      if (
+        typeof parsed.data.answer !== "string" ||
+        typeof parsed.data.memory !== "string"
+      ) { // just a guard
+        throw new InvalidAIResponseError("Malformed Oracle payload");
+      }
 
       // console.log(`Response from model ${model}:`, parsed);
 
       return {
-        answer: parsed.answer,
-        memory: parsed.memory,
+        answer: parsed.data.answer,
+        memory: parsed.data.memory,
         model: model,
       };
     } catch (err: any) {
@@ -278,6 +397,8 @@ export const sendMessageToBot = async (params: {
       // If it's a rate limit, try the next model in the chain
       if (isRateLimitError(err)) continue;
       if (isUnavailableError(err)) continue;
+      if (isRetryableAIError(err)) continue;
+      if (isInvalidApiKeyError(err)) throw new InvalidAPIError();
       throw err;
     }
   }
@@ -368,7 +489,7 @@ ${history.map((h) => `${h.role.toUpperCase()}: ${h.content}`).join("\n\n")}
 
       const res = await chat.sendMessage({ message: inputBlock });
 
-      return extractAndParseJSON(res.text);
+      return extractAndParseJSONSafe(res.text);
     } catch (err) {
       // If it's a rate limit, try the next model in the chain
       if (isRateLimitError(err)) continue;
