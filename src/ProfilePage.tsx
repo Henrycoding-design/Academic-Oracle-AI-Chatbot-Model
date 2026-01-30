@@ -2,12 +2,13 @@ import React, { useState } from "react";
 import { Pencil, Save , ArrowBigLeftIcon, Plus} from "lucide-react";
 import { decryptApiKey, encryptApiKey} from './services/edgeCrypto.ts';
 import { supabase } from "./services/supabaseClient";
+import { AppLanguage, LANGUAGE_DATA } from "./lang/Language.tsx";
 
 interface ProfilePageProps {
   user: any;
   encryptedApiKey: any;
-//   decryptApiKey: (payload: any) => string;
-//   encryptApiKey: (plain: string) => any;
+  language: AppLanguage;
+  onLanguageChange: (lang: AppLanguage) => void;
   onSave: (encrypted: any) => void;
   onBack: () => void;
 }
@@ -15,6 +16,8 @@ interface ProfilePageProps {
 const ProfilePage: React.FC<ProfilePageProps> = ({
   user,
   encryptedApiKey,
+  language,
+  onLanguageChange,
   onSave,
   onBack
 }) => {
@@ -38,7 +41,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({
       setIsEditing(true);
     } catch (e) {
       console.error(e);
-      alert("Failed to load API key.");
+      alert(LANGUAGE_DATA[language].ui.failedToLoadApiKey);
     }
   };
 
@@ -49,7 +52,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({
 
   const handleSave = async () => {
     if (!validateApiKey(apiKeyPlain)) {
-      alert("Invalid API Key format.");
+      alert(LANGUAGE_DATA[language].ui.invalidApiKeyFormat);
       return;
     }
 
@@ -75,7 +78,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({
       setApiKeyPlain("");
     } catch (err) {
       console.error(err);
-      alert("Failed to save API key.");
+      alert(LANGUAGE_DATA[language].ui.failedToSaveApiKey);
     }
   };
 
@@ -97,7 +100,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({
     <div className="flex flex-col items-center gap-8 w-full max-w-lg">
       {/* Title */}
       <div className="text-3xl font-bold text-slate-900 dark:text-slate-100">
-        Profile
+        {LANGUAGE_DATA[language].ui.profile}
       </div>
 
       {/* Row 1 */}
@@ -113,7 +116,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({
         <div className="flex flex-col gap-3 w-full">
           {/* Email */}
           <div className="text-sm text-slate-600 dark:text-slate-300 break-all">
-            {user?.email}
+            {LANGUAGE_DATA[language].ui.email}: {user?.email}
           </div>
 
           {/* API Key */}
@@ -122,7 +125,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({
               type={isEditing ? "text" : "password"}
               disabled={!isEditing}
               value={isEditing ? apiKeyPlain : hasApiKey ? "••••••••••••••••••••••" : ""}
-              placeholder={!hasApiKey && !isEditing ? "No API Key set" : undefined}
+              placeholder={!hasApiKey && !isEditing ? LANGUAGE_DATA[language].ui.noApiKeySetMessage : undefined}
               onChange={(e) => setApiKeyPlain(e.target.value)}
               className="
                 flex-1 px-3 py-2 rounded-lg
@@ -141,7 +144,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({
                 className="p-2 rounded-lg bg-slate-100 dark:bg-slate-800
                           hover:bg-black/5 dark:hover:bg-white/10 transition
                           text-slate-900 dark:text-slate-100"
-                title={hasApiKey ? "Edit API Key" : "Add API Key"}
+                title={hasApiKey ? LANGUAGE_DATA[language].ui.editApiKey : LANGUAGE_DATA[language].ui.addApiKey}
               >
                 {hasApiKey ? <Pencil size={16} /> : <Plus size={16} />}
               </button>
@@ -150,7 +153,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({
           </div>
           {!hasApiKey && !isEditing && (
             <div className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-              No API key added yet. Click the plus button to add one.
+              {LANGUAGE_DATA[language].ui.noApiKeyAdded}
             </div>
           )}
         </div>
@@ -172,8 +175,40 @@ const ProfilePage: React.FC<ProfilePageProps> = ({
         `}
       >
         <Save size={16} />
-        Save
+        {LANGUAGE_DATA[language].ui.save}
       </button>
+      {/* Settings */}
+      <div className="w-full pt-4 border-t border-black/5 dark:border-white/10">
+       <div className="flex flex-col items-center min-w-max">
+        <div className="text-xl font-medium text-slate-700 dark:text-slate-300 mb-5">
+          {LANGUAGE_DATA[language].ui.settings}
+        </div>
+       
+
+        <div className="flex max-w-xs">
+          <label className="text-xs text-slate-500 dark:text-slate-400 mb-1 mx-5">
+            {LANGUAGE_DATA[language].ui.language}
+          </label>
+          <select
+            value={language}
+            onChange={(e) => onLanguageChange(e.target.value as AppLanguage)}
+            className="
+              px-3 py-2 rounded-lg
+              bg-slate-100 dark:bg-slate-800
+              text-slate-900 dark:text-slate-200
+              border border-black/5 dark:border-white/10
+              text-sm min-w-max
+            "
+          >
+            <option value="en">English</option>
+            <option value="fr">Français</option>
+            <option value="es">Español</option>
+            <option value="vi">Tiếng Việt</option>
+          </select>
+        </div>
+        </div>
+      </div>
+
     </div>
   </div>
   );

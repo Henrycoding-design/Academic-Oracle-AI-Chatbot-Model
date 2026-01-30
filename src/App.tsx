@@ -18,6 +18,8 @@ import { SquarePen, ScrollText, ChevronDown} from 'lucide-react';
 import ProfilePage from './ProfilePage.tsx';
 import { getQuota, isOutOfQuota, saveQuota } from './services/sessionMarker.ts';
 import { InvalidAPIError } from './types';
+import { AppLanguage , LANGUAGE_DATA } from './lang/Language.tsx';
+import { normalizeSummary } from './services/normalizeSummary.ts';
 
 const SunIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
@@ -31,7 +33,7 @@ const MoonIcon = () => (
   </svg>
 );
 
-const SystemStatus: React.FC<{ status: 'ok' | 'loading' | 'error', model: string }> = ({ status, model }) => {
+const SystemStatus: React.FC<{ status: 'ok' | 'loading' | 'error', model: string, language: AppLanguage }> = ({ status, model, language }) => {
     const colors = {
         ok: 'bg-emerald-400',
         loading: 'bg-amber-400',
@@ -39,9 +41,9 @@ const SystemStatus: React.FC<{ status: 'ok' | 'loading' | 'error', model: string
     };
     
     const labels = {
-        ok: 'Oracle Online',
-        loading: 'Thinking...',
-        error: 'Sync Error'
+        ok: LANGUAGE_DATA[language].ui.oracleOnline,
+        loading: LANGUAGE_DATA[language].ui.thinking,
+        error: LANGUAGE_DATA[language].ui.syncError
     };
 
     return (
@@ -130,6 +132,48 @@ const App: React.FC = () => {
     setRoute(path);
   };
 
+  // Language
+  const [language, setLanguage] = useState<AppLanguage>(() => {
+    if (typeof window === "undefined") return "en";
+    return (localStorage.getItem("academic-oracle-lang") as AppLanguage) || "en";
+  });
+
+  useEffect(() => {
+    localStorage.setItem("academic-oracle-lang", language);
+  }, [language]);
+
+  useEffect(() => {
+    setChatHistory(prev => {
+      if (prev.length === 0) return prev;
+
+      // Only replace the FIRST system message
+      const updated = [...prev];
+      if (updated[0].role === "model") {
+        updated[0] = {
+          ...updated[0],
+          content: LANGUAGE_DATA[language].shortGreeting,
+        };
+      }
+      return updated;
+    });
+  }, [language]);
+
+  useEffect(() => {
+    setMessages(prev => {
+      if (prev.length === 0) return prev;
+
+      // Only replace the FIRST system message
+      const updated = [...prev];
+      if (updated[0].role === "model") {
+        updated[0] = {
+          ...updated[0],
+          content: LANGUAGE_DATA[language].greeting,
+        };
+      }
+      return updated;
+    });
+  }, [language]);
+
 
   const [encryptedApiKey, setEncryptedApiKey] = useState<any | null>(null);
   const [messages, setMessages] = useState<Message[]>(() => {
@@ -142,7 +186,7 @@ const App: React.FC = () => {
       {
         role: "model",
         content:
-          "Welcome to the Universal Academic Oracle. From SATs and IELTS to University research and Industrial practices, I am here to guide your journey.\n\nBefore we begin, what should I call you, and what academic challenge are we tackling today?",
+          LANGUAGE_DATA[language].greeting,
       },
     ];
   });
@@ -162,7 +206,7 @@ const App: React.FC = () => {
       {
         role: "model",
         content:
-          "Welcome to the Universal Academic Oracle. From SATs and IELTS to University research and Industrial practices, I am here to guide your journey.",
+          LANGUAGE_DATA[language].shortGreeting,
       },
     ];
   });
@@ -300,11 +344,7 @@ const App: React.FC = () => {
     const quota = getQuota();
     if (!encryptedApiKey) {
       if (isOutOfQuota(quota)) {
-        setError(
-          "Free session limit reached 🚧\n\n" +
-          "Create your own API key for unlimited access in Profile Page,\n" +
-          "or support on <a href='https://buymeacoffee.com/votanbinh' target='_blank' class='underline'>Buy Me A Coffee</a> to keep Oracle running smoothly!"
-        );
+        setError(LANGUAGE_DATA[language].ui.freeSessionLimit);
         return;
       } else {
         quota.used += 1;
@@ -369,6 +409,7 @@ const App: React.FC = () => {
         history: outgoingHistory,
         memory: oracleMemory,
         encryptedKeyPayload: encryptedApiKey,
+        language: language,
       });
 
       // 🖼️ UI response
@@ -451,20 +492,19 @@ const App: React.FC = () => {
         // absolutely never crash UI error handling
       }
       if (err instanceof InvalidAPIError) {
-        setError("Your API Key has expired/malformed. Please check again.");
+        setError(LANGUAGE_DATA[language].ui.apiKeyExpired);
       } else if (status === 429) {
+        const retryText = extractedRetryDelay
+          ? LANGUAGE_DATA[language].ui.rateLimitRetry.replace("{delay}", extractedRetryDelay)
+          : "Try again later";
         setError(
-          "You’ve hit the rate limit of the API Key.\n\n" +
-          `⏳ ${
-            extractedRetryDelay
-              ? "Try again after " + extractedRetryDelay
-              : "Try again later"
-          }, or\n` +
-          "❤️ Support the project to unlock higher limits: <a href='https://buymeacoffee.com/votanbinh' target='_blank' class='underline'>Buy Me A Coffee</a>. Thank you!"
+          LANGUAGE_DATA[language].ui.rateLimitError + "\n\n" +
+          `⏳ ${retryText}, or\n` +
+          "❤️ " + LANGUAGE_DATA[language].ui.rateLimitSupport
         );
       } else {
         // setError(message); debug only
-        setError("There was an error processing your request. Please try again."); // never expose raw error to user
+        setError(LANGUAGE_DATA[language].ui.genericError); // never expose raw error to user
       }
 
     } finally {
@@ -494,7 +534,7 @@ const App: React.FC = () => {
 
     if (isLoading) return; // prevent reset during loading
     if (chatHistory.length <=1 || !oracleMemory) { // no existing chat or profile
-      alert("No existing chat or profile to reset.");
+      alert(LANGUAGE_DATA[language].ui.noExistingChat);
       return;
     }
 
@@ -503,7 +543,7 @@ const App: React.FC = () => {
     sessionStorage.removeItem("academic-oracle-history");
 
     // ⚠️ optional: keep or wipe memory?
-    if (window.confirm("Do you want to wipe your student profile as well? Click 'Cancel' to keep it.")) {
+    if (window.confirm(LANGUAGE_DATA[language].ui.wipeProfile)) {
       sessionStorage.removeItem("academic-oracle-memory");
       setOracleMemory(null);
     }
@@ -519,7 +559,7 @@ const App: React.FC = () => {
       {
         role: "model",
         content:
-          "Welcome to the Universal Academic Oracle. From SATs and IELTS to University research and Industrial practices, I am here to guide your journey.\n\nBefore we begin, what should I call you, and what academic challenge are we tackling today?",
+          LANGUAGE_DATA[language].greeting,
       },
     ]);
 
@@ -528,7 +568,7 @@ const App: React.FC = () => {
       {
         role: "model",
         content:
-          "Welcome to the Universal Academic Oracle. From SATs and IELTS to University research and Industrial practices, I am here to guide your journey.",
+          LANGUAGE_DATA[language].shortGreeting,
       },
     ]);
 
@@ -577,19 +617,19 @@ const App: React.FC = () => {
 
   const handleGenerateSummary = async () => { // generate summary docx
     if (!isAuthenticated) {
-      alert("Please log in to generate summary document.");
+      alert(LANGUAGE_DATA[language].ui.pleaseLogin);
       return;
     }
     if (isOutOfQuota(getQuota())) {
-      alert("You have reached your free session quota. Cannot generate summary document.");
+      alert(LANGUAGE_DATA[language].ui.freeSessionLimit);
       return;
     }
     if (isLoading) {
-      alert("Please wait for the current operation to finish.");
+      alert(LANGUAGE_DATA[language].ui.pleaseWait);
       return;
     }
     if (chatHistory.length <=5 || !oracleMemory) { // need enough context
-      alert("Not enough chat history or student profile to generate a meaningful summary.");
+      alert(LANGUAGE_DATA[language].ui.notEnoughHistory);
       return;
     }
 
@@ -600,12 +640,15 @@ const App: React.FC = () => {
         history: chatHistory,
         memory: oracleMemory,
         encryptedKeyPayload: encryptedApiKey,
+        language: language,
       });
 
-      await createSummaryDoc(summary);
+      const safeSummary = normalizeSummary(summary);
+
+      await createSummaryDoc(safeSummary);
     } catch (err) {
       console.error(err);
-      alert("Failed to generate summary 😬");
+      alert(LANGUAGE_DATA[language].ui.failedToGenerateSummary);
     } finally {
       setIsLoading(false);
     }
@@ -644,6 +687,8 @@ const App: React.FC = () => {
       <ProfilePage
         user={user}
         encryptedApiKey={encryptedApiKey}
+        language={language}
+        onLanguageChange={setLanguage}
         onSave={(key) => setEncryptedApiKey(key)}
         onBack={() => {
           if (window.history.length > 1) {
@@ -661,6 +706,8 @@ const App: React.FC = () => {
       <ProfilePage
         user={user}
         encryptedApiKey={encryptedApiKey}
+        language={language}
+        onLanguageChange={setLanguage}
         onSave={(key) => setEncryptedApiKey(key)}
         onBack={() => setShowProfile(false)}
       />
@@ -679,11 +726,11 @@ const App: React.FC = () => {
               </div>
             </div>
             <div className="flex flex-col gap-3">
-              <button className="p-2 rounded-lg hover:bg-black/5 dark:hover:bg-white/10 text-slate-700 dark:text-slate-200" onClick={handleGenerateSummary} title="Generate Summary Doc"> {/* Summary btn*/}
+              <button className="p-2 rounded-lg hover:bg-black/5 dark:hover:bg-white/10 text-slate-700 dark:text-slate-200" onClick={handleGenerateSummary} title={LANGUAGE_DATA[language].tooltips.summary}> {/* Summary btn*/}
                 <ScrollText size={18} />
               </button>
 
-              <button className="p-2 rounded-lg hover:bg-black/5 dark:hover:bg-white/10 text-slate-700 dark:text-slate-200" onClick={resetChat} title="Start New Chat">
+              <button className="p-2 rounded-lg hover:bg-black/5 dark:hover:bg-white/10 text-slate-700 dark:text-slate-200" onClick={resetChat} title={LANGUAGE_DATA[language].tooltips.newChat}>
                 <SquarePen size={18} />
               </button>
             </div>
@@ -711,13 +758,13 @@ const App: React.FC = () => {
                     text-sm z-[9999]
                   ">
                     <button className="block w-full px-3 py-2 text-left hover:bg-black/5" onClick={() => {setShowProfile(true)}}>
-                      Profile
+                      {LANGUAGE_DATA[language].ui.profile}
                     </button>
                     <button
                       onClick={handleLogout}
                       className="block w-full px-3 py-2 text-left text-rose-600 hover:bg-black/5"
                     >
-                      Log out
+                      {LANGUAGE_DATA[language].ui.logOut}
                     </button>
                   </div>,
                   document.body
@@ -757,12 +804,12 @@ const App: React.FC = () => {
                 >
                   <div className="px-4 py-3 border-b border-black/5 dark:border-white/10">
                     <p className="text-xs uppercase tracking-wide text-slate-500">
-                      Oracle Status
+                      {LANGUAGE_DATA[language].ui.oracleStatus}
                     </p>
                   </div>
 
                   <div className="px-4 py-3">
-                    <SystemStatus status={getStatus()} model={model} />
+                    <SystemStatus status={getStatus()} model={model} language={language} />
                   </div>
                 </div>,
                 document.body
@@ -783,7 +830,7 @@ const App: React.FC = () => {
               {error && (
                 <div className="bg-rose-100/80 dark:bg-rose-900/20 text-rose-600 p-4 rounded-2xl text-center my-6">
                   <p>{error}</p>
-                  <button onClick={handleRetry} className="mt-2 bg-rose-500 text-white px-4 py-1 rounded-full text-xs">Retry</button>
+                  <button onClick={handleRetry} className="mt-2 bg-rose-500 text-white px-4 py-1 rounded-full text-xs">{LANGUAGE_DATA[language].ui.retryButton}</button>
                 </div>
               )}
               <div ref={chatEndRef} />
@@ -793,7 +840,7 @@ const App: React.FC = () => {
           {/* Footer / Input - Sticks to bottom of the flex container */}
           <footer className="absolute bottom-0 left-0 right-0 z-30 pointer-events-none">
             <div className="pointer-events-auto bg-gradient-to-t from-slate-50 dark:from-slate-950 via-slate-50/90 to-transparent">
-              <ChatInput onSendMessage={handleSendMessage} isLoading={isLoading} />
+              <ChatInput onSendMessage={handleSendMessage} isLoading={isLoading} language={language} />
             </div>
           </footer>
         </div>

@@ -1,17 +1,12 @@
 
 import React, { useLayoutEffect, useRef, useState} from 'react';
+import { LANGUAGE_DATA, AppLanguage } from '../lang/Language.tsx';
 
 interface ChatInputProps {
   onSendMessage: (message: string, file?: File | null) => void;
   isLoading: boolean;
+  language: AppLanguage;
 }
-
-const PLACEHOLDERS = {
-  full: "Type your academic inquiry here…",
-  medium: "Type your academic question…",
-  short: "Ask a question…",
-};
-
 
 const SendIcon = ({ className }: { className: string }) => (
   <svg
@@ -27,7 +22,12 @@ const SendIcon = ({ className }: { className: string }) => (
   </svg>
 );
 
-export const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, isLoading }) => {
+export const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, isLoading, language }) => {
+  const PLACEHOLDERS = {
+    full: LANGUAGE_DATA[language].ui.placeholderFull,
+    medium: LANGUAGE_DATA[language].ui.placeholderMedium,
+    short: LANGUAGE_DATA[language].ui.placeholderShort,
+  };
   const [inputValue, setInputValue] = useState('');
   const [isComposing, setIsComposing] = useState(false);
   const [attachedFile, setAttachedFile] = useState<File | null>(null);
@@ -109,7 +109,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, isLoading }
             type="button"
             onClick={() => fileInputRef.current?.click()}
             className="p-2 rounded-xl hover:bg-slate-200 dark:hover:bg-slate-700 transition"
-            title="Upload from computer"
+            title={LANGUAGE_DATA[language].ui.uploadFile}
           >
             📎
           </button>
@@ -177,7 +177,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, isLoading }
         </div>
       </div>
       <div className="mt-3 text-center text-[10.5px] leading-snug text-slate-400 dark:text-slate-500 select-none opacity-80">
-        Academic Oracle may generate inaccurate or incomplete information. Verify all results independently before relying on them.
+        {LANGUAGE_DATA[language].ui.disclaimer}
       </div>
     </div>
   );

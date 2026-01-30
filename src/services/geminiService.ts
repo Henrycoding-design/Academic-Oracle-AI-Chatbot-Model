@@ -4,6 +4,7 @@ import type { Message, OracleResponse } from '../types';
 import { decryptApiKey } from "./edgeCrypto";
 import { getNextEnvKey } from "./envKeys";
 import { InvalidAIResponseError , InvalidAPIError} from "../types";
+import { AppLanguage } from "../lang/Language";
 
 // const SYSTEM_INSTRUCTION = `You are the 'Academic Oracle', a world-class polymath and supportive mentor. 
 // Your scope is UNLIMITED: from primary education and competitive exams (IGCSE, SAT, AP, IELTS) to University-level research and professional Industrial practices.
@@ -20,7 +21,10 @@ import { InvalidAIResponseError , InvalidAPIError} from "../types";
 
 // Always maintain a hidden 'Student Profile' in your context: Name, Level, Confidence. Use this to maintain consistency across the session.`;
 
-const SYSTEM_INSTRUCTION = `You are the 'Academic Oracle', a world-class polymath and supportive mentor. 
+const SYSTEM_INSTRUCTION = `
+System Language (FORCED INPUT/OUTPUT LANGUAGE): {{LANGUAGE}}
+
+You are the 'Academic Oracle', a world-class polymath and supportive mentor. 
 Your scope is UNLIMITED: from primary education and competitive exams (IGCSE, SAT, AP, IELTS) to University-level research and professional Industrial practices.
 
 Your PRIMARY objective is to generate the best possible response for the current user input by intelligently combining:
@@ -326,8 +330,9 @@ export const sendMessageToBot = async (params: {
   history: { role: "user" | "model"; content: string }[];
   memory?: string | null;
   encryptedKeyPayload: any;
+  language: AppLanguage;
 }): Promise<OracleResponse> => {
-  const { history, memory, encryptedKeyPayload } = params;
+  const { history, memory, encryptedKeyPayload, language } = params;
 
   const memoryBlock = memory
     ? `ORACLE MEMORY (Persistent Student Profile):
@@ -362,13 +367,23 @@ export const sendMessageToBot = async (params: {
     throw new Error("No API key available for free mode.");
   }
 
+  // last: Language update
+  const systemPrompt = SYSTEM_INSTRUCTION.replace(
+    "{{LANGUAGE}}",
+    language === "en" ? "English"
+    : language === "fr" ? "French"
+    : language === "es" ? "Spanish"
+    : "Vietnamese"
+  );
+
+
   let lastError: any = null;
   for (const model of MODEL_FALLBACK_CHAIN) {
     try {
       const ai = new GoogleGenAI({ apiKey: api_key });
       const chat = ai.chats.create({
         model,
-        config: { systemInstruction: SYSTEM_INSTRUCTION },
+        config: { systemInstruction: systemPrompt },
       });
 
       const response: GenerateContentResponse = await chat.sendMessage({ message: prompt });
@@ -407,7 +422,10 @@ export const sendMessageToBot = async (params: {
 
 
 // Generate structured session summary using Gemini
-const SUMMARY_SYSTEM_INSTRUCTION = `You are an advanced Educational Data Analyst. 
+const SUMMARY_SYSTEM_INSTRUCTION = `
+System Language (FORCED INPUT/OUTPUT CONTENT LANGUAGE): {{LANGUAGE}}
+
+You are an advanced Educational Data Analyst. 
 Your specific task is to condense a raw student-AI dialogue into a structured JSON summary for local storage and review.
 
 INPUT DATA:
@@ -448,8 +466,9 @@ export const generateSessionSummary = async (params: {
   history: { role: "user" | "model"; content: string }[];
   memory?: string | null;
   encryptedKeyPayload: any;
+  language: AppLanguage;
 }) => {
-  const { history, memory, encryptedKeyPayload } = params;
+  const { history, memory, encryptedKeyPayload, language } = params;
 
   let api_key: string | null = null;
 
@@ -477,6 +496,14 @@ CURRENT SESSION HISTORY:
 ${history.map((h) => `${h.role.toUpperCase()}: ${h.content}`).join("\n\n")}
 `.trim();
 
+  const summaryPrompt = SUMMARY_SYSTEM_INSTRUCTION.replace(
+    "{{LANGUAGE}}",
+    language === "en" ? "English"
+    : language === "fr" ? "French"
+    : language === "es" ? "Spanish"
+    : "Vietnamese"
+  );
+
 
   for (const model of MODEL_FALLBACK_CHAIN) {
     try {
@@ -484,12 +511,16 @@ ${history.map((h) => `${h.role.toUpperCase()}: ${h.content}`).join("\n\n")}
 
       const chat = ai.chats.create({
         model: model,
-        config: { systemInstruction: SUMMARY_SYSTEM_INSTRUCTION },
+        config: { systemInstruction: summaryPrompt },
       });
 
       const res = await chat.sendMessage({ message: inputBlock });
 
-      return extractAndParseJSONSafe(res.text);
+      console.log(res);
+
+      const parsed = extractAndParseJSONSafe(res.text);
+      if (!parsed.ok) throw new InvalidAIResponseError();
+      return parsed.data;
     } catch (err) {
       // If it's a rate limit, try the next model in the chain
       if (isRateLimitError(err)) continue;
