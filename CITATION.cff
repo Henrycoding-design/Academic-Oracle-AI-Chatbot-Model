@@ -1,0 +1,20 @@
+cff-version: 1.2.0
+message: "If you use Academic Oracle in research, projects, or publications, please cite it."
+title: "Academic Oracle"
+abstract: >
+  Academic Oracle is a learning-focused AI platform designed to promote
+  deep understanding through active recall, progressive hinting, and
+  pattern-based reasoning rather than passive answer consumption.
+authors:
+  - family-names: "Vo"
+    given-names: "Tan Binh"
+repository-code: "https://github.com/Henrycoding-design/Academic-Oracle-AI-Chatbot-Model"
+license: "MIT"
+keywords:
+  - artificial intelligence
+  - education
+  - learning science
+  - active recall
+  - reasoning systems
+version: "1.0.0"
+date-released: 2025-01-01

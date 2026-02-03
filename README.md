@@ -104,6 +104,17 @@ You don’t just learn faster — you learn *properly*.
 
 *API Key will be asked during initial signup for an account*
 
+## Credits
+
+**Academic Oracle** was designed and built by **Vo Tan Binh**.
+
+This project reflects original work in:
+- Learning-science–driven AI interaction design
+- Progressive reasoning and hint-based pedagogy
+- Secure, minimal, and distraction-free educational UX
+
+If you use, adapt, or build upon this project, attribution is appreciated and helps support continued development.
+
 ## Support
 
 If Academic Oracle helps your learning:
