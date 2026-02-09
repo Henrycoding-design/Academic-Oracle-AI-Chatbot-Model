@@ -145,7 +145,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, isLoading, 
             <div className="flex items-center gap-2 mb-2 px-3 py-1.5
                             bg-slate-200 dark:bg-slate-800
                             rounded-xl text-sm">
-              <span className="truncate max-w-[200px]">
+              <span className="truncate max-w-[200px] text-slate-900 dark:text-slate-100">
                 <span>
                   {fileIconFor(attachedFile.name)}
                 </span> {attachedFile.name}
