@@ -18,6 +18,23 @@
       "Fixed API-related bugs",
       "Integrated full website ecosystem"
     ]
+  },
+  {
+    "version": "2.0.0",
+    "date": "2026-02-14",
+    "changes": [
+      "Launched Academic Oracle AI Learning System",
+      "Integrated Quiz Platform with closed-feedback learning loop",
+      "Unified routing architecture with route-driven state management",
+      "Implemented multi-model fallback chain with dynamic load balancing",
+      "Improved Socratic dialogue flow and adaptive reasoning depth",
+      "Enhanced session summaries with contextual memory refinement",
+      "Reduced model error rates and improved response reliability",
+      "Separated quota handling between Chat and Quiz systems",
+      "Smoothed UI transitions and interaction flows",
+      "Upgraded Arcade demos, documentation, and release structure"
+    ]
   }
 ]
+
 
