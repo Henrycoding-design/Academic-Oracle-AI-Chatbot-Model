@@ -308,12 +308,19 @@ export const QuizView: React.FC<QuizViewProps> = ({
                 <div className="space-y-4">
                   <textarea
                     disabled={isAnswered}
+                    value={userAnswers[currentQ.id] || ''}
+                    onChange={(e) =>
+                      setUserAnswers(prev => ({
+                        ...prev,
+                        [currentQ.id]: e.target.value
+                      }))
+                    }
                     className="w-full p-4 rounded-xl text-slate-900 dark:text-white bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-indigo-500 outline-none resize-none h-32"
                     placeholder={LD.ui.answerPlaceholder}
                     onKeyDown={(e) => {
                       if (e.key === 'Enter' && !e.shiftKey) {
                         e.preventDefault();
-                        handleSubmitAnswer((e.target as HTMLTextAreaElement).value);
+                        handleSubmitAnswer(userAnswers[currentQ.id] || '');
                       }
                     }}
                   />

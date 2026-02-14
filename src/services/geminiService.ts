@@ -625,7 +625,7 @@ export const estimateQuizConfig = async (
 
   const result = await model.generateContent({
     contents: [{ role: 'user', parts: [{ text: prompt }] }],
-    generationConfig: { responseMimeType: "application/json" }
+    generationConfig: { responseMimeType: "application/json", temperature: 0.2 } // low temp for more deterministic output
   });
 
   if (!result.response.text()) {
@@ -693,7 +693,7 @@ export const generateQuizQuestions = async (
   try {
     const result = await model.generateContent({
       contents: [{ role: 'user', parts: [{ text: prompt }] }],
-      generationConfig: { responseMimeType: "application/json" }
+      generationConfig: { responseMimeType: "application/json", temperature: 0.6 } // low temp for more deterministic output
     });
     
     return JSON.parse(result.response.text());
@@ -702,7 +702,7 @@ export const generateQuizQuestions = async (
       // Retry once with the same model
       const retryResult = await model.generateContent({
         contents: [{ role: 'user', parts: [{ text: prompt }] }],
-        generationConfig: { responseMimeType: "application/json" }
+        generationConfig: { responseMimeType: "application/json", temperature: 0.5 } // even lower temp for retry to increase chance of valid output
       });
       return JSON.parse(retryResult.response.text());
     }
@@ -711,7 +711,7 @@ export const generateQuizQuestions = async (
       const liteModel = await getModelLite(decryptedKey);
       const fallbackResult = await liteModel.generateContent({
         contents: [{ role: 'user', parts: [{ text: prompt }] }],
-        generationConfig: { responseMimeType: "application/json" }
+        generationConfig: { responseMimeType: "application/json", temperature: 0.5 } // lower temp for fallback to increase chance of valid output
       });
       return JSON.parse(fallbackResult.response.text());
     }
@@ -764,7 +764,7 @@ Return JSON:
 
   const result = await model.generateContent({
     contents: [{ role: "user", parts: [{ text: prompt }] }],
-    generationConfig: { responseMimeType: "application/json" }
+    generationConfig: { responseMimeType: "application/json", temperature: 0.6 }
   });
 
   const parsed = extractAndParseJSONSafe(result.response.text());

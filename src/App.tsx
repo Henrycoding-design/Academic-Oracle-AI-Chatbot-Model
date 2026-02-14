@@ -281,7 +281,7 @@ const App: React.FC = () => {
   const oracleMenuRef = useRef<HTMLDivElement>(null);
   useClickOutside([oracleButtonRef, oracleMenuRef], () => setIsOracleOpen(false), isOracleOpen); // hook to close oracle status on outside click
 
-  const [showProfile, setShowProfile] = useState(false); // set state for profile page
+  // const [showProfile, setShowProfile] = useState(false); // set state for profile page
   const [isAuthenticated, setIsAuthenticated] = useState(false); // auth state -> easier management
 
   useEffect(() => {
@@ -611,6 +611,8 @@ const App: React.FC = () => {
     quota.chats[currentChatIdRef.current] = 0;
     saveQuota(quota);
 
+    navigate("/"); // navigate back to chat
+
     // 🖼️ reset UI messages
     setMessages([
       {
@@ -657,6 +659,8 @@ const App: React.FC = () => {
       clearTimeout(masteryTimerRef.current);
       masteryTimerRef.current = null;
     }
+
+    navigate("/"); // redirect to home/login page
 
     // reset chat UI
     setMessages([
