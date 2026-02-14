@@ -14,8 +14,9 @@ import { createPortal } from "react-dom";
 import { useClickOutside } from './services/useClickOutsite';
 import { generateSessionSummary } from './services/geminiService.ts';
 import { createSummaryDoc } from './services/createSummaryDoc.ts';
-import { SquarePen, ScrollText, ChevronDown} from 'lucide-react';
+import { SquarePen, ScrollText, ChevronDown, BrainCircuit} from 'lucide-react';
 import ProfilePage from './ProfilePage.tsx';
+import { QuizView } from './components/QuizView'; // Added QuizView
 import { getQuota, isOutOfQuota, saveQuota } from './services/sessionMarker.ts';
 import { InvalidAPIError } from './types';
 import { AppLanguage , LANGUAGE_DATA } from './lang/Language.tsx';
@@ -103,6 +104,13 @@ function trimHistory(history: ChatHistoryItem[]) {
 const App: React.FC = () => {
   const [session, setSession] = useState<any | null>(null);
 
+  // NEW STATE: View Switching
+  const [currentView, setCurrentView] = useState<'chat' | 'quiz' | 'profile'>('chat');
+  // NEW STATE: Mastery Popup
+  const [showMasteryPopup, setShowMasteryPopup] = useState(false);
+  // NEW STATE: Pending Explanation from Quiz
+  const [pendingExplanation, setPendingExplanation] = useState<string | null>(null);
+
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
       setSession(data.session);
@@ -131,6 +139,16 @@ const App: React.FC = () => {
     window.history.pushState({}, "", path);
     setRoute(path);
   };
+
+  useEffect(() => { // handle route changes for profile/account and quiz
+    if (route === "/quiz") {
+      setCurrentView("quiz");
+    } else if (route === "/profile") {
+      setCurrentView("profile");
+    } else {
+      setCurrentView("chat");
+    }
+  }, [route]);
 
   // Language
   const [language, setLanguage] = useState<AppLanguage>(() => {
@@ -240,6 +258,7 @@ const App: React.FC = () => {
   }, [messages]);
 
   const [isLoading, setIsLoading] = useState(false);
+  const [isGeneratingSummary, setIsGeneratingSummary] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isDark, setIsDark] = useState(() => {
     if (typeof window !== 'undefined') {
@@ -294,7 +313,23 @@ const App: React.FC = () => {
 
   const [model, setModel] = useState<string>('gemini-3-flash-preview'); // default model -> never empty/crash on this optional feature
   const chatEndRef = useRef<HTMLDivElement>(null);
-  
+  const masteryTimerRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (masteryTimerRef.current) {
+        clearTimeout(masteryTimerRef.current);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    if (currentView !== "chat" && masteryTimerRef.current) {
+      clearTimeout(masteryTimerRef.current);
+      masteryTimerRef.current = null;
+    }
+  }, [currentView]);
+
 
   // ⚡ Theme handling
   useEffect(() => {
@@ -405,7 +440,7 @@ const App: React.FC = () => {
       };
 
       // 🔁 Stateless call with full history
-      const { answer, memory, model } = await sendMessageToBot({
+      const { answer, memory, model, sessionForTopicDone } = await sendMessageToBot({
         history: outgoingHistory,
         memory: oracleMemory,
         encryptedKeyPayload: encryptedApiKey,
@@ -435,6 +470,22 @@ const App: React.FC = () => {
         setModel(model);
       }
 
+      if (sessionForTopicDone) {
+        if (masteryTimerRef.current) {
+          clearTimeout(masteryTimerRef.current);
+        }
+
+        masteryTimerRef.current = window.setTimeout(() => {
+          if (currentView === "chat") {
+            setShowMasteryPopup(true);
+          }
+          masteryTimerRef.current = null;
+        }, 8000);
+
+        const newMemory = oracleMemory ? `${oracleMemory}\n\n[MASTERED TOPIC]: ${sessionForTopicDone}` : `[MASTERED TOPIC]: ${sessionForTopicDone}`;
+
+        setOracleMemory(newMemory);
+      }
     } catch (err: unknown) {
       console.error(err);
 
@@ -541,6 +592,12 @@ const App: React.FC = () => {
     // 🧹 wipe persisted chat state
     sessionStorage.removeItem("academic-oracle-chat");
     sessionStorage.removeItem("academic-oracle-history");
+    sessionStorage.removeItem("academic-oracle-quiz-state"); // Clear quiz cache on reset
+
+    if (masteryTimerRef.current) {
+      clearTimeout(masteryTimerRef.current);
+      masteryTimerRef.current = null;
+    }
 
     // ⚠️ optional: keep or wipe memory?
     if (window.confirm(LANGUAGE_DATA[language].ui.wipeProfile)) {
@@ -593,7 +650,13 @@ const App: React.FC = () => {
     sessionStorage.removeItem("academic-oracle-history"); // wipe history
     sessionStorage.removeItem("oracle-api-key");
     sessionStorage.removeItem("academic-oracle-memory"); //wipe profile
+    sessionStorage.removeItem("academic-oracle-quiz-state"); // Clear quiz cache on logout
     setOracleMemory(null);
+
+    if (masteryTimerRef.current) {
+      clearTimeout(masteryTimerRef.current);
+      masteryTimerRef.current = null;
+    }
 
     // reset chat UI
     setMessages([
@@ -634,7 +697,7 @@ const App: React.FC = () => {
     }
 
     try {
-      setIsLoading(true);
+      setIsGeneratingSummary(true);
 
       const summary = await generateSessionSummary({
         history: chatHistory,
@@ -650,8 +713,29 @@ const App: React.FC = () => {
       console.error(err);
       alert(LANGUAGE_DATA[language].ui.failedToGenerateSummary);
     } finally {
-      setIsLoading(false);
+      setIsGeneratingSummary(false);
     }
+  };
+
+  // --- QUIZ HANDLERS ---
+  const handleExplainRequest = (context: string) => {
+    setPendingExplanation(context);
+    navigate("/chat"); // switch to chat view, which will trigger the effect to send the explanation request
+  };
+
+  // Effect to auto-fill input when explanation is requested
+  useEffect(() => {
+    if (pendingExplanation && currentView === 'chat') {
+      // We essentially "mock" the user sending this message
+      handleSendMessage(pendingExplanation);
+      setPendingExplanation(null);
+    }
+  }, [pendingExplanation, currentView]);
+
+  const handleAddToMemory = (summary: string) => {
+    const newMemory = oracleMemory ? `${oracleMemory}\n\n[QUIZ RESULT]: ${summary}` : `[QUIZ RESULT]: ${summary}`;
+    setOracleMemory(newMemory);
+    alert("Results added to your Session Memory! They will be included in your next Summary Doc.");
   };
 
 
@@ -678,12 +762,31 @@ const App: React.FC = () => {
     user?.user_metadata?.picture ||
     `https://api.dicebear.com/7.x/identicon/svg?seed=${user?.id}`;
   
-  // normalize routes (for routing from other pages. Ex: src/pages/home/Navbar.tsx)
-  const isProfileRoute =
-  route === "/profile" || route === "/account";
+  // // normalize routes (for routing from other pages. Ex: src/pages/home/Navbar.tsx)
+  // const isProfileRoute =
+  // route === "/profile" || route === "/account";
 
-  if (isProfileRoute) {
-    return (
+  // if (isProfileRoute) {
+  //   return (
+  //     <ProfilePage
+  //       user={user}
+  //       encryptedApiKey={encryptedApiKey}
+  //       language={language}
+  //       onLanguageChange={setLanguage}
+  //       onSave={(key) => setEncryptedApiKey(key)}
+  //       onBack={() => {
+  //         if (window.history.length > 1) {
+  //           window.history.back();
+  //         } else {
+  //           navigate("/");
+  //         }
+  //       }}
+  //     />
+  //   );
+  // }
+
+  return (
+    currentView === 'profile' ? (
       <ProfilePage
         user={user}
         encryptedApiKey={encryptedApiKey}
@@ -696,20 +799,7 @@ const App: React.FC = () => {
           } else {
             navigate("/");
           }
-        }}
-      />
-    );
-  }
-
-  return (
-    showProfile ? ( // still keep this, reduce refractors of code
-      <ProfilePage
-        user={user}
-        encryptedApiKey={encryptedApiKey}
-        language={language}
-        onLanguageChange={setLanguage}
-        onSave={(key) => setEncryptedApiKey(key)}
-        onBack={() => setShowProfile(false)}
+      }}
       />
     ) : (
       /* Use flex-col and h-screen to ensure the container fills the viewport */
@@ -725,13 +815,29 @@ const App: React.FC = () => {
               </a>
               </div>
             </div>
-            <div className="flex flex-col gap-3">
-              <button className="p-2 rounded-lg hover:bg-black/5 dark:hover:bg-white/10 text-slate-700 dark:text-slate-200" onClick={handleGenerateSummary} title={LANGUAGE_DATA[language].tooltips.summary}> {/* Summary btn*/}
-                <ScrollText size={18} />
-              </button>
-
+            <div className="flex flex-col gap-4">
               <button className="p-2 rounded-lg hover:bg-black/5 dark:hover:bg-white/10 text-slate-700 dark:text-slate-200" onClick={resetChat} title={LANGUAGE_DATA[language].tooltips.newChat}>
                 <SquarePen size={18} />
+              </button>
+
+              <button className="p-2 rounded-lg hover:bg-black/5 dark:hover:bg-white/10 text-slate-700 dark:text-slate-200" onClick={handleGenerateSummary} disabled={isGeneratingSummary} title={LANGUAGE_DATA[language].tooltips.summary}> {/* Summary btn*/}
+                <ScrollText
+                  size={18}
+                  className={`transition-all duration-200 ${isGeneratingSummary ? "animate-spin text-indigo-500" : ""}`}
+                />
+              </button>
+
+              {/* QUIZ BUTTON */}
+              <button 
+                className={`p-2 rounded-lg transition-colors ${
+                  currentView === 'quiz' 
+                  ? 'bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400' 
+                  : 'hover:bg-black/5 dark:hover:bg-white/10 text-slate-700 dark:text-slate-200'
+                }`}
+                onClick={() => navigate("/quiz")} 
+                title={LANGUAGE_DATA[language].tooltips.quiz}
+              >
+                <BrainCircuit size={18} />
               </button>
             </div>
             <div className="mt-auto relative">
@@ -757,7 +863,7 @@ const App: React.FC = () => {
                     border border-black/5 dark:border-white/10
                     text-sm z-[9999]
                   ">
-                    <button className="block w-full px-3 py-2 text-left hover:bg-black/5" onClick={() => {setShowProfile(true)}}>
+                    <button className="block w-full px-3 py-2 text-left hover:bg-black/5" onClick={() => {navigate("/profile")}}>
                       {LANGUAGE_DATA[language].ui.profile}
                     </button>
                     <button
@@ -820,29 +926,97 @@ const App: React.FC = () => {
             </button>
           </header>
 
-          {/* Main Chat Area - THIS IS THE SCROLLING PART */}
-          <main className="flex-1 overflow-y-auto scroll-smooth custom-scrollbar">
-            <div className="max-w-4xl mx-auto px-4 pt-8 pb-32">
-              {messages.map((msg, index) => (
-                <ChatMessage key={index} message={msg} />
-              ))}
-              {isLoading && <LoadingIndicator />}
-              {error && (
-                <div className="bg-rose-100/80 dark:bg-rose-900/20 text-rose-600 p-4 rounded-2xl text-center my-6">
-                  <p>{error}</p>
-                  <button onClick={handleRetry} className="mt-2 bg-rose-500 text-white px-4 py-1 rounded-full text-xs">{LANGUAGE_DATA[language].ui.retryButton}</button>
-                </div>
-              )}
-              <div ref={chatEndRef} />
-            </div>
+          {/* MAIN VIEW SWITCHER */}
+          <main className="flex-1 overflow-y-auto scroll-smooth custom-scrollbar relative">
+            {currentView === 'chat' ? (
+              <div className="max-w-4xl mx-auto px-4 pt-8 pb-32">
+                {messages.map((msg, index) => <ChatMessage key={index} message={msg} />)}
+                {isLoading && <LoadingIndicator />}
+                {error && (
+                  <div className="bg-rose-100/80 dark:bg-rose-900/20 text-rose-600 p-4 rounded-2xl text-center my-6">
+                    <p>{error}</p>
+                    <button onClick={handleRetry} className="mt-2 bg-rose-500 text-white px-4 py-1 rounded-full text-xs">{LANGUAGE_DATA[language].ui.retryButton}</button>
+                  </div>
+                )}
+                <div ref={chatEndRef} />
+                
+                {/* MASTERY POPUP */}
+                {showMasteryPopup &&
+                  createPortal(
+                    <div className="fixed inset-0 z-[9999] flex items-center justify-center">
+                      
+                      {/* Backdrop */}
+                      <div 
+                        className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+                        onClick={() => setShowMasteryPopup(false)}
+                      />
+
+                      {/* Popup Card */}
+                      <div className="relative max-w-sm w-full mx-4 animate-in zoom-in-95 fade-in">
+                        <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl
+                                        shadow-[0_20px_60px_-15px_rgba(0,0,0,0.5)]
+                                        border border-indigo-500/40
+                                        ring-4 ring-indigo-500/10">
+                          
+                          <h3 className="font-bold text-lg mb-2 text-indigo-600 dark:text-indigo-400">
+                            Mastery Detected! 🏆
+                          </h3>
+
+                          <p className="text-sm text-slate-600 dark:text-slate-300 mb-4 leading-relaxed">
+                            You clearly understand this topic. Want to lock it in with a quick, tailored quiz?
+                          </p>
+
+                          <div className="flex gap-3">
+                            <button 
+                              onClick={() => {
+                                navigate("/quiz");
+                                setShowMasteryPopup(false);
+                              }}
+                              className="flex-1 bg-indigo-600 hover:bg-indigo-700
+                                        text-white py-2 rounded-xl font-medium text-sm transition-colors"
+                            >
+                              Yes, Quiz Me
+                            </button>
+
+                            <button 
+                              onClick={() => setShowMasteryPopup(false)}
+                              className="flex-1 bg-slate-100 dark:bg-slate-700
+                                        hover:bg-slate-200 dark:hover:bg-slate-600
+                                        text-slate-700 dark:text-slate-200
+                                        py-2 rounded-xl font-medium text-sm transition-colors"
+                            >
+                              Later
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>,
+                    document.body
+                  )
+                }
+              </div>
+            ) : (
+              // QUIZ VIEW
+              <QuizView 
+                language={language}
+                history={chatHistory} 
+                memory={oracleMemory} 
+                encryptedApiKey={encryptedApiKey}
+                onBack={() => navigate("/")} // back to chat view
+                onExplainRequest={handleExplainRequest}
+                onAddToMemory={handleAddToMemory}
+              />
+            )}
           </main>
 
-          {/* Footer / Input - Sticks to bottom of the flex container */}
-          <footer className="absolute bottom-0 left-0 right-0 z-30 pointer-events-none">
-            <div className="pointer-events-auto bg-gradient-to-t from-slate-50 dark:from-slate-950 via-slate-50/90 to-transparent">
-              <ChatInput onSendMessage={handleSendMessage} isLoading={isLoading} language={language} />
-            </div>
-          </footer>
+          {/* INPUT FOOTER (Only show in Chat Mode) */}
+          {currentView === 'chat' && (
+            <footer className="absolute bottom-0 left-0 right-0 z-30 pointer-events-none">
+              <div className="pointer-events-auto bg-gradient-to-t from-slate-50 dark:from-slate-950 via-slate-50/90 to-transparent">
+                <ChatInput onSendMessage={handleSendMessage} isLoading={isLoading} language={language} />
+              </div>
+            </footer>
+          )}
         </div>
       </div>
     )

@@ -1,7 +1,7 @@
 import PageLayout from "@/src/layout/PageLayout";
 import PageHeader from "../ui/PageHeader";
 import ArcadeEmbed from "@/src/components/ArcadeProductDemo";
-import { AppWindow, Brain, Shield, Layout, X, BookOpen, Github, Zap , MessageCircleIcon , PackageCheckIcon} from "lucide-react";
+import { AppWindow, Brain, Shield, Layout, X, BookOpen, Github, Zap , MessageCircleIcon , PackageCheckIcon, ClipboardCheck, RefreshCw, MessageSquare, ArrowRight, Database, TrendingUp} from "lucide-react";
 
 export default function Products() {
   return (
@@ -84,6 +84,47 @@ export default function Products() {
 
             <p className="text-sm text-white/70 leading-relaxed">
               Strong fundamentals power the experience. We handle complex KaTeX and code blocks within a secure, AES-encrypted infrastructure.
+            </p>
+          </div>
+        </div>
+        <hr className="border-white/5 my-12" />
+        {/* Second Row: Quiz Integration */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+          {/* Feature 4: Dynamic Quiz Loop */}
+          <div className="space-y-4 group p-6 rounded-2xl bg-white/[0.02] border border-white/5 hover:border-orange-500/30 transition-all duration-300">
+            <div className="flex items-center gap-3 text-white/80">
+              <ClipboardCheck className="w-6 h-6 text-orange-400" />
+              <RefreshCw className="w-4 h-4 opacity-50 animate-spin-slow" />
+              <MessageSquare className="w-6 h-6 text-blue-400" />
+            </div>
+
+            <h3 className="text-xl font-semibold text-white">Closed-Feedback Quizzing</h3>
+
+            <h4 className="text-sm text-white/60">
+              Real-time Sync · Dynamic UI Components
+            </h4>
+
+            <p className="text-sm text-white/70 leading-relaxed">
+              Experience a seamless bridge between assessment and dialogue. Quiz results pipe directly back into the chat UI, triggering immediate remedial explanations for missed concepts.
+            </p>
+          </div>
+
+          {/* Feature 5: Adaptive Memory */}
+          <div className="space-y-4 group p-6 rounded-2xl bg-white/[0.02] border border-white/5 hover:border-purple-500/30 transition-all duration-300">
+            <div className="flex items-center gap-3 text-white/80">
+              <Database className="w-6 h-6 text-purple-400" />
+              <ArrowRight className="w-4 h-4 opacity-50" />
+              <TrendingUp className="w-6 h-6 text-emerald-400" />
+            </div>
+
+            <h3 className="text-xl font-semibold text-white">Oracle Memory Evolution</h3>
+
+            <h4 className="text-sm text-white/60">
+              Neural updates · Performance-driven flow
+            </h4>
+
+            <p className="text-sm text-white/70 leading-relaxed">
+              The Oracle learns how you learn. By updating your persistent "Oracle Memory" with quiz performance, the AI automatically adapts its curriculum and difficulty in real-time.
             </p>
           </div>
         </div>

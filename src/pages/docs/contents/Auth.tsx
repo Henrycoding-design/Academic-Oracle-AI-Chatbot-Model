@@ -1,6 +1,6 @@
 export default function Auth() {
   const goToAccount = () => {
-    window.history.pushState({}, "", "/account");
+    window.history.pushState({}, "", "/profile");
     window.dispatchEvent(new PopStateEvent("popstate"));
   };
   return (
@@ -87,7 +87,7 @@ export default function Auth() {
           
           <a 
             onClick={goToAccount}
-            href="#" // just for the cursor effect, doesn't affect functionality
+            href="" // just for the cursor effect, doesn't affect functionality
             className="inline-flex items-center text-sm font-bold text-white hover:text-emerald-400 transition-colors"
           >
             Access Profile Dashboard
