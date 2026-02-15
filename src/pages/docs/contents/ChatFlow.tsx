@@ -1,3 +1,5 @@
+import React from "react";
+
 export default function ChatFlow() {
   return (
     <div className="space-y-12 pb-20">
@@ -28,7 +30,7 @@ export default function ChatFlow() {
               Socratic Engine & Model Routing
             </h4>
             <p className="text-sm text-slate-400 leading-relaxed">
-              Every query triggers a selective model evaluation. By utilizing our <strong>Flask-series stack</strong> with automatic fallback routing, we ensure that session latency never interrupts the student's train of thought. If one model hits a quota, the system cascades instantly to maintain the Socratic dialogue.
+              Every query triggers a selective model evaluation. By utilizing our <strong>Flask-series stack</strong> with automatic fallback routing, we ensure that session latency never interrupts the student's train of thought.
             </p>
           </div>
 
@@ -38,8 +40,43 @@ export default function ChatFlow() {
               Dynamic User Profiling
             </h4>
             <p className="text-sm text-slate-400 leading-relaxed">
-              The Oracle maintains a <strong>hidden, evolving user profile</strong> throughout the session. This profile tracks conceptual gaps and sentiment, adjusting the AI's "strictness" and "hints" in real-time without cluttering the UI.
+              The Oracle maintains a <strong>hidden, evolving user profile</strong>. This profile tracks conceptual gaps and sentiment, adjusting the AI's "strictness" and "hints" in real-time.
             </p>
+          </div>
+        </div>
+      </section>
+
+      {/* NEW: The Validation Loop (Quiz Platform) */}
+      <section className="space-y-8">
+        <div className="flex flex-col md:flex-row justify-between items-end gap-4">
+          <div className="max-w-xl">
+            <h3 className="text-xl font-bold text-white mb-2">The Validation Loop</h3>
+            <p className="text-slate-400 text-sm">
+              Once the Oracle detects conceptual mastery via chat, it triggers a <strong>React-native modal</strong> prompting a short quiz. This isn't a separate app—it's a synchronized state that pulls directly from your session's memory.
+            </p>
+          </div>
+          <div className="flex gap-2">
+            <div className="h-2 w-8 rounded-full bg-blue-500" />
+            <div className="h-2 w-8 rounded-full bg-blue-500/30" />
+            <div className="h-2 w-8 rounded-full bg-blue-500/10" />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="p-5 rounded-2xl bg-[#0f172a] border border-white/5 space-y-3">
+            <div className="w-8 h-8 rounded-lg bg-blue-500/20 flex items-center justify-center text-blue-400 text-sm font-bold">1</div>
+            <h5 className="text-white font-semibold text-sm">Automated Config</h5>
+            <p className="text-xs text-slate-500">Auto-selects level and MCQ/Open-answer ratios based on Oracle session memory.</p>
+          </div>
+          <div className="p-5 rounded-2xl bg-[#0f172a] border border-white/5 space-y-3">
+            <div className="w-8 h-8 rounded-lg bg-purple-500/20 flex items-center justify-center text-purple-400 text-sm font-bold">2</div>
+            <h5 className="text-white font-semibold text-sm">Deep-Link Remediation</h5>
+            <p className="text-xs text-slate-500">Wrong answers trigger AI explanations with buttons to "Re-ask Oracle" with full context auto-injected.</p>
+          </div>
+          <div className="p-5 rounded-2xl bg-[#0f172a] border border-white/5 space-y-3">
+            <div className="w-8 h-8 rounded-lg bg-cyan-500/20 flex items-center justify-center text-cyan-400 text-sm font-bold">3</div>
+            <h5 className="text-white font-semibold text-sm">Memory Sync</h5>
+            <p className="text-xs text-slate-500">Quiz performance is cached in <code>sessionStorage</code> and can be exported into your final .docx summary.</p>
           </div>
         </div>
       </section>
@@ -62,22 +99,25 @@ export default function ChatFlow() {
       {/* Export & Master Check */}
       <section className="grid md:grid-cols-[1fr_300px] gap-8 items-center bg-gradient-to-br from-blue-600/10 to-transparent p-8 rounded-2xl border border-blue-500/20">
         <div className="space-y-4">
-          <h2 className="text-2xl font-bold text-white">Mastery & Portability</h2>
+          <div className="flex items-center gap-2">
+            <h2 className="text-2xl font-bold text-white">Mastery & Portability</h2>
+            <span className="text-[10px] bg-white/10 px-2 py-0.5 rounded text-slate-400 border border-white/10">v2.0</span>
+          </div>
           <p className="text-slate-400 leading-relaxed">
-            At the end of a session, the "Summary" button doesn't just recap text. It generates a structured <strong>.docx revision guide</strong>. This document connects abstract session concepts to <strong>real-world examples</strong>, serving as a master-check for long-term retention.
+            At the end of a session, the "Summary" button generates a structured <strong>.docx revision guide</strong>. By opting to "Add Quiz to Memory," your results and focus fields are automatically woven into the document.
           </p>
           <ul className="grid grid-cols-2 gap-2 text-xs text-white/60">
             <li className="flex items-center gap-2">✓ Real-world Case Studies</li>
-            <li className="flex items-center gap-2">✓ Formula Cheat Sheets</li>
-            <li className="flex items-center gap-2">✓ Critical Inquiry Review</li>
+            <li className="flex items-center gap-2">✓ AI-Graded Open Answers</li>
+            <li className="flex items-center gap-2">✓ Focused Revision Fields</li>
             <li className="flex items-center gap-2">✓ Mastery Scorecards</li>
           </ul>
         </div>
         
         <div className="flex flex-col gap-3">
-          <div className="p-4 bg-black/40 rounded-xl border border-white/5 text-center">
-            <p className="text-[10px] text-white/40 uppercase tracking-widest mb-2 font-bold">Session Output</p>
-            <div className="text-xs font-mono text-blue-400 truncate">Academic_Oracle_Revision.docx</div>
+          <div className="p-4 bg-black/40 rounded-xl border border-white/5 text-center group">
+            <p className="text-[10px] text-white/40 uppercase tracking-widest mb-2 font-bold group-hover:text-blue-400 transition-colors">Session Output</p>
+            <div className="text-xs font-mono text-blue-400 truncate">Academic_Oracle_Summary.docx</div>
             <button className="mt-4 w-full py-2 bg-blue-500 hover:bg-blue-400 text-white text-xs font-bold rounded transition-colors shadow-lg shadow-blue-500/20">
               Download Summary
             </button>

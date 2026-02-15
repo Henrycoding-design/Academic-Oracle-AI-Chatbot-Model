@@ -1,6 +1,10 @@
 import React from "react";
 
 export default function GettingStarted() {
+  const goToQuiz = () => {
+    window.history.pushState({}, "", "/quiz");
+    window.dispatchEvent(new PopStateEvent("popstate"));
+  }
   return (
     <div className="space-y-16">
       {/* Intro */}
@@ -11,9 +15,11 @@ export default function GettingStarted() {
         </p>
       </header>
 
-      {/* Learning Methods & Socratic Method */}
-      <section className="space-y-6">
+      {/* Learning Methods */}
+      <section className="space-y-10">
         <h2 className="text-2xl font-semibold border-b border-white/10 pb-2">Learning Methods</h2>
+        
+        {/* The Socratic AI */}
         <div className="grid md:grid-cols-2 gap-8 items-start">
           <div className="space-y-4">
             <h3 className="text-blue-400 text-lg font-medium">The Socratic AI</h3>
@@ -43,7 +49,56 @@ export default function GettingStarted() {
         </div>
       </section>
 
-      
+        {/* NEW SECTION: Dynamic Mastery Assessment (Quiz) */}
+        <div className="grid md:grid-cols-2 gap-8 items-start pt-4">
+          <div className="bg-gradient-to-br from-blue-500/5 to-purple-500/5 border border-white/10 p-6 rounded-xl order-2 md:order-1">
+            <h4 className="text-sm font-bold uppercase text-blue-400 mb-4 tracking-wider">Quiz Engine Features</h4>
+            <div className="space-y-4 text-sm text-white/60">
+              <div className="flex flex-col gap-1">
+                <span className="text-white font-medium">Hybrid Questioning</span>
+                <p>Seamlessly mix MCQs with AI-graded open-ended responses for deeper conceptual testing.</p>
+              </div>
+              <div className="flex flex-col gap-1">
+                <span className="text-white font-medium">Contextual Persistence</span>
+                <p>Quiz states and answers are cached in <code>sessionStorage</code> to prevent data loss during tab switching.</p>
+              </div>
+              <div className="flex flex-col gap-1">
+                <span className="text-white font-medium">Feedback Loops</span>
+                <p>Instant explanations with direct deep-links back to the Oracle Chat for remediation.</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="space-y-6 order-1 md:order-2"> {/* Increased space-y to 6 for better button separation */}
+            <div className="space-y-4">
+              <h3 className="text-blue-400 text-lg font-medium">Dynamic Mastery Assessment</h3>
+              <p className="text-white/70 leading-relaxed">
+                Transitioning from dialogue to validation, the <strong>Quiz Platform</strong> provides a rigorous check of the student’s mental model. Triggered automatically after mastery checks or accessed via the sidebar, it bridges the gap between conversation and retained knowledge.
+              </p>
+              <ul className="list-none p-0 space-y-2 text-sm text-white/60">
+                <li className="flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-purple-500" />
+                  Memory-synced question generation
+                </li>
+                <li className="flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-purple-500" />
+                  Customizable level & mix ratios
+                </li>
+                <li className="flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-purple-500" />
+                  Automated session memory updates
+                </li>
+              </ul>
+            </div>
+
+            {/* NEW CALL TO ACTION BUTTON */}
+            <div className="pt-2">
+              <button className="px-6 py-2.5 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white text-sm font-medium rounded-lg transition-all shadow-lg shadow-purple-500/20 active:scale-95" onClick={goToQuiz}>
+                Try Quiz Now
+              </button>
+            </div>
+          </div>
+        </div>
 
       {/* Vision & Mission */}
       <section className="bg-gradient-to-r from-blue-500/10 to-transparent p-8 rounded-2xl border-l-4 border-blue-500">
@@ -63,7 +118,7 @@ export default function GettingStarted() {
         <div className="flex items-center gap-4">
           <h2 className="text-2xl font-semibold">Anarchitecture & AI Integration</h2>
           <span className="px-2 py-1 text-[10px] font-bold bg-blue-500/20 text-blue-400 rounded border border-blue-500/30 uppercase tracking-tighter">
-            V1.0 Stable
+            V2.0.0 Stable
           </span>
         </div>
 
@@ -88,7 +143,6 @@ export default function GettingStarted() {
           </a>
         </div>
       </section>
-
     </div>
   );
 }

@@ -33,7 +33,7 @@
 
 Instead of immediately giving answers, Academic Oracle follows a scientifically grounded flow:
 
-> **Ask → Think → Hint → Pattern → Insight**
+> **Ask → Think → Hint → Attempt → Feedback → Pattern → Insight → Mastery**
 
 The goal is not memorization — it’s *deep, durable learning*.
 
@@ -47,6 +47,7 @@ Academic Oracle optimizes for **retention, intuition, and reasoning**.
 ### Core Learning Principles
 - Active recall before answers
 - Progressive hinting instead of instant solutions
+- Error-correction loops
 - Pattern discovery over rote explanation
 - Minimal UI disruption to maintain cognitive flow
 
@@ -56,24 +57,45 @@ You don’t just learn faster — you learn *properly*.
 
 ## Features
 
-- 🧠 **Hint-based reasoning flow** (ask first, reveal later)
-- 🧮 **Robust Markdown rendering**
-  - Math (KaTeX)
-  - Tables
-  - Code blocks
-- 🎨 **Dark / Light mode**
-- 🔐 **AES-GCM-256 encryption** for API key storage
-- 🧩 **Arcade-style onboarding tutorial**
-- 👤 **User profile & session continuity**
-- 🖥️ **Responsive UI** (desktop & mobile)
-- 🛑 **Fail-in-console design** (errors never break the UI)
-- ☕ **Buy Me a Coffee support link**
+### 🧠 Learning Engine
+
+- Hint-based reasoning flow (Ask first, reveal progressively)
+- Structured thinking prompts
+- Pattern extraction instead of answer dumping
+
+### 📝 Integrated Quiz Platform (NEW)
+
+- Auto-generated concept-specific quizzes
+- Multi-question adaptive testing
+- Mastery popups & performance feedback
+- Reinforcement-based correction
+- Mid-session language switching
+- Unified Chat + Quiz UI system
+
+### 🎨 UX & Rendering
+
+- Robust Markdown rendering
+- Math (KaTeX)
+- Tables
+- Code blocks
+- Dark / Light mode
+- Responsive design (desktop & mobile)
+- Fail-in-console architecture (UI never crashes)
+
+### 🔐 Security & Architecture
+
+- AES-GCM-256 encryption for sensitive keys
+- Supabase-backed session continuity
+- Arcade-style interactive onboarding demo
 
 ---
 
 ## Tech Stack
 
-- **Frontend:** React + TypeScript
+- **Frontend:** React 19 + TypeScript
+- **Backend (AI):** Google GenAI models (Gemini-3, Gemini-2.5)
+- **Backend (Auth):** Supabase & Google OAuth
+- **Build Tool:** Vite 6
 - **Styling:** Tailwind CSS
 - **Math Rendering:** KaTeX
 - **State & UX:** Custom lightweight logic (no heavy frameworks)
@@ -104,16 +126,31 @@ You don’t just learn faster — you learn *properly*.
 
 *API Key will be asked during initial signup for an account*
 
+---
+
+## Project Vision
+
+Academic Oracle aims to *redefine how AI integrates into education*:
+- Not as a solver.
+- Not as a shortcut.
+
+**But as a structured reasoning partner.**
+
+The long-term goal is to build *a universal academic cognition system* that scales from secondary education to research-level inquiry.
+
+---
+
 ## Credits
 
 **Academic Oracle** was designed and built by **Vo Tan Binh**.
 
-This project reflects original work in:
+This project represents original work in:
 - Learning-science–driven AI interaction design
 - Progressive reasoning and hint-based pedagogy
+- Closed-feedback AI tutoring systems
 - Secure, minimal, and distraction-free educational UX
 
-If you use, adapt, or build upon this project, attribution is appreciated and helps support continued development.
+If you build upon this work, attribution is appreciated.
 
 ## Support
 
@@ -125,4 +162,5 @@ If Academic Oracle helps your learning:
 
 * 🧠 Use it, break it, and learn from it
 
-Recognition means a lot — but impact matters more.
+Recognition matters.
+Impact matters more.

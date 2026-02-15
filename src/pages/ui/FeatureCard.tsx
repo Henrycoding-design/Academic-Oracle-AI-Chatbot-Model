@@ -3,11 +3,11 @@ import { motion, useMotionValue , useMotionTemplate , useSpring } from "framer-m
 import { Brain, Globe, Shield, Sparkles, Database , FileText} from "lucide-react";
 
 const FEATURES = [
-  { id: 1, icon: Brain, title: "AI Core", span: "md:col-span-2" },
-  { id: 2, icon: Database, title: "Data Layer" },
-  { id: 3, icon: FileText, title: "Mastery Export" }, // Replaced "Platform"
+  { id: 1, icon: Brain, title: "Learning Engine", span: "md:col-span-2" },
+  { id: 2, icon: Database, title: "Oracle Memory" },
+  { id: 3, icon: FileText, title: "Session Summary" }, // Replaced "Platform"
   { id: 4, icon: Shield, title: "Security" },
-  { id: 5, icon: Sparkles, title: "Experience", span: "md:col-span-2" },
+  { id: 5, icon: Sparkles, title: "Adaptive Quiz", span: "md:col-span-2" },
   { id: 6, icon: Globe, title: "Universal Access" }, // Renamed to feel more expansive
 ];
 

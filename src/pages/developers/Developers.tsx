@@ -49,7 +49,7 @@ export default function Developers() {
             <div className="flex items-center gap-3 text-white/80">
               <Brain className="w-6 h-6 text-indigo-400" />
               <div className="h-4 w-[1px] bg-white/10" />
-              <span className="text-[10px] font-bold border border-white/20 px-1 rounded text-white/40 uppercase">V3</span>
+              <span className="text-[10px] font-bold border border-white/20 px-1 rounded text-white/40 uppercase">V.1.22.0</span>
             </div>
 
             <h3 className="text-xl font-semibold text-white">

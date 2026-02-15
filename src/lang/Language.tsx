@@ -6,8 +6,38 @@ export const LANGUAGE_DATA: Record<AppLanguage, {
   tooltips: {
     newChat: string;
     summary: string;
+    quiz: string;
   };
   ui: {
+    // Quiz UI labels
+    chat: string;
+    quizConfigTitle: string;
+    difficultyLevel: string;
+    difficultyOptions: string[];
+    numberOfQuestions: string; // use {count}
+    mixLabel: string; // use {mcq} and {open}
+    startAssessment: string;
+    generatingAssessment: string;
+    failedToGenerateQuiz: string;
+    mcqIncorrect: string; // use {answer} and {explanation}
+    questionOf: string; // use {current} and {total}
+    chatTooShortForQuiz: string;
+    answerPlaceholder: string;
+    pressEnter: string;
+    aiGrading: string;
+    correctExclaim: string;
+    notQuite: string;
+    explainContext: string; // template for explain-in-chat context: {question},{answer},{result},{feedback}
+    quizSummary: string; // template for summary: {score},{total},{level}
+    askExplain: string;
+    seeResults: string;
+    nextQuestion: string;
+    assessmentComplete: string;
+    correctLabel: string;
+    needsReview: string;
+    addToMemory: string;
+    takeAnother: string;
+
     profile: string;
     logOut: string;
     noExistingChat: string;
@@ -56,8 +86,37 @@ export const LANGUAGE_DATA: Record<AppLanguage, {
     tooltips: {
       newChat: "Start New Chat",
       summary: "Generate Summary Doc",
+      quiz: "Mastery Quiz",
     },
     ui: {
+      chat: "Chat",
+      quizConfigTitle: "Quiz Configuration",
+      difficultyLevel: "Difficulty Level",
+      difficultyOptions: ["Fundamental", "Intermediate", "Advanced"],
+      numberOfQuestions: "Number of Questions: {count}",
+      mixLabel: "Mix: {mcq}% MCQ / {open}% Open",
+      startAssessment: "Start Assessment",
+      generatingAssessment: "Generating your tailored assessment...",
+      failedToGenerateQuiz: "Failed to generate quiz. Please try again.",
+      mcqIncorrect: "Incorrect. The correct answer is {answer}. {explanation}",
+      explainContext: "I am taking a quiz about our previous topic.\nQuestion: \"{question}\"\nMy Answer: \"{answer}\"\nResult: {result}\nFeedback received: \"{feedback}\"\n\nCan you explain this concept in more detail?",
+      quizSummary: "Quiz Completed. Score: {score}/{total}. Difficulty: {level}.",
+      chatTooShortForQuiz: "Not enough chat history or session memory to generate a quiz.",
+      questionOf: "Question {current} of {total}",
+      answerPlaceholder: "Type your answer here...",
+      pressEnter: "Press Enter to submit",
+      aiGrading: "AI is grading your answer...",
+      correctExclaim: "Correct!",
+      notQuite: "Not quite right",
+      askExplain: "Ask Oracle to explain in Chat",
+      seeResults: "See Results",
+      nextQuestion: "Next Question",
+      assessmentComplete: "Assessment Complete",
+      correctLabel: "Correct",
+      needsReview: "Needs Review",
+      addToMemory: "Add Results to Session Memory",
+      takeAnother: "Take Another Quiz",
+
       profile: "Profile",
       logOut: "Log out",
       noExistingChat: "No existing chat or profile to reset.",
@@ -106,8 +165,37 @@ export const LANGUAGE_DATA: Record<AppLanguage, {
     tooltips: {
       newChat: "Commencer une nouvelle discussion",
       summary: "Générer le résumé",
+      quiz: "Quiz de Maîtrise",
     },
     ui: {
+      chat: "Chat",
+      quizConfigTitle: "Configuration du quiz",
+      difficultyLevel: "Niveau de difficulté",
+      difficultyOptions: ["Fondamental", "Intermédiaire", "Avancé"],
+      numberOfQuestions: "Nombre de questions: {count}",
+      mixLabel: "Mix : {mcq}% QCM / {open}% Ouvert",
+      startAssessment: "Commencer l'évaluation",
+      generatingAssessment: "Génération de l'évaluation personnalisée...",
+      failedToGenerateQuiz: "Échec de la génération du quiz. Veuillez réessayer.",
+      mcqIncorrect: "Incorrect. La bonne réponse est {answer}. {explanation}",
+      questionOf: "Question {current} sur {total}",
+      answerPlaceholder: "Tapez votre réponse ici...",
+      pressEnter: "Appuyez sur Entrée pour soumettre",
+      aiGrading: "L'IA évalue votre réponse...",
+      correctExclaim: "Correct !",
+      notQuite: "Pas tout à fait correct",
+      explainContext: "Je fais un quiz sur notre sujet précédent.\nQuestion: \"{question}\"\nMa réponse: \"{answer}\"\nRésultat: {result}\nRetour reçu: \"{feedback}\"\n\nPeux-tu expliquer ce concept plus en détail ?",
+      quizSummary: "Quiz terminé. Score : {score}/{total}. Difficulté : {level}.",
+      chatTooShortForQuiz: "Historique de discussion ou mémoire de session insuffisant pour générer un quiz.",
+      askExplain: "Demander à l'Oracle d'expliquer dans le chat",
+      seeResults: "Voir les résultats",
+      nextQuestion: "Question suivante",
+      assessmentComplete: "Évaluation terminée",
+      correctLabel: "Correct",
+      needsReview: "À revoir",
+      addToMemory: "Ajouter les résultats à la mémoire de session",
+      takeAnother: "Refaire un quiz",
+
       profile: "Profil",
       logOut: "Se déconnecter",
       noExistingChat: "Pas de discussion existante ou de profil à réinitialiser.",
@@ -156,8 +244,37 @@ export const LANGUAGE_DATA: Record<AppLanguage, {
     tooltips: {
       newChat: "Iniciar nueva conversación",
       summary: "Generar resumen",
+      quiz: "Cuestionario de Dominio",
     },
     ui: {
+      chat: "Chat",
+      quizConfigTitle: "Configuración del cuestionario",
+      difficultyLevel: "Nivel de dificultad",
+      difficultyOptions: ["Fundamental", "Intermedio", "Avanzado"],
+      numberOfQuestions: "Número de preguntas: {count}",
+      mixLabel: "Mezcla: {mcq}% MCQ / {open}% Abierta",
+      startAssessment: "Iniciar evaluación",
+      generatingAssessment: "Generando tu evaluación personalizada...",
+      failedToGenerateQuiz: "Error al generar el cuestionario. Por favor intenta de nuevo.",
+      mcqIncorrect: "Incorrecto. La respuesta correcta es {answer}. {explanation}",
+      questionOf: "Pregunta {current} de {total}",
+      answerPlaceholder: "Escribe tu respuesta aquí...",
+      pressEnter: "Presiona Enter para enviar",
+      aiGrading: "La IA está calificando tu respuesta...",
+      correctExclaim: "¡Correcto!",
+      notQuite: "No es del todo correcto",
+      explainContext: "Estoy haciendo un cuestionario sobre nuestro tema anterior.\nPregunta: \"{question}\"\nMi respuesta: \"{answer}\"\nResultado: {result}\nRetroalimentación recibida: \"{feedback}\"\n\n¿Puedes explicar este concepto con más detalle?",
+      quizSummary: "Cuestionario completado. Puntuación: {score}/{total}. Dificultad: {level}.",
+      chatTooShortForQuiz: "Historial de chat o memoria de sesión insuficiente para generar un cuestionario.",
+      askExplain: "Pedirle al Oráculo que explique en el chat",
+      seeResults: "Ver resultados",
+      nextQuestion: "Siguiente pregunta",
+      assessmentComplete: "Evaluación completada",
+      correctLabel: "Correcto",
+      needsReview: "Necesita repaso",
+      addToMemory: "Agregar resultados a la memoria de sesión",
+      takeAnother: "Hacer otro cuestionario",
+
       profile: "Perfil",
       logOut: "Cerrar sesión",
       noExistingChat: "No hay chat o perfil existente para reiniciar.",
@@ -206,8 +323,37 @@ export const LANGUAGE_DATA: Record<AppLanguage, {
     tooltips: {
       newChat: "Bắt đầu cuộc trò chuyện mới",
       summary: "Tạo tài liệu tổng kết",
+      quiz: "Bài kiểm tra thành thạo",
     },
     ui: {
+      chat: "Trò chuyện",
+      quizConfigTitle: "Cấu hình bài kiểm tra",
+      difficultyLevel: "Mức độ",
+      difficultyOptions: ["Cơ bản", "Trung cấp", "Nâng cao"],
+      numberOfQuestions: "Số câu hỏi: {count}",
+      mixLabel: "Tỷ lệ: {mcq}% MCQ / {open}% Tự luận",
+      startAssessment: "Bắt đầu bài đánh giá",
+      generatingAssessment: "Đang tạo bài đánh giá phù hợp...",
+      failedToGenerateQuiz: "Không thể tạo bài kiểm tra. Vui lòng thử lại.",
+      mcqIncorrect: "Không đúng. Đáp án đúng là {answer}. {explanation}",
+      questionOf: "Câu {current} / {total}",
+      answerPlaceholder: "Nhập câu trả lời của bạn ở đây...",
+      pressEnter: "Nhấn Enter để gửi",
+      aiGrading: "AI đang chấm đáp án...",
+      correctExclaim: "Đúng!",
+      notQuite: "Chưa chính xác",
+      explainContext: "Tôi đang làm một bài kiểm tra về chủ đề trước đó.\nCâu hỏi: \"{question}\"\nCâu trả lời của tôi: \"{answer}\"\nKết quả: {result}\nPhản hồi nhận được: \"{feedback}\"\n\nBạn có thể giải thích khái niệm này chi tiết hơn không?",
+      quizSummary: "Hoàn thành bài kiểm tra. Điểm: {score}/{total}. Mức độ: {level}.",
+      chatTooShortForQuiz: "Lịch sử trò chuyện hoặc bộ nhớ phiên không đủ để tạo bài kiểm tra.",
+      askExplain: "Yêu cầu Oracle giải thích trong trò chuyện",
+      seeResults: "Xem kết quả",
+      nextQuestion: "Câu tiếp theo",
+      assessmentComplete: "Hoàn thành bài đánh giá",
+      correctLabel: "Đúng",
+      needsReview: "Cần ôn lại",
+      addToMemory: "Thêm kết quả vào Bộ nhớ phiên",
+      takeAnother: "Làm bài kiểm tra khác",
+
       profile: "Hồ sơ",
       logOut: "Đăng xuất",
       noExistingChat: "Không có cuộc trò chuyện hoặc hồ sơ hiện có để đặt lại.",

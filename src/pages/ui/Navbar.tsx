@@ -30,7 +30,7 @@ export default function Navbar() {
 
   // ⚠️ Only special navigation stays imperative
   const goToAccount = () => {
-    window.history.pushState({}, "", "/account");
+    window.history.pushState({}, "", "/profile");
     window.dispatchEvent(new PopStateEvent("popstate"));
   };
 
@@ -72,7 +72,7 @@ export default function Navbar() {
             ]} />
             <NavItem label="Docs" href="/docs/getting-started" />
             <NavItem label="Changelog" href="/changelog" />
-            <NavItem label="Donate" href="https://buymeacoffee.com/votanbinh" target="_blank" />
+            <NavItem label="Support" href="https://buymeacoffee.com/votanbinh" target="_blank" />
           </div>
         </div>
 

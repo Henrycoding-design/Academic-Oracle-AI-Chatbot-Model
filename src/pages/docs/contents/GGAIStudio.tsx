@@ -1,3 +1,5 @@
+import React from "react";
+
 export default function GGAIStudio() {
   return (
     <div className="space-y-12 pb-20">
@@ -25,13 +27,31 @@ export default function GGAIStudio() {
         
         <div className="grid md:grid-cols-3 gap-4">
           {[
-            { name: "gemini-3-flash-preview", role: "High-reasoning Socratic loops" },
-            { name: "gemini-2.5-flask", role: "Standard pedagogical tasks" },
-            { name: "gemini-2.5-flask-lite", role: "Lightweight conversational cues" }
+            { 
+              name: "gemini-3-flash", 
+              role: "Chat Socratic Flow", 
+              desc: "Optimized for high-reasoning inquiry and strategic elenchus.",
+              color: "text-blue-400"
+            },
+            { 
+              name: "gemini-2.5-flask", 
+              role: "Quiz Assessment Engine", 
+              desc: "Grades open-answers and generates hybrid MCQ sets via session memory.",
+              color: "text-purple-400"
+            },
+            { 
+              name: "gemini-2.5-flask-lite", 
+              role: "Dynamic Content Loader", 
+              desc: "Manages UI states, simple validations, and lightweight conversational cues.",
+              color: "text-cyan-400"
+            }
           ].map((model) => (
-            <div key={model.name} className="p-4 rounded-xl bg-indigo-500/5 border border-indigo-500/20">
-              <code className="text-xs text-indigo-400 font-mono font-bold">{model.name}</code>
-              <p className="text-xs text-slate-500 mt-2">{model.role}</p>
+            <div key={model.name} className="p-4 rounded-xl bg-indigo-500/5 border border-indigo-500/20 flex flex-col justify-between">
+              <div>
+                <code className={`text-[11px] ${model.color} font-mono font-bold tracking-tighter`}>{model.name}</code>
+                <h5 className="text-white text-sm font-semibold mt-1">{model.role}</h5>
+              </div>
+              <p className="text-[11px] text-slate-500 mt-3 leading-tight">{model.desc}</p>
             </div>
           ))}
         </div>
@@ -42,7 +62,7 @@ export default function GGAIStudio() {
         <div className="space-y-4">
           <h3 className="text-xl font-bold text-white">Uninterrupted Learning</h3>
           <p className="text-slate-400 text-sm leading-relaxed text-balance">
-            Education cannot wait for a server refresh. We implement <strong>intelligent fallback routing</strong>: if a quota limit is reached on a primary model, the system automatically cascades the request to secondary backups without the student ever noticing a lag.
+            Education cannot wait for a server refresh. We implement <strong>intelligent fallback routing</strong>: if a quota limit is reached on `gemini-3-flash`, the system automatically cascades the reasoning task to backup nodes to maintain the student's flow.
           </p>
           <div className="flex gap-4">
              <div className="text-center">
@@ -56,14 +76,12 @@ export default function GGAIStudio() {
           </div>
         </div>
         <div className="space-y-4">
-          <h3 className="text-xl font-bold text-white">Dynamic Tailoring</h3>
+          <h3 className="text-xl font-bold text-white">The Flask-Series Stack</h3>
           <p className="text-slate-400 text-sm leading-relaxed text-balance">
-            The Oracle doesn't just use one model. It evaluates the complexity of the user's request and selects the optimal engine from our <strong>Flask-series stack</strong>. This balances speed, cost, and depth of reasoning in real-time.
+            By leveraging the <strong>Gemini Flask-Series</strong>, we ensure that every specialized task—from deep Socratic dialogue to rapid quiz generation—is handled by the engine best suited for the latency and reasoning requirements of that specific state.
           </p>
         </div>
       </section>
-
-      
 
       {/* UI Interaction Section */}
       <section className="space-y-4">

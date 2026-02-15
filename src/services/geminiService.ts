@@ -1,6 +1,7 @@
 
 import { GoogleGenAI, Chat, GenerateContentResponse } from "@google/genai";
-import type { Message, OracleResponse } from '../types';
+import { GoogleGenerativeAI } from "@google/generative-ai";
+import type { ChatHistoryItem, Message, OracleResponse, QuizConfig, QuizQuestion, QuizResult} from '../types';
 import { decryptApiKey } from "./edgeCrypto";
 import { getNextEnvKey } from "./envKeys";
 import { InvalidAIResponseError , InvalidAPIError} from "../types";
@@ -29,7 +30,7 @@ Your scope is UNLIMITED: from primary education and competitive exams (IGCSE, SA
 
 Your PRIMARY objective is to generate the best possible response for the current user input by intelligently combining:
 - Short-term conversational context (recent dialogue)
-- Long-term student memory (persistent profile)
+- Long-term student memory (persistent profile/logs)
 
 Memory exists to SUPPORT reasoning and personalization — never to distract from answer quality.
 
@@ -37,7 +38,8 @@ Output Format:
 All responses MUST be returned as a valid JSON object.
 {
   "answer": "...",
-  "memory": "..."
+  "memory": "...",
+  "sessionForTopicDone": boolean
 }
 
 CRITICAL FOR MATH & CODE:
@@ -46,12 +48,18 @@ CRITICAL FOR MATH & CODE:
 3. **Markdown:** Code blocks must use standard markdown fences.
 4. **Newlines:** Use literal "\\n" for line breaks within the JSON string.
 
+"sessionForTopicDone" Parameter Rules:
+- **RESET RULE:** You MUST scan the long-term memory for the tag "[TOPIC MASTERED]". If this tag exists for the current/latest topic, it indicates a quiz was fired and the topic is closed. In this case, "sessionForTopicDone" MUST be set to **false** to allow a fresh start for the next topic.
+- **SET RULE:** Set to **true** ONLY when the user has successfully completed the "Mastery Check" in the *current* turn and you have confirmed they have fully synthesized the learning topic.
+- **DEFAULT:** Set to **false** for all other interactions during the learning process, including while the Mastery Check is still in progress or if the memory indicates the latest topic is already marked as [TOPIC MASTERED].
+
 Memory Update Rules (CRITICAL):
 - The "answer" is ALWAYS the top priority.
 - Update memory ONLY if new information is:
   • Long-term relevant (weeks/months, not minutes)
   • Useful for future personalization, pacing, or difficulty tuning
   • Stable (identity, level, strengths, weaknesses, goals, ongoing projects)
+- **LOGGING MASTERY:** When a student passes the Master Check, you MUST append the tag "[TOPIC MASTERED]" next to that topic in the memory string.
 - DO NOT store:
   • Temporary confusion
   • One-off questions
@@ -68,8 +76,8 @@ Your Interaction Framework:
 1. START: If you don't know the user's name, greet them warmly and ask for their name and what they are currently studying or working on.
 2. VALIDATE: Always start by acknowledging the user's input. If they share a thought or answer, tell them exactly what they got right and where the logic might be slipping.
 3. DECIDE:
-   - If the student is close to a breakthrough, use the Socratic method (HINTING). Give them a small push to find the answer themselves.
-   - If the topic is a new fundamental concept, a complex industrial process, or if the student is clearly frustrated/stuck, EXPLAIN it clearly with high-quality analogies.
+    - If the student is close to a breakthrough, use the Socratic method (HINTING). Give them a small push to find the answer themselves.
+    - If the topic is a new fundamental concept, a complex industrial process, or if the student is clearly frustrated/stuck, EXPLAIN it clearly with high-quality analogies.
 4. PACING: Ask only ONE question at a time. Do not overwhelm the user with multiple questions or a wall of text. Wait for their response before moving to the next part of the dialogue.
 5. TONE: Professional yet highly encouraging. Adapt your vocabulary to the user's level (e.g., simpler for IGCSE, more technical for University/Industrial).
 6. CONCLUDE: Perform a 'Mastery Check' ONLY when you observe the student has self-corrected or correctly synthesized the core concept. The check must involve a practical industrial application or a "what-if" scenario to confirm deep understanding. Limit this to exactly one Mastery Check per topic unless the user explicitly requests additional evaluation.
@@ -78,8 +86,8 @@ Please DOUBLE CHECK the JSON responses to ensure they follow the RULES ABOVE: Bo
 
 const MODEL_FALLBACK_CHAIN = [
   "gemini-3-flash-preview",
-  "gemini-2.5-flash",
-  "gemini-2.5-flash-lite"
+  "gemini-2.5-flash-lite",
+  "gemini-2.5-flash" // last resort due to this model also being use in Quiz generation/validation -> less load balancing
 ] as const;
 
 // let chatInstance: Chat | null = null;
@@ -88,6 +96,30 @@ const MODEL_FALLBACK_CHAIN = [
 type EncryptedKeyPayload = {
   iv: string;
   data: string;
+};
+
+type ValidationResponse = {
+  isCorrect: boolean;
+  feedback: string;
+};
+
+type estimateQuizConfigResponse = {
+  level: 'Fundamental' | 'Intermediate' | 'Advanced';
+  count: number;
+  mcqRatio: number;
+};
+
+const isEstimateQuizConfigResponse = (obj: any): obj is estimateQuizConfigResponse => {
+  return (
+    obj &&
+    typeof obj === "object" &&
+    typeof obj.level === "string" &&
+    ["Fundamental", "Intermediate", "Advanced"].includes(obj.level) &&
+    typeof obj.count === "number" &&
+    obj.count > 0 &&
+    typeof obj.mcqRatio === "number" &&
+    obj.mcqRatio >= 0 && obj.mcqRatio <= 1
+  );
 };
 
 const isEncryptedPayload = (p: any): p is EncryptedKeyPayload =>
@@ -263,27 +295,37 @@ function extractBalancedJSON(text: string): string {
 
 function sanitizeJSON(json: string): string {
   return json
-    // smart quotes → normal quotes
     .replace(/[“”]/g, '"')
     .replace(/[‘’]/g, "'")
-
-    // remove trailing commas
     .replace(/,\s*([}\]])/g, "$1")
-
-    // remove ZERO-WIDTH and BOM chars ONLY (safe)
-    .replace(/[\u200B-\u200D\uFEFF]/g, "");
+    // Remove zero-width characters that can cause JSON.parse to fail
+    .replace(/[\u200B-\u200D\uFEFF]/g, "")
 }
 
 export function extractAndParseJSONSafe(
-  text: string
+  text: string,
+  options?: { fixLatex?: boolean }
 ): { ok: true; data: any } | { ok: false } {
   try {
     const jsonString = extractBalancedJSON(text);
-    const sanitized = sanitizeJSON(jsonString);
+    let sanitized = sanitizeJSON(jsonString);
+
+    if (options?.fixLatex) {
+      sanitized = sanitized.replace(/\\(?!["\\/bfnrtu])/g, "\\\\");
+    }
+
     return { ok: true, data: JSON.parse(sanitized) };
   } catch {
     return { ok: false};
   }
+}
+
+function isOraclePayload(data: any): data is OracleResponse {
+  return (
+    typeof data?.answer === "string" &&
+    typeof data?.memory === "string" &&
+    typeof data?.sessionForTopicDone === "boolean"
+  );
 }
 
 // function extractAndParseJSON(text: string) { // this check is the main cause of error in chat (usually 2-3 per whole session): consider not throwing err but force retry on the loop: sacrifice more waiting time than err to UI 
@@ -383,20 +425,19 @@ export const sendMessageToBot = async (params: {
       const ai = new GoogleGenAI({ apiKey: api_key });
       const chat = ai.chats.create({
         model,
-        config: { systemInstruction: systemPrompt },
+        config: { systemInstruction: systemPrompt, responseMimeType: "application/json" },
       });
 
       const response: GenerateContentResponse = await chat.sendMessage({ message: prompt });
+
+      // console.log(`Raw response from model ${model}:`, response.text);
       
       // USE THE HYBRID PARSER HERE
       const parsed = extractAndParseJSONSafe(response.text);
 
       if (!parsed.ok || parsed.data == null) throw new InvalidAIResponseError();
 
-      if (
-        typeof parsed.data.answer !== "string" ||
-        typeof parsed.data.memory !== "string"
-      ) { // just a guard
+      if (!isOraclePayload(parsed.data)) { // guard type
         throw new InvalidAIResponseError("Malformed Oracle payload");
       }
 
@@ -406,6 +447,7 @@ export const sendMessageToBot = async (params: {
         answer: parsed.data.answer,
         memory: parsed.data.memory,
         model: model,
+        sessionForTopicDone: parsed.data.sessionForTopicDone
       };
     } catch (err: any) {
       lastError = err;
@@ -426,15 +468,15 @@ const SUMMARY_SYSTEM_INSTRUCTION = `
 System Language (FORCED INPUT/OUTPUT CONTENT LANGUAGE): {{LANGUAGE}}
 
 You are an advanced Educational Data Analyst. 
-Your specific task is to condense a raw student-AI dialogue into a structured JSON summary for local storage and review.
+Your specific task is to condense a raw student-AI dialogue and performance metrics into a structured JSON summary for local storage and review.
 
 INPUT DATA:
 - Student Profile (Memory)
-- Chat History
+- Chat History (Look for [TOPIC MASTERED] and [QUIZ RESULT] flags)
 - Contextual Instructions
 
 OUTPUT OBJECTIVE:
-Generate a valid JSON object summarizing the learning session.
+Generate a valid JSON object summarizing the learning session, specifically tracking mastery and quiz performance.
 
 STRICT JSON SCHEMA:
 {
@@ -449,17 +491,19 @@ STRICT JSON SCHEMA:
       "formulas": ["Equation 1 in LaTeX", "Equation 2"],
       "theories": ["Theory name", "Concept definition"],
       "key_points": ["Bullet point 1", "Bullet point 2"],
-      "completion": "Estimated understanding (e.g., '3/5', 'Pending Practice')"
+      "quiz_results": ["Detailed log of any [QUIZ RESULT] found for this topic"],
+      "completion": "Estimated understanding (e.g., '3/5', 'Completed')"
     }
   ],
-  "overall_completion": "Brief sentence on session progress"
+  "overall_completion": "Brief sentence on session progress including quiz outcomes"
 }
 
 CRITICAL RULES:
-1. **FORMAT:** Output MUST be raw JSON: use {content inside}). Do not use Markdown code fences.
-2. **LATEX:** If math formulas appear, use LaTeX notation. You MUST double-escape backslashes (e.g., "\\\\frac" for fraction).
-3. **NO HALLUCINATIONS:** Only summarize what was actually discussed. If a field (like formulas) was not discussed, return an empty array [].
-4. **OBJECTIVITY:** Remove conversational filler. Focus on educational value.
+1. **FLAG TRACKING:** You must explicitly look for strings formatted as [QUIZ RESULT: score/details] and [TOPIC MASTERED]. Ensure these are mapped to the correct topic in the "topics" array.
+2. **FORMAT:** Output MUST be raw JSON: use {content inside}. Do not use Markdown code fences.
+3. **LATEX:** If math formulas appear, use LaTeX notation. You MUST double-escape backslashes (e.g., "\\\\frac" for fraction).
+4. **NO HALLUCINATIONS:** Only summarize what was actually discussed or logged in flags. If a field (like formulas) was not discussed, return an empty array [].
+5. **OBJECTIVITY:** Remove conversational filler. Focus on educational value and data-driven progress markers.
 `;
 
 export const generateSessionSummary = async (params: {
@@ -511,7 +555,7 @@ ${history.map((h) => `${h.role.toUpperCase()}: ${h.content}`).join("\n\n")}
 
       const chat = ai.chats.create({
         model: model,
-        config: { systemInstruction: summaryPrompt },
+        config: { systemInstruction: summaryPrompt, responseMimeType: "application/json" },
       });
 
       const res = await chat.sendMessage({ message: inputBlock });
@@ -529,4 +573,212 @@ ${history.map((h) => `${h.role.toUpperCase()}: ${h.content}`).join("\n\n")}
     }
   }
   throw new Error("All models rate limited or failed for session summary");
+};
+
+// Helper to get model (DRY principle)
+const getModel = async (decryptedKey: string) => {
+  const genAI = new GoogleGenerativeAI( decryptedKey );
+  return genAI.getGenerativeModel({ model: "gemini-2.5-flash" }); // Use a fast but accurate model for quiz logic
+};
+
+const getModelLite = async (decryptedKey: string) => {
+  const genAI = new GoogleGenerativeAI( decryptedKey );
+  return genAI.getGenerativeModel({ model: "gemini-2.5-flash-lite" }); // Use a fast but accurate model for quiz logic
+};
+
+// 2. NEW: Estimate Quiz Configuration based on Chat Context
+export const estimateQuizConfig = async (
+  history: ChatHistoryItem[], 
+  encryptedKeyPayload: any
+): Promise<QuizConfig> => {
+
+  let decryptedKey: string | null = null;
+
+  if (!encryptedKeyPayload) {
+    decryptedKey = getNextEnvKey();
+  } else {
+    // 🔓 decrypt JUST-IN-TIME with jsonb type guard
+    if (!isEncryptedPayload(encryptedKeyPayload)) {
+      throw new Error("Invalid encrypted API key payload");
+    }
+    decryptedKey = await decryptApiKey(encryptedKeyPayload);
+  }
+  if (!decryptedKey) {
+    throw new Error("No API key available for free mode.");
+  }
+    
+  const model = await getModelLite(decryptedKey); // lighter model for estimation: offload
+  
+  const prompt = `
+  System Language (FORCED INPUT/OUTPUT CONTENT LANGUAGE): English
+
+  You are an expert educational content analyzer.
+  Analyze this chat history. Recommend a quiz configuration.
+  Return JSON only:
+  {
+    "level": "Fundamental" | "Intermediate" | "Advanced",
+    "count": number (between 3 and 10),
+    "mcqRatio": number (0.0 to 1.0, e.g. 0.5 is 50% MCQ)
+  }
+  History: 
+  ${history.map((h) => `${h.role.toUpperCase()}: ${h.content}`).join("\n\n")}`;
+
+  const result = await model.generateContent({
+    contents: [{ role: 'user', parts: [{ text: prompt }] }],
+    generationConfig: { responseMimeType: "application/json", temperature: 0.2 } // low temp for more deterministic output
+  });
+
+  if (!result.response.text()) {
+    throw new InvalidAIResponseError("Empty response for quiz config estimation");
+  }
+  if (!isEstimateQuizConfigResponse(JSON.parse(result.response.text()))) {
+    throw new InvalidAIResponseError("Invalid response format for quiz config estimation");
+  }
+
+  return JSON.parse(result.response.text());
+};
+
+// 3. NEW: Generate Quiz Questions
+export const generateQuizQuestions = async (
+  language: AppLanguage,
+  config: QuizConfig,
+  history: ChatHistoryItem[],
+  memory: string | null,
+  encryptedKeyPayload: any
+): Promise<QuizQuestion[]> => {
+  let decryptedKey: string | null = null;
+
+  if (!encryptedKeyPayload) {
+    decryptedKey = getNextEnvKey();
+  } else { 
+    // 🔓 decrypt JUST-IN-TIME with jsonb type guard
+    if (!isEncryptedPayload(encryptedKeyPayload)) {
+      throw new Error("Invalid encrypted API key payload");
+    }
+    decryptedKey = await decryptApiKey(encryptedKeyPayload);
+  }
+  if (!decryptedKey) {
+    throw new Error("No API key available for free mode.");
+  }
+
+  const model = await getModel(decryptedKey);
+
+  const prompt = `
+  System Language (FORCED INPUT/OUTPUT CONTENT LANGUAGE): ${language === "en" ? "English"
+    : language === "fr" ? "French"
+    : language === "es" ? "Spanish"
+    : "Vietnamese"}
+
+  You are an expert quiz generator.
+  Generate a quiz based on this student memory: "${memory}" and recent chat history: "${JSON.stringify(history)}".
+
+  Quiz Configuration:
+  - Difficulty: ${config.level}
+  - Total Questions: ${config.count}
+  - Mix: ${Math.round(config.mcqRatio * 100)}% Multiple Choice, ${100 - Math.round(config.mcqRatio * 100)}% Open Ended.
+  
+  Return a JSON array of objects. 
+  Schema:
+  [
+    {
+      "id": "unique_id",
+      "type": "mcq" | "open",
+      "question": "The question text",
+      "options": ["A", "B", "C", "D"] (Only for MCQ),
+      "correctAnswer": "The correct option text" (For MCQ) or "Key concepts to cover" (For Open),
+      "explanation": "Short explanation of the answer"
+    }
+  ]`;
+
+  try {
+    const result = await model.generateContent({
+      contents: [{ role: 'user', parts: [{ text: prompt }] }],
+      generationConfig: { responseMimeType: "application/json", temperature: 0.6 } // low temp for more deterministic output
+    });
+    
+    return JSON.parse(result.response.text());
+  } catch (err) {
+    if (isRetryableAIError(err)) {
+      // Retry once with the same model
+      const retryResult = await model.generateContent({
+        contents: [{ role: 'user', parts: [{ text: prompt }] }],
+        generationConfig: { responseMimeType: "application/json", temperature: 0.5 } // even lower temp for retry to increase chance of valid output
+      });
+      return JSON.parse(retryResult.response.text());
+    }
+    if (isRateLimitError(err) || isUnavailableError(err)) {
+      // Fallback to lite model
+      const liteModel = await getModelLite(decryptedKey);
+      const fallbackResult = await liteModel.generateContent({
+        contents: [{ role: 'user', parts: [{ text: prompt }] }],
+        generationConfig: { responseMimeType: "application/json", temperature: 0.5 } // lower temp for fallback to increase chance of valid output
+      });
+      return JSON.parse(fallbackResult.response.text());
+    }
+    throw err;
+  }
+};
+
+// 4. NEW: Validate Open-Ended Answer
+export const validateOpenAnswer = async (
+  language: AppLanguage,
+  question: string,
+  userAnswer: string,
+  context: string,
+  encryptedKeyPayload: any
+): Promise<QuizResult> => {
+  let decryptedKey: string | null = null;
+
+  if (!encryptedKeyPayload) {
+    decryptedKey = getNextEnvKey();
+  } else {
+    // 🔓 decrypt JUST-IN-TIME with jsonb type guard
+    if (!isEncryptedPayload(encryptedKeyPayload)) {
+      throw new Error("Invalid encrypted API key payload");
+    }
+    decryptedKey = await decryptApiKey(encryptedKeyPayload);
+  }
+  if (!decryptedKey) {
+    throw new Error("No API key available for free mode.");
+  }
+
+  const model = await getModel(decryptedKey);
+
+  const prompt = `
+System Language (FORCED INPUT/OUTPUT CONTENT LANGUAGE): ${language === "en" ? "English"
+  : language === "fr" ? "French"
+  : language === "es" ? "Spanish"
+  : "Vietnamese"}
+
+You are an expert quiz grader.
+Question: "${question}"
+Reference/Context: "${context}"
+User Answer: "${userAnswer}"
+
+Evaluate the user's answer.
+Return JSON:
+{
+  "isCorrect": boolean,
+  "feedback": "Concise explanation of why it is right or wrong. Be encouraging but strict."
+}`;
+
+  const result = await model.generateContent({
+    contents: [{ role: "user", parts: [{ text: prompt }] }],
+    generationConfig: { responseMimeType: "application/json", temperature: 0.6 }
+  });
+
+  const parsed = extractAndParseJSONSafe(result.response.text());
+
+  if (!parsed.ok) {
+    throw new InvalidAIResponseError("Invalid quiz validation payload");
+  }
+
+  const data = parsed.data as ValidationResponse;
+
+  return {
+    questionId: "validation", // placeholder as no ID here, overwritten by caller
+    userAnswer,
+    isCorrect: data.isCorrect,
+    feedback: data.feedback
+  };
 };
