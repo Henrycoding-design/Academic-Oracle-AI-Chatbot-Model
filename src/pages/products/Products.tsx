@@ -1,6 +1,6 @@
 import PageLayout from "@/src/layout/PageLayout";
 import PageHeader from "../ui/PageHeader";
-import ArcadeEmbed from "@/src/components/ArcadeProductDemo";
+import ArcadeEmbedv2_0 from "@/src/components/ArcadeProductDemov2.0";
 import { AppWindow, Brain, Shield, Layout, X, BookOpen, Github, Zap , MessageCircleIcon , PackageCheckIcon, ClipboardCheck, RefreshCw, MessageSquare, ArrowRight, Database, TrendingUp} from "lucide-react";
 
 export default function Products() {
@@ -147,7 +147,7 @@ export default function Products() {
         </div>
 
         <div className="mx-auto max-w-5xl rounded-3xl border border-white/10 overflow-hidden shadow-[0_0_50px_rgba(59,130,246,0.1)] bg-black/50 backdrop-blur-xl">
-            <ArcadeEmbed />
+            <ArcadeEmbedv2_0 />
         </div>
       </section>
 
