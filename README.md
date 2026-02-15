@@ -133,6 +133,7 @@ You don’t just learn faster — you learn *properly*.
 Academic Oracle aims to *redefine how AI integrates into education*:
 - Not as a solver.
 - Not as a shortcut.
+
 **But as a structured reasoning partner.**
 
 The long-term goal is to build *a universal academic cognition system* that scales from secondary education to research-level inquiry.
