@@ -154,6 +154,15 @@ const ProfilePage: React.FC<ProfilePageProps> = ({
           {!hasApiKey && !isEditing && (
             <div className="text-xs text-slate-500 dark:text-slate-400 mt-1">
               {LANGUAGE_DATA[language].ui.noApiKeyAdded}
+              <br className="hidden sm:block"/>
+              <a
+                href="https://app.arcade.software/share/GhCGyJC8hIf7H4DSbV18"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-indigo-600 dark:text-indigo-400 hover:underline"
+              >
+                {LANGUAGE_DATA[language].ui.howToGetApiKey}
+              </a>
             </div>
           )}
         </div>

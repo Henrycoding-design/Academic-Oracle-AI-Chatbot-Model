@@ -65,6 +65,7 @@ export const LANGUAGE_DATA: Record<AppLanguage, {
     addApiKey: string;
     save: string;
     noApiKeyAdded: string;
+    howToGetApiKey: string;
     invalidApiKeyFormat: string;
     failedToLoadApiKey: string;
     failedToSaveApiKey: string;
@@ -144,6 +145,7 @@ export const LANGUAGE_DATA: Record<AppLanguage, {
       addApiKey: "Add API Key",
       save: "Save",
       noApiKeyAdded: "No API key added yet. Click the plus button to add one.",
+      howToGetApiKey: "How to get an API key?",
       invalidApiKeyFormat: "Invalid API Key format.",
       failedToLoadApiKey: "Failed to load API key.",
       failedToSaveApiKey: "Failed to save API key.",
@@ -223,6 +225,7 @@ export const LANGUAGE_DATA: Record<AppLanguage, {
       addApiKey: "Ajouter une clé API",
       save: "Enregistrer",
       noApiKeyAdded: "Aucune clé API ajoutée. Cliquez sur le bouton plus pour en ajouter une.",
+      howToGetApiKey: "Comment obtenir une clé API ?",
       invalidApiKeyFormat: "Format de clé API invalide.",
       failedToLoadApiKey: "Échec du chargement de la clé API.",
       failedToSaveApiKey: "Échec de l'enregistrement de la clé API.",
@@ -302,6 +305,7 @@ export const LANGUAGE_DATA: Record<AppLanguage, {
       addApiKey: "Agregar clave API",
       save: "Guardar",
       noApiKeyAdded: "Ninguna clave API añadida. Haz clic en el botón más para agregar una.",
+      howToGetApiKey: "¿Cómo obtener una clave API?",
       invalidApiKeyFormat: "Formato de clave API inválido.",
       failedToLoadApiKey: "Error al cargar la clave API.",
       failedToSaveApiKey: "Error al guardar la clave API.",
@@ -381,6 +385,7 @@ export const LANGUAGE_DATA: Record<AppLanguage, {
       addApiKey: "Thêm khóa API",
       save: "Lưu",
       noApiKeyAdded: "Chưa thêm khóa API. Nhấp vào nút cộng để thêm một cái.",
+      howToGetApiKey: "Làm thế nào để có được khóa API?",
       invalidApiKeyFormat: "Định dạng khóa API không hợp lệ.",
       failedToLoadApiKey: "Không thể tải khóa API.",
       failedToSaveApiKey: "Không thể lưu khóa API.",
