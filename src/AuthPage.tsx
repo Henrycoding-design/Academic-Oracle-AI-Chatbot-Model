@@ -135,7 +135,7 @@ const AuthPage: React.FC<{
         </button>
 
         <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100 mb-4">
-          Connect Your Engine ⚙️
+          Custom Step: Connect Your Engine ⚙️
         </h1>
 
         <p className="text-slate-600 dark:text-slate-400 max-w-md mb-6">
@@ -216,9 +216,9 @@ const AuthPage: React.FC<{
             // 2. Trigger the login in the parent App
             onLogin(null, "free");
           }}
-          className="mt-3 text-sm text-slate-500"
+          className="mt-3 text-md text-slate-500"
         >
-          Skip for now: uses shared keys instead
+          Proceed without custom key (default mode)
         </button>
       </div>
     );
