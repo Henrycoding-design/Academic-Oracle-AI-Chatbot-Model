@@ -135,29 +135,32 @@ const AuthPage: React.FC<{
         </button>
 
         <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100 mb-4">
-          One last step ✨
+          Connect Your Engine ⚙️
         </h1>
 
         <p className="text-slate-600 dark:text-slate-400 max-w-md mb-6">
-          Academic Oracle uses your{" "}
+          If you want Academic Oracle to run on your own{" "}
           <a
-            href="https://aistudio.google.com/api-keys"
+            href="https://aistudio.google.com/projects"
             target="_blank"
             rel="noopener noreferrer"
             className="text-indigo-600 dark:text-indigo-400 hover:underline"
           >
-            GG AI Studio API key
-          </a>{" "}
-          to generate answers.  
-          Your key is encrypted and stored securely. {" "} 
+            API key
+          </a>.
+          <br />
+          You stay in control of usage and limits.
+          <br />
+          Your key is encrypted and securely stored.
+          {" "}
           <a
             href="/policy"
             target="_blank"
             rel="noopener noreferrer"
             className="text-indigo-600 dark:text-indigo-400 hover:underline"
           >
-            See more
-          </a>{" "}
+            Read our policy
+          </a>.
         </p>
 
         <input
@@ -179,7 +182,7 @@ const AuthPage: React.FC<{
 
         <button
           onClick={handleSaveApiKey}
-          className="w-full max-w-md px-6 py-3
+          className="w-full max-w-md px-6 py-3 mt-4
                     bg-indigo-600 text-white rounded-lg
                     hover:bg-indigo-700 transition-colors"
         >
@@ -187,8 +190,8 @@ const AuthPage: React.FC<{
         </button>
 
         <button
-          onClick={onViewDemo}
-          className="mt-4 text-indigo-600 hover:underline"
+          onClick={() => window.open("https://app.arcade.software/share/vfQU6Su4Dh6DmjWTNj9m", "_blank")}
+          className="mt-6 text-indigo-600 border-b pb-3 border-slate-300 dark:border-slate-700"
         >
           Show me how to do it
         </button>
@@ -213,9 +216,9 @@ const AuthPage: React.FC<{
             // 2. Trigger the login in the parent App
             onLogin(null, "free");
           }}
-          className="mt-3 text-sm text-slate-500 hover:underline"
+          className="mt-3 text-sm text-slate-500"
         >
-          Skip for now (limited free access) 
+          Skip for now: uses shared keys instead
         </button>
       </div>
     );
