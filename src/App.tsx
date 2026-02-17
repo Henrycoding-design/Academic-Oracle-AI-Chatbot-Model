@@ -756,7 +756,7 @@ const App: React.FC = () => {
   const handleAddToMemory = (summary: string) => {
     const newMemory = oracleMemory ? `${oracleMemory}\n\n[QUIZ RESULT]: ${summary}` : `[QUIZ RESULT]: ${summary}`;
     setOracleMemory(newMemory);
-    alert("Results added to your Session Memory! They will be included in your next Summary Doc.");
+    alert(LANGUAGE_DATA[language].ui.memoryAdded);
   };
 
 

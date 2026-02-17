@@ -300,7 +300,7 @@ export const QuizView: React.FC<QuizViewProps> = ({
                       : 'border-transparent bg-white dark:bg-slate-800 shadow-sm hover:border-indigo-300 hover:shadow-md'
                   }`}
                 >
-                  {opt}
+                  <MarkdownContent content={opt} />
                 </button>
               ))}
 
