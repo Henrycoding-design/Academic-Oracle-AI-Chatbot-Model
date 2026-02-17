@@ -109,6 +109,10 @@ type estimateQuizConfigResponse = {
   mcqRatio: number;
 };
 
+type TemperatureEstimationResponse = {
+  temperature: number;
+};
+
 const isEstimateQuizConfigResponse = (obj: any): obj is estimateQuizConfigResponse => {
   return (
     obj &&
@@ -119,6 +123,15 @@ const isEstimateQuizConfigResponse = (obj: any): obj is estimateQuizConfigRespon
     obj.count > 0 &&
     typeof obj.mcqRatio === "number" &&
     obj.mcqRatio >= 0 && obj.mcqRatio <= 1
+  );
+};
+
+const isEstimateTemperatureResponse = (obj: any): obj is TemperatureEstimationResponse => {
+  return (
+    obj &&
+    typeof obj === "object" &&
+    typeof obj.temperature === "number" &&
+    obj.temperature > 0 && obj.temperature <= 1
   );
 };
 
@@ -368,6 +381,28 @@ export const getChat = (apiKey: string, model: string): Chat => {
 //   currentApiKey = null;
 // };
 
+const temperatureHelper = async (decryptedKey: string, request: any): Promise<number> => { // return the best fit temperature
+  const genAI = new GoogleGenerativeAI( decryptedKey );
+  const ai = await genAI.getGenerativeModel({ model: "gemini-2.5-flash-lite" });
+  const prompt = `System Language (FORCED INPUT/OUTPUT CONTENT LANGUAGE): English
+You are an expert educational content analyzer. Given this request/prompt, recommend the best temperature setting for a balance of creativity and accuracy in the response for Socratic learning. Return only a number larger than 0 and less than or equal to 1.
+MUST response in JSON format:
+{
+  "temperature": number
+}
+Request/Prompt: ${JSON.stringify(request)}
+`;
+  const result = await ai.generateContent({
+    contents: [{ role: 'user', parts: [{ text: prompt }] }],
+    generationConfig: { responseMimeType: "application/json", temperature: 0.2 } // low temp for more deterministic output
+  });
+  if (!result.response.text()) throw new Error("No response from temperature helper");
+  if (!isEstimateTemperatureResponse(JSON.parse(result.response.text()))) {
+    throw new Error("Invalid response from temperature helper");
+  }
+  return JSON.parse(result.response.text()).temperature;
+}
+
 export const sendMessageToBot = async (params: {
   history: { role: "user" | "model"; content: string }[];
   memory?: string | null;
@@ -418,6 +453,15 @@ export const sendMessageToBot = async (params: {
     : "Vietnamese"
   );
 
+  // Get temperature recommendation from helper function based on the current prompt
+  const totalPrompt = `System Instruction: ${systemPrompt}\n\nUser Prompt:\n${prompt}`;
+  let temp = await temperatureHelper(api_key, totalPrompt);
+
+  if (isNaN(temp) || temp <= 0 || temp > 1) {
+    console.log(`Temperature helper returned invalid value "${temp}". Falling back to default 0.7`);
+    temp = 0.7; // default fallback, never fail the main response due to temp estimation issues, as it's a "nice to have" optimization rather than a core requirement
+  }
+  console.log(`Using temperature ${temp} based on helper recommendation.`);
 
   let lastError: any = null;
   for (const model of MODEL_FALLBACK_CHAIN) {
@@ -425,7 +469,7 @@ export const sendMessageToBot = async (params: {
       const ai = new GoogleGenAI({ apiKey: api_key });
       const chat = ai.chats.create({
         model,
-        config: { systemInstruction: systemPrompt, responseMimeType: "application/json" },
+        config: { systemInstruction: systemPrompt, responseMimeType: "application/json", temperature: temp }, // enough to be creative but still focused on rules and reduce hallucinations and speed up response time with structured output, also helps parsing errors which are common with Gemini
       });
 
       const response: GenerateContentResponse = await chat.sendMessage({ message: prompt });
@@ -548,6 +592,14 @@ ${history.map((h) => `${h.role.toUpperCase()}: ${h.content}`).join("\n\n")}
     : "Vietnamese"
   );
 
+  // Get temperature recommendation from helper function based on the current prompt
+  const totalPrompt = `System Instruction: ${summaryPrompt}\n\nSession Data:\n${inputBlock}`;
+  let temp = await temperatureHelper(api_key, totalPrompt);
+
+  if (isNaN(temp) || temp <= 0 || temp > 1) {
+    console.log(`Temperature helper returned invalid value "${temp}". Falling back to default temp of 0.7.`);
+    temp = 0.7; // default fallback, never fail the main response due to temp estimation issues, as it's a "nice to have" optimization rather than a core requirement
+  }
 
   for (const model of MODEL_FALLBACK_CHAIN) {
     try {
@@ -555,7 +607,7 @@ ${history.map((h) => `${h.role.toUpperCase()}: ${h.content}`).join("\n\n")}
 
       const chat = ai.chats.create({
         model: model,
-        config: { systemInstruction: summaryPrompt, responseMimeType: "application/json" },
+        config: { systemInstruction: summaryPrompt, responseMimeType: "application/json", temperature: temp }, // enough to be creative but still focused on rules
       });
 
       const res = await chat.sendMessage({ message: inputBlock });
@@ -695,6 +747,10 @@ export const generateQuizQuestions = async (
       contents: [{ role: 'user', parts: [{ text: prompt }] }],
       generationConfig: { responseMimeType: "application/json", temperature: 0.6 } // low temp for more deterministic output
     });
+
+    if (!result.response.text()) {
+      throw new InvalidAIResponseError("Empty response for quiz generation");
+    }
     
     return JSON.parse(result.response.text());
   } catch (err) {

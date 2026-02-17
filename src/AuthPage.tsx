@@ -8,7 +8,7 @@ const AuthPage: React.FC<{
   onViewDemo: () => void;
 }> = ({ onLogin, onViewDemo }) => {
   const [loading, setLoading] = useState(true);
-  const [needsApiKey, setNeedsApiKey] = useState(false);
+  // const [needsApiKey, setNeedsApiKey] = useState(false);
   const [apiKeyInput, setApiKeyInput] = useState("");
   const [user, setUser] = useState<any>(null);
   const [apiError, setApiError] = useState<string | null>(null);
@@ -21,7 +21,7 @@ const AuthPage: React.FC<{
   }
 
   const resetToAuthPage = () => {
-    setNeedsApiKey(false);
+    // setNeedsApiKey(false);
     setApiKeyInput("");
     setApiError(null);
     setUser(null);
@@ -134,6 +134,12 @@ const AuthPage: React.FC<{
                       text-slate-600 dark:text-slate-300">
         Initializing Oracle…
       </div>
+    );
+  }
+
+  if (apiError) {
+    return (
+      window.alert(apiError)
     );
   }
 
@@ -263,7 +269,7 @@ const AuthPage: React.FC<{
       </button>
 
       <button
-        onClick={onViewDemo}
+        onClick={() => window.open("https://app.arcade.software/share/IND40hWmfztK51AUs2ah", "_blank")}
         className="mt-4 px-6 py-3 border border-indigo-600 text-indigo-600
                    rounded-lg hover:bg-indigo-50 dark:hover:bg-slate-900
                    transition-colors"

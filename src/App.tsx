@@ -342,11 +342,21 @@ const App: React.FC = () => {
     }
   }, [isDark]);
 
+  // useEffect(() => {
+  //   chatEndRef.current?.scrollIntoView({
+  //     behavior: window.innerWidth < 640 ? 'auto' : 'smooth',
+  //     block: "start",
+  //   });
+  // }, [messages, isLoading]);
+
   useEffect(() => {
-    chatEndRef.current?.scrollIntoView({
-      behavior: window.innerWidth < 640 ? 'auto' : 'smooth',
-    });
-  }, [messages, isLoading]);
+    if (currentView === "chat" || route === "/") {
+      chatEndRef.current?.scrollIntoView({
+        behavior: window.innerWidth < 640 ? 'auto' : 'smooth',
+        block: "start",
+      });
+    }
+  }, [currentView, route]);
 
   useEffect(() => { // update oracle-api-key and only save it as string format
     if (encryptedApiKey) {
@@ -422,6 +432,13 @@ const App: React.FC = () => {
               : undefined,
           },
         ]);
+
+        requestAnimationFrame(() => {
+          chatEndRef.current?.scrollIntoView({
+            behavior: window.innerWidth < 640 ? "auto" : "smooth",
+            block: "start",
+          });
+        });
 
         const userEntry: ChatHistoryItem = {
           role: "user",
@@ -584,7 +601,7 @@ const App: React.FC = () => {
   const resetChat = () => { // for new chat
 
     if (isLoading) return; // prevent reset during loading
-    if (chatHistory.length <=1 || !oracleMemory) { // no existing chat or profile
+    if (chatHistory.length <= 1) { // no existing chat or profile
       alert(LANGUAGE_DATA[language].ui.noExistingChat);
       return;
     }
@@ -934,7 +951,18 @@ const App: React.FC = () => {
           <main className="flex-1 overflow-y-auto scroll-smooth custom-scrollbar relative">
             {currentView === 'chat' ? (
               <div className="max-w-4xl mx-auto px-4 pt-8 pb-32">
-                {messages.map((msg, index) => <ChatMessage key={index} message={msg} />)}
+                {messages.map((msg, index) => {
+                  const isLast = index === messages.length - 1;
+                  const isUser = msg.role === "user";
+
+                  return (
+                    <ChatMessage
+                      key={index}
+                      message={msg}
+                      scrollRef={isLast && isUser ? chatEndRef : undefined}
+                    />
+                  );
+                })}
                 {isLoading && <LoadingIndicator />}
                 {error && (
                   <div className="bg-rose-100/80 dark:bg-rose-900/20 text-rose-600 p-4 rounded-2xl text-center my-6">
@@ -963,11 +991,11 @@ const App: React.FC = () => {
                                         ring-4 ring-indigo-500/10">
                           
                           <h3 className="font-bold text-lg mb-2 text-indigo-600 dark:text-indigo-400">
-                            Mastery Detected! 🏆
+                            {LANGUAGE_DATA[language].ui.masteryDetected} 🏆
                           </h3>
 
                           <p className="text-sm text-slate-600 dark:text-slate-300 mb-4 leading-relaxed">
-                            You clearly understand this topic. Want to lock it in with a quick, tailored quiz?
+                            {LANGUAGE_DATA[language].ui.masteryPopupExplain}
                           </p>
 
                           <div className="flex gap-3">
@@ -979,7 +1007,7 @@ const App: React.FC = () => {
                               className="flex-1 bg-indigo-600 hover:bg-indigo-700
                                         text-white py-2 rounded-xl font-medium text-sm transition-colors"
                             >
-                              Yes, Quiz Me
+                              {LANGUAGE_DATA[language].ui.masteryPopupYes}
                             </button>
 
                             <button 
@@ -989,7 +1017,7 @@ const App: React.FC = () => {
                                         text-slate-700 dark:text-slate-200
                                         py-2 rounded-xl font-medium text-sm transition-colors"
                             >
-                              Later
+                              {LANGUAGE_DATA[language].ui.masteryPopuplLater}
                             </button>
                           </div>
                         </div>

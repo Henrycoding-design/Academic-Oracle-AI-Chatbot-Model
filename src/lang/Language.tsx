@@ -11,6 +11,10 @@ export const LANGUAGE_DATA: Record<AppLanguage, {
   ui: {
     // Quiz UI labels
     chat: string;
+    masteryDetected: string;
+    masteryPopupExplain: string;
+    masteryPopupYes: string;
+    masteryPopuplLater: string;
     quizConfigTitle: string;
     difficultyLevel: string;
     difficultyOptions: string[];
@@ -91,6 +95,10 @@ export const LANGUAGE_DATA: Record<AppLanguage, {
     },
     ui: {
       chat: "Chat",
+      masteryDetected: "Mastery Detected!",
+      masteryPopupExplain: "You've mastered the topic. Would you like to take a quick quiz to test your understanding and solidify your knowledge?",
+      masteryPopupYes: "Yes, let's do it!",
+      masteryPopuplLater: "Maybe later",
       quizConfigTitle: "Quiz Configuration",
       difficultyLevel: "Difficulty Level",
       difficultyOptions: ["Fundamental", "Intermediate", "Advanced"],
@@ -171,6 +179,10 @@ export const LANGUAGE_DATA: Record<AppLanguage, {
     },
     ui: {
       chat: "Chat",
+      masteryDetected: "Maîtrise détectée !",
+      masteryPopupExplain: "Vous avez maîtrisé le sujet. Souhaitez-vous faire un petit quiz pour tester votre compréhension et solidifier vos connaissances ?",
+      masteryPopupYes: "Oui, faisons-le !",
+      masteryPopuplLater: "Peut-être plus tard",
       quizConfigTitle: "Configuration du quiz",
       difficultyLevel: "Niveau de difficulté",
       difficultyOptions: ["Fondamental", "Intermédiaire", "Avancé"],
@@ -251,6 +263,10 @@ export const LANGUAGE_DATA: Record<AppLanguage, {
     },
     ui: {
       chat: "Chat",
+      masteryDetected: "¡Dominio detectado!",
+      masteryPopupExplain: "Has dominado el tema. ¿Te gustaría hacer un pequeño cuestionario para probar tu comprensión y solidificar tu conocimiento?",
+      masteryPopupYes: "¡Sí, hagámoslo!",
+      masteryPopuplLater: "Quizás más tarde",
       quizConfigTitle: "Configuración del cuestionario",
       difficultyLevel: "Nivel de dificultad",
       difficultyOptions: ["Fundamental", "Intermedio", "Avanzado"],
@@ -331,6 +347,10 @@ export const LANGUAGE_DATA: Record<AppLanguage, {
     },
     ui: {
       chat: "Trò chuyện",
+      masteryDetected: "Phát hiện bạn đã thành thạo!",
+      masteryPopupExplain: "Bạn đã thành thạo chủ đề này. Bạn có muốn làm một bài kiểm tra nhỏ để kiểm tra sự hiểu biết và củng cố kiến thức của mình không?",
+      masteryPopupYes: "Vâng, hãy làm thôi!",
+      masteryPopuplLater: "Để sau",
       quizConfigTitle: "Cấu hình bài kiểm tra",
       difficultyLevel: "Mức độ",
       difficultyOptions: ["Cơ bản", "Trung cấp", "Nâng cao"],
