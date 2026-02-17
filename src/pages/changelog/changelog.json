@@ -34,6 +34,18 @@
       "Smoothed UI transitions and interaction flows",
       "Upgraded Arcade demos, documentation, and release structure"
     ]
+  },
+  {
+    "version": "2.1.0",
+    "date": "2026-02-17",
+    "changes": [
+      "Better UI/UX chat handling with smoother interaction logic",
+      "Improved multi-language support and localization handling",
+      "Smoothed Socratic dialogue flow with enhanced reasoning continuity",
+      "More robust and reliable chatbot responses across edge cases",
+      "Enhanced conversational stability and adaptive response depth",
+      "Refined overall system polish and response consistency"
+    ]
   }
 ]
 

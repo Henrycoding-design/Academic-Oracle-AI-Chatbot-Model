@@ -5,6 +5,7 @@ import { MarkdownContent } from './MarkdownContent';
 
 interface ChatMessageProps {
   message: Message;
+  scrollRef?: React.Ref<HTMLDivElement>;
 }
 
 const BotAvatar = () => (
@@ -38,11 +39,12 @@ const fileIconFor = (type?: string, name?: string) => {
 };
 
 
-export const ChatMessage: React.FC<ChatMessageProps> = ({ message }) => {
+export const ChatMessage: React.FC<ChatMessageProps> = ({ message, scrollRef }) => {
   const isModel = message.role === 'model';
 
   return (
-    <div
+    <div 
+      ref={scrollRef}
       className={`flex items-start gap-3 my-6 animate-fade-in-up ${
         isModel ? 'justify-start' : 'justify-end'
       }`}

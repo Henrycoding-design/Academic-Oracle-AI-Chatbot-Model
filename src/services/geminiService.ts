@@ -109,6 +109,10 @@ type estimateQuizConfigResponse = {
   mcqRatio: number;
 };
 
+type TemperatureEstimationResponse = {
+  temperature: number;
+};
+
 const isEstimateQuizConfigResponse = (obj: any): obj is estimateQuizConfigResponse => {
   return (
     obj &&
@@ -119,6 +123,15 @@ const isEstimateQuizConfigResponse = (obj: any): obj is estimateQuizConfigRespon
     obj.count > 0 &&
     typeof obj.mcqRatio === "number" &&
     obj.mcqRatio >= 0 && obj.mcqRatio <= 1
+  );
+};
+
+const isEstimateTemperatureResponse = (obj: any): obj is TemperatureEstimationResponse => {
+  return (
+    obj &&
+    typeof obj === "object" &&
+    typeof obj.temperature === "number" &&
+    obj.temperature > 0 && obj.temperature <= 1
   );
 };
 
@@ -368,6 +381,32 @@ export const getChat = (apiKey: string, model: string): Chat => {
 //   currentApiKey = null;
 // };
 
+// Sleep helper
+export const sleep = (ms: number) =>
+  new Promise<void>(resolve => setTimeout(resolve, ms));
+
+const temperatureHelper = async (decryptedKey: string, request: any): Promise<number> => { // return the best fit temperature
+  const genAI = new GoogleGenerativeAI( decryptedKey );
+  const ai = await genAI.getGenerativeModel({ model: "gemini-2.5-flash-lite" });
+  const prompt = `System Language (FORCED INPUT/OUTPUT CONTENT LANGUAGE): English
+You are an expert educational content analyzer. Given this request/prompt, recommend the best temperature setting for a balance of creativity and accuracy in the response for Socratic learning. Return only a number larger than 0 and less than or equal to 1.
+MUST response in JSON format:
+{
+  "temperature": number
+}
+Request/Prompt: ${JSON.stringify(request)}
+`;
+  const result = await ai.generateContent({
+    contents: [{ role: 'user', parts: [{ text: prompt }] }],
+    generationConfig: { responseMimeType: "application/json", temperature: 0.2 } // low temp for more deterministic output
+  });
+  if (!result.response.text()) throw new Error("No response from temperature helper");
+  if (!isEstimateTemperatureResponse(JSON.parse(result.response.text()))) {
+    throw new Error("Invalid response from temperature helper");
+  }
+  return JSON.parse(result.response.text()).temperature;
+}
+
 export const sendMessageToBot = async (params: {
   history: { role: "user" | "model"; content: string }[];
   memory?: string | null;
@@ -418,14 +457,25 @@ export const sendMessageToBot = async (params: {
     : "Vietnamese"
   );
 
+  // Get temperature recommendation from helper function based on the current prompt
+  const totalPrompt = `System Instruction: ${systemPrompt}\n\nUser Prompt:\n${prompt}`;
+  let temp = 0.7;
 
+  try {
+    temp = await temperatureHelper(api_key, totalPrompt);
+    console.log(`Using temperature ${temp} based on helper recommendation.`);
+  } catch (err) {
+    temp = 0.7;
+    console.log(`Temperature helper failed with error: ${(err as Error).message}. Falling back to default temp of 0.7.`);
+  }
+  
   let lastError: any = null;
   for (const model of MODEL_FALLBACK_CHAIN) {
     try {
       const ai = new GoogleGenAI({ apiKey: api_key });
       const chat = ai.chats.create({
         model,
-        config: { systemInstruction: systemPrompt, responseMimeType: "application/json" },
+        config: { systemInstruction: systemPrompt, responseMimeType: "application/json", temperature: temp }, // enough to be creative but still focused on rules and reduce hallucinations and speed up response time with structured output, also helps parsing errors which are common with Gemini
       });
 
       const response: GenerateContentResponse = await chat.sendMessage({ message: prompt });
@@ -452,9 +502,10 @@ export const sendMessageToBot = async (params: {
     } catch (err: any) {
       lastError = err;
       // If it's a rate limit, try the next model in the chain
-      if (isRateLimitError(err)) continue;
-      if (isUnavailableError(err)) continue;
-      if (isRetryableAIError(err)) continue;
+      if (isRateLimitError(err) || isUnavailableError(err) || isRetryableAIError(err)) {
+        await sleep(200 + Math.random() * 300); // small random backoff to reduce thundering herd
+        continue;
+      }
       if (isInvalidApiKeyError(err)) throw new InvalidAPIError();
       throw err;
     }
@@ -548,14 +599,13 @@ ${history.map((h) => `${h.role.toUpperCase()}: ${h.content}`).join("\n\n")}
     : "Vietnamese"
   );
 
-
   for (const model of MODEL_FALLBACK_CHAIN) {
     try {
       const ai = new GoogleGenAI({ apiKey: api_key });
 
       const chat = ai.chats.create({
         model: model,
-        config: { systemInstruction: summaryPrompt, responseMimeType: "application/json" },
+        config: { systemInstruction: summaryPrompt, responseMimeType: "application/json", temperature: 0.6 }, // enough to be creative but still focused on rules
       });
 
       const res = await chat.sendMessage({ message: inputBlock });
@@ -567,8 +617,14 @@ ${history.map((h) => `${h.role.toUpperCase()}: ${h.content}`).join("\n\n")}
       return parsed.data;
     } catch (err) {
       // If it's a rate limit, try the next model in the chain
-      if (isRateLimitError(err)) continue;
-      if (isUnavailableError(err)) continue;
+      if (isRateLimitError(err)) {
+        await sleep(200 + Math.random() * 300); // small random backoff to reduce thundering herd
+        continue;
+      }
+      if (isUnavailableError(err)) {
+        await sleep(200 + Math.random() * 300); // small random backoff to reduce thundering herd
+        continue;
+      }
       throw err;
     }
   }
@@ -623,19 +679,27 @@ export const estimateQuizConfig = async (
   History: 
   ${history.map((h) => `${h.role.toUpperCase()}: ${h.content}`).join("\n\n")}`;
 
-  const result = await model.generateContent({
-    contents: [{ role: 'user', parts: [{ text: prompt }] }],
-    generationConfig: { responseMimeType: "application/json", temperature: 0.2 } // low temp for more deterministic output
-  });
+  try {
+    const result = await model.generateContent({
+      contents: [{ role: 'user', parts: [{ text: prompt }] }],
+      generationConfig: { responseMimeType: "application/json", temperature: 0.2 } // low temp for more deterministic output
+    });
 
-  if (!result.response.text()) {
-    throw new InvalidAIResponseError("Empty response for quiz config estimation");
-  }
-  if (!isEstimateQuizConfigResponse(JSON.parse(result.response.text()))) {
-    throw new InvalidAIResponseError("Invalid response format for quiz config estimation");
-  }
+    if (!result.response.text()) {
+      throw new InvalidAIResponseError("Empty response for quiz config estimation");
+    }
+    if (!isEstimateQuizConfigResponse(JSON.parse(result.response.text()))) {
+      throw new InvalidAIResponseError("Invalid response format for quiz config estimation");
+    }
 
-  return JSON.parse(result.response.text());
+    return JSON.parse(result.response.text());
+  } catch (err) { // no retry, return default config
+    return {
+      level: "Fundamental",
+      count: 5,
+      mcqRatio: 0.5
+    };
+  }
 };
 
 // 3. NEW: Generate Quiz Questions
@@ -695,6 +759,10 @@ export const generateQuizQuestions = async (
       contents: [{ role: 'user', parts: [{ text: prompt }] }],
       generationConfig: { responseMimeType: "application/json", temperature: 0.6 } // low temp for more deterministic output
     });
+
+    if (!result.response.text()) {
+      throw new InvalidAIResponseError("Empty response for quiz generation");
+    }
     
     return JSON.parse(result.response.text());
   } catch (err) {
