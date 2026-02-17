@@ -381,6 +381,10 @@ export const getChat = (apiKey: string, model: string): Chat => {
 //   currentApiKey = null;
 // };
 
+// Sleep helper
+export const sleep = (ms: number) =>
+  new Promise<void>(resolve => setTimeout(resolve, ms));
+
 const temperatureHelper = async (decryptedKey: string, request: any): Promise<number> => { // return the best fit temperature
   const genAI = new GoogleGenerativeAI( decryptedKey );
   const ai = await genAI.getGenerativeModel({ model: "gemini-2.5-flash-lite" });
@@ -455,14 +459,16 @@ export const sendMessageToBot = async (params: {
 
   // Get temperature recommendation from helper function based on the current prompt
   const totalPrompt = `System Instruction: ${systemPrompt}\n\nUser Prompt:\n${prompt}`;
-  let temp = await temperatureHelper(api_key, totalPrompt);
+  let temp = 0.7;
 
-  if (isNaN(temp) || temp <= 0 || temp > 1) {
-    console.log(`Temperature helper returned invalid value "${temp}". Falling back to default 0.7`);
-    temp = 0.7; // default fallback, never fail the main response due to temp estimation issues, as it's a "nice to have" optimization rather than a core requirement
+  try {
+    temp = await temperatureHelper(api_key, totalPrompt);
+    console.log(`Using temperature ${temp} based on helper recommendation.`);
+  } catch (err) {
+    temp = 0.7;
+    console.log(`Temperature helper failed with error: ${(err as Error).message}. Falling back to default temp of 0.7.`);
   }
-  console.log(`Using temperature ${temp} based on helper recommendation.`);
-
+  
   let lastError: any = null;
   for (const model of MODEL_FALLBACK_CHAIN) {
     try {
@@ -496,9 +502,10 @@ export const sendMessageToBot = async (params: {
     } catch (err: any) {
       lastError = err;
       // If it's a rate limit, try the next model in the chain
-      if (isRateLimitError(err)) continue;
-      if (isUnavailableError(err)) continue;
-      if (isRetryableAIError(err)) continue;
+      if (isRateLimitError(err) || isUnavailableError(err) || isRetryableAIError(err)) {
+        await sleep(200 + Math.random() * 300); // small random backoff to reduce thundering herd
+        continue;
+      }
       if (isInvalidApiKeyError(err)) throw new InvalidAPIError();
       throw err;
     }
@@ -592,22 +599,13 @@ ${history.map((h) => `${h.role.toUpperCase()}: ${h.content}`).join("\n\n")}
     : "Vietnamese"
   );
 
-  // Get temperature recommendation from helper function based on the current prompt
-  const totalPrompt = `System Instruction: ${summaryPrompt}\n\nSession Data:\n${inputBlock}`;
-  let temp = await temperatureHelper(api_key, totalPrompt);
-
-  if (isNaN(temp) || temp <= 0 || temp > 1) {
-    console.log(`Temperature helper returned invalid value "${temp}". Falling back to default temp of 0.7.`);
-    temp = 0.7; // default fallback, never fail the main response due to temp estimation issues, as it's a "nice to have" optimization rather than a core requirement
-  }
-
   for (const model of MODEL_FALLBACK_CHAIN) {
     try {
       const ai = new GoogleGenAI({ apiKey: api_key });
 
       const chat = ai.chats.create({
         model: model,
-        config: { systemInstruction: summaryPrompt, responseMimeType: "application/json", temperature: temp }, // enough to be creative but still focused on rules
+        config: { systemInstruction: summaryPrompt, responseMimeType: "application/json", temperature: 0.6 }, // enough to be creative but still focused on rules
       });
 
       const res = await chat.sendMessage({ message: inputBlock });
@@ -619,8 +617,14 @@ ${history.map((h) => `${h.role.toUpperCase()}: ${h.content}`).join("\n\n")}
       return parsed.data;
     } catch (err) {
       // If it's a rate limit, try the next model in the chain
-      if (isRateLimitError(err)) continue;
-      if (isUnavailableError(err)) continue;
+      if (isRateLimitError(err)) {
+        await sleep(200 + Math.random() * 300); // small random backoff to reduce thundering herd
+        continue;
+      }
+      if (isUnavailableError(err)) {
+        await sleep(200 + Math.random() * 300); // small random backoff to reduce thundering herd
+        continue;
+      }
       throw err;
     }
   }
@@ -675,19 +679,27 @@ export const estimateQuizConfig = async (
   History: 
   ${history.map((h) => `${h.role.toUpperCase()}: ${h.content}`).join("\n\n")}`;
 
-  const result = await model.generateContent({
-    contents: [{ role: 'user', parts: [{ text: prompt }] }],
-    generationConfig: { responseMimeType: "application/json", temperature: 0.2 } // low temp for more deterministic output
-  });
+  try {
+    const result = await model.generateContent({
+      contents: [{ role: 'user', parts: [{ text: prompt }] }],
+      generationConfig: { responseMimeType: "application/json", temperature: 0.2 } // low temp for more deterministic output
+    });
 
-  if (!result.response.text()) {
-    throw new InvalidAIResponseError("Empty response for quiz config estimation");
-  }
-  if (!isEstimateQuizConfigResponse(JSON.parse(result.response.text()))) {
-    throw new InvalidAIResponseError("Invalid response format for quiz config estimation");
-  }
+    if (!result.response.text()) {
+      throw new InvalidAIResponseError("Empty response for quiz config estimation");
+    }
+    if (!isEstimateQuizConfigResponse(JSON.parse(result.response.text()))) {
+      throw new InvalidAIResponseError("Invalid response format for quiz config estimation");
+    }
 
-  return JSON.parse(result.response.text());
+    return JSON.parse(result.response.text());
+  } catch (err) { // no retry, return default config
+    return {
+      level: "Fundamental",
+      count: 5,
+      mcqRatio: 0.5
+    };
+  }
 };
 
 // 3. NEW: Generate Quiz Questions
