@@ -41,6 +41,7 @@ export const LANGUAGE_DATA: Record<AppLanguage, {
     needsReview: string;
     addToMemory: string;
     takeAnother: string;
+    memoryAdded: string;
 
     profile: string;
     logOut: string;
@@ -125,6 +126,7 @@ export const LANGUAGE_DATA: Record<AppLanguage, {
       needsReview: "Needs Review",
       addToMemory: "Add Results to Session Memory",
       takeAnother: "Take Another Quiz",
+      memoryAdded: "Results added to your Session Memory! They will be included in your next Summary Doc.",
 
       profile: "Profile",
       logOut: "Log out",
@@ -209,6 +211,7 @@ export const LANGUAGE_DATA: Record<AppLanguage, {
       needsReview: "À revoir",
       addToMemory: "Ajouter les résultats à la mémoire de session",
       takeAnother: "Refaire un quiz",
+      memoryAdded: "Résultats ajoutés à votre mémoire de session ! Ils seront inclus dans votre prochain document de résumé.",
 
       profile: "Profil",
       logOut: "Se déconnecter",
@@ -293,6 +296,7 @@ export const LANGUAGE_DATA: Record<AppLanguage, {
       needsReview: "Necesita repaso",
       addToMemory: "Agregar resultados a la memoria de sesión",
       takeAnother: "Hacer otro cuestionario",
+      memoryAdded: "¡Resultados agregados a tu memoria de sesión! Se incluirán en tu próximo documento de resumen.",
 
       profile: "Perfil",
       logOut: "Cerrar sesión",
@@ -377,6 +381,7 @@ export const LANGUAGE_DATA: Record<AppLanguage, {
       needsReview: "Cần ôn lại",
       addToMemory: "Thêm kết quả vào Bộ nhớ phiên",
       takeAnother: "Làm bài kiểm tra khác",
+      memoryAdded: "Kết quả đã được thêm vào Bộ nhớ phiên của bạn! Chúng sẽ được bao gồm trong tài liệu tóm tắt buổi học của bạn.",
 
       profile: "Hồ sơ",
       logOut: "Đăng xuất",
