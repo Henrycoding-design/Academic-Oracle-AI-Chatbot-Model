@@ -13,6 +13,7 @@ dist-ssr
 *.local
 dev/
 secret.json
+test/
 
 # Editor directories and files
 .vscode/*
