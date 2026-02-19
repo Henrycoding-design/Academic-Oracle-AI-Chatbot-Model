@@ -1,7 +1,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import type { Message, ChatHistoryItem } from './types';
-import { sendMessageToBot } from './services/geminiService';
+import type { Message, ChatHistoryItem, ChatTailoringMode } from './types';
+import { sendMessageToBot, sendMessageToBotRace } from './services/geminiService';
 import { ChatInput } from './components/ChatInput';
 import { ChatMessage } from './components/ChatMessage';
 import AuthPage from "./AuthPage";
@@ -21,6 +21,7 @@ import { getQuota, isOutOfQuota, saveQuota } from './services/sessionMarker.ts';
 import { InvalidAPIError } from './types';
 import { AppLanguage , LANGUAGE_DATA } from './lang/Language.tsx';
 import { normalizeSummary } from './services/normalizeSummary.ts';
+import { isRushHourUTC } from './services/rushHours.ts';
 
 const SunIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
@@ -257,6 +258,33 @@ const App: React.FC = () => {
     );
   }, [messages]);
 
+  const [chatTailoring, setChatTailoring] = useState<ChatTailoringMode>(() => {
+    if (typeof window === "undefined") return "standard";
+    return (localStorage.getItem("academic-oracle-tailoring") as ChatTailoringMode) || "standard";
+  });
+
+  useEffect(() => {
+    localStorage.setItem("academic-oracle-tailoring", chatTailoring);
+  }, [chatTailoring]);
+
+  const shouldUseRace = (): boolean => {
+    if (chatTailoring === "no") return false;
+    if (chatTailoring === "always") return true;
+
+    // standard mode
+    return isRushHourUTC();
+  };
+
+  useEffect(() => { // listen to tailoring changes from profile page and update state accordingly
+    const update = () => {
+      const value = (localStorage.getItem("academic-oracle-tailoring") as ChatTailoringMode) || "standard";
+      setChatTailoring(value);
+    };
+
+    window.addEventListener("tailoring-change", update);
+    return () => window.removeEventListener("tailoring-change", update);
+  }, []);
+
   const [isLoading, setIsLoading] = useState(false);
   const [isGeneratingSummary, setIsGeneratingSummary] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -456,13 +484,23 @@ const App: React.FC = () => {
         file: file ?? null,
       };
 
-      // 🔁 Stateless call with full history
-      const { answer, memory, model, sessionForTopicDone } = await sendMessageToBot({
-        history: outgoingHistory,
-        memory: oracleMemory,
-        encryptedKeyPayload: encryptedApiKey,
-        language: language,
-      });
+      const useRace = shouldUseRace();
+
+      const strategy = useRace
+        ? sendMessageToBotRace
+        : sendMessageToBot;
+
+      console.log(
+        `Using ${useRace ? "RACE" : "standard"} strategy for this request`
+      );
+
+      const { answer, memory, model, sessionForTopicDone } =
+        await strategy({
+          history: outgoingHistory,
+          memory: oracleMemory,
+          encryptedKeyPayload: encryptedApiKey,
+          language: language,
+        });
 
       // 🖼️ UI response
       setMessages(prev => [
@@ -670,6 +708,7 @@ const App: React.FC = () => {
     sessionStorage.removeItem("oracle-api-key");
     sessionStorage.removeItem("academic-oracle-memory"); //wipe profile
     sessionStorage.removeItem("academic-oracle-quiz-state"); // Clear quiz cache on logout
+    localStorage.removeItem("chat_input_draft"); // clear draft
     setOracleMemory(null);
 
     if (masteryTimerRef.current) {

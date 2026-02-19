@@ -194,27 +194,80 @@ const ProfilePage: React.FC<ProfilePageProps> = ({
         </div>
        
 
-        <div className="flex max-w-xs">
-          <label className="text-xs text-slate-500 dark:text-slate-400 mb-1 mx-5">
-            {LANGUAGE_DATA[language].ui.language}
-          </label>
-          <select
-            value={language}
-            onChange={(e) => onLanguageChange(e.target.value as AppLanguage)}
-            className="
-              px-3 py-2 rounded-lg
-              bg-slate-100 dark:bg-slate-800
-              text-slate-900 dark:text-slate-200
-              border border-black/5 dark:border-white/10
-              text-sm min-w-max
-            "
-          >
-            <option value="en">English</option>
-            <option value="fr">Français</option>
-            <option value="es">Español</option>
-            <option value="vi">Tiếng Việt</option>
-          </select>
-        </div>
+          <div className="w-full max-w-md space-y-6 mb-[10vh]">
+
+            {/* Language */}
+            <div className="
+              grid 
+              grid-cols-1 
+              sm:grid-cols-[180px_1fr] 
+              gap-2 sm:gap-4 
+              items-start sm:items-center
+            ">
+              <label className="
+                text-xs 
+                text-slate-500 dark:text-slate-400 
+                sm:text-right
+              ">
+                {LANGUAGE_DATA[language].ui.language}
+              </label>
+
+              <select
+                value={language}
+                onChange={(e) => onLanguageChange(e.target.value as AppLanguage)}
+                className="
+                  w-full px-3 py-2 rounded-lg
+                  bg-slate-100 dark:bg-slate-800
+                  text-slate-900 dark:text-slate-200
+                  border border-black/5 dark:border-white/10
+                  text-sm
+                "
+              >
+                <option value="en">English</option>
+                <option value="fr">Français</option>
+                <option value="es">Español</option>
+                <option value="vi">Tiếng Việt</option>
+              </select>
+            </div>
+
+            {/* Model Adaptation */}
+            <div className="
+              grid 
+              grid-cols-1 
+              sm:grid-cols-[180px_1fr] 
+              gap-2 sm:gap-4 
+              items-start sm:items-center
+            ">
+              <label className="
+                text-xs 
+                text-slate-500 dark:text-slate-400 
+                sm:text-right
+              ">
+                Model Adaptation
+              </label>
+
+              <select
+                value={localStorage.getItem("academic-oracle-tailoring") || "standard"}
+                onChange={(e) => {
+                  localStorage.setItem("academic-oracle-tailoring", e.target.value);
+                  window.dispatchEvent(new Event("tailoring-change"));
+                }}
+                className="
+                  w-full px-3 py-2 rounded-lg
+                  bg-slate-100 dark:bg-slate-800
+                  text-slate-900 dark:text-slate-200
+                  border border-black/5 dark:border-white/10
+                  text-sm
+                "
+              >
+                <option value="no">No</option>
+                <option value="standard">Standard</option>
+                <option value="always">Always</option>
+              </select>
+            </div>
+
+          </div>
+
         </div>
       </div>
 

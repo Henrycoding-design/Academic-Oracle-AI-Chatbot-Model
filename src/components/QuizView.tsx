@@ -43,6 +43,7 @@ export const QuizView: React.FC<QuizViewProps> = ({
       setConfig(parsed.config);
       setCurrentQIndex(parsed.currentQIndex);
       setViewState(parsed.viewState);
+      setUserAnswers(parsed.userAnswers ?? {});
     } else {
       // If no cache, try to auto-estimate config based on history
       estimateConfig(); 
@@ -60,9 +61,9 @@ export const QuizView: React.FC<QuizViewProps> = ({
   useEffect(() => {
     if (!isHydrated) return;
     sessionStorage.setItem('academic-oracle-quiz-state', JSON.stringify({
-      questions, results, config, currentQIndex, viewState
+      questions, results, config, currentQIndex, viewState,  userAnswers
     }));
-  }, [questions, results, config, currentQIndex, viewState]);
+  }, [questions, results, config, currentQIndex, viewState, userAnswers]);
 
   const estimateConfig = async () => {
     if (history.length > 2) {
@@ -300,7 +301,7 @@ export const QuizView: React.FC<QuizViewProps> = ({
                       : 'border-transparent bg-white dark:bg-slate-800 shadow-sm hover:border-indigo-300 hover:shadow-md'
                   }`}
                 >
-                  <MarkdownContent content={opt} />
+                  <MarkdownContent content={opt} ismcq={true} />
                 </button>
               ))}
 

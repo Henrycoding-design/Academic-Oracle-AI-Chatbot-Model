@@ -4,6 +4,7 @@ import hljs from "../lib/highlight";
 
 interface MarkdownContentProps {
   content: string;
+  ismcq?: boolean; // new prop to indicate if it's for MCQ options
 }
 
 // ... (Keep CopyIcon, CheckIcon, CodeBlock, InlineCode as they are) ...
@@ -191,7 +192,7 @@ const TableBlock: React.FC<{ lines: string[], parseInline: (text: string) => Rea
 };
 
 
-export const MarkdownContent: React.FC<MarkdownContentProps> = ({ content }) => {
+export const MarkdownContent: React.FC<MarkdownContentProps> = ({ content, ismcq = false }) => {
   const lines = content.split('\n');
   const elements: React.ReactNode[] = [];
   
@@ -366,5 +367,5 @@ export const MarkdownContent: React.FC<MarkdownContentProps> = ({ content }) => 
   }
   
   flushList(lines.length);
-  return <div className="markdown-container py-2">{elements}</div>;
+  return <div className={ismcq ? "markdown-container" : "markdown-container py-2"}>{elements}</div>;
 };
