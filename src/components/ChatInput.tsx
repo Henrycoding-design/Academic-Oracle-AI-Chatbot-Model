@@ -1,5 +1,5 @@
 
-import React, { useLayoutEffect, useRef, useState} from 'react';
+import React, { useLayoutEffect, useRef, useState, useEffect} from 'react';
 import { LANGUAGE_DATA, AppLanguage } from '../lang/Language.tsx';
 
 interface ChatInputProps {
@@ -34,6 +34,30 @@ export const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, isLoading, 
   const [placeholder, setPlaceholder] = useState(PLACEHOLDERS.full);
   const taRef = useRef<HTMLTextAreaElement | null>(null);
 
+  useLayoutEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const savedDraft = localStorage.getItem("chat_input_draft");
+    if (savedDraft) {
+      setInputValue(savedDraft);
+    }
+  }, []);
+
+  useEffect(() => { // auto-save draft to localStorage with debounce
+    if (typeof window === "undefined") return;
+
+    const timeout = setTimeout(() => {
+      if (inputValue) {
+        localStorage.setItem("chat_input_draft", inputValue);
+      } else {
+        localStorage.removeItem("chat_input_draft");
+      }
+    }, 300);
+
+    return () => clearTimeout(timeout);
+  }, [inputValue]);
+
+
   const handleSubmit = () => {
     if (!inputValue.trim() && !attachedFile) return;
     if (isLoading) return;
@@ -42,7 +66,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, isLoading, 
     onSendMessage(inputValue, attachedFile);
     setAttachedFile(null);
     setInputValue('');
-    
+    localStorage.removeItem("chat_input_draft");
   };
 
   const autosize = () => {
@@ -131,7 +155,6 @@ export const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, isLoading, 
             onCompositionStart={() => setIsComposing(true)}
             onCompositionEnd={() => setIsComposing(false)}
             placeholder={placeholder}
-            disabled={isLoading}
             rows={1}
             className="
               flex-grow px-4 py-3 bg-transparent

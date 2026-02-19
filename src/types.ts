@@ -58,3 +58,7 @@ export interface QuizResult {
   isCorrect: boolean;
   feedback: string;
 }
+
+export type ChatIntent = "agentic" | "fast" | "balance";
+
+export type ChatTailoringMode = "no" | "standard" | "always";

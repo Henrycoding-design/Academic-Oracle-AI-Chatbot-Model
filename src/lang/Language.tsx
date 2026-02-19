@@ -71,6 +71,11 @@ export const LANGUAGE_DATA: Record<AppLanguage, {
     save: string;
     noApiKeyAdded: string;
     howToGetApiKey: string;
+    modelAdaptationTooltip: string;
+    modelAdaptation: string;
+    modelAdaptationOff: string;
+    modelAdaptationStandard: string;
+    modelAdaptationAlways: string;
     invalidApiKeyFormat: string;
     failedToLoadApiKey: string;
     failedToSaveApiKey: string;
@@ -156,6 +161,11 @@ export const LANGUAGE_DATA: Record<AppLanguage, {
       save: "Save",
       noApiKeyAdded: "No API key added yet. Click the plus button to add one.",
       howToGetApiKey: "How to get an API key?",
+      modelAdaptation: "Model Adaptation",
+      modelAdaptationOff: "Off",
+      modelAdaptationStandard: "Standard",
+      modelAdaptationAlways: "Always",
+      modelAdaptationTooltip: "Choose when to enable adaptive model routing. **Always**: race calls for fastest response. **Standard**: activates during high traffic. **Off**: disabled.",
       invalidApiKeyFormat: "Invalid API Key format.",
       failedToLoadApiKey: "Failed to load API key.",
       failedToSaveApiKey: "Failed to save API key.",
@@ -241,6 +251,11 @@ export const LANGUAGE_DATA: Record<AppLanguage, {
       save: "Enregistrer",
       noApiKeyAdded: "Aucune clé API ajoutée. Cliquez sur le bouton plus pour en ajouter une.",
       howToGetApiKey: "Comment obtenir une clé API ?",
+      modelAdaptation: "Adaptation du modèle",
+      modelAdaptationOff: "Désactivé",
+      modelAdaptationStandard: "Standard",
+      modelAdaptationAlways: "Toujours",
+      modelAdaptationTooltip: "Choisissez quand activer le routage adaptatif du modèle. **Toujours** : course pour la réponse la plus rapide. **Standard** : s'active pendant les périodes de trafic élevé. **Désactivé** : désactivé.",
       invalidApiKeyFormat: "Format de clé API invalide.",
       failedToLoadApiKey: "Échec du chargement de la clé API.",
       failedToSaveApiKey: "Échec de l'enregistrement de la clé API.",
@@ -326,6 +341,11 @@ export const LANGUAGE_DATA: Record<AppLanguage, {
       save: "Guardar",
       noApiKeyAdded: "Ninguna clave API añadida. Haz clic en el botón más para agregar una.",
       howToGetApiKey: "¿Cómo obtener una clave API?",
+      modelAdaptation: "Adaptación del modelo",
+      modelAdaptationOff: "Desactivado",
+      modelAdaptationStandard: "Estándar",
+      modelAdaptationAlways: "Siempre",
+      modelAdaptationTooltip: "Elige cuándo habilitar el enrutamiento adaptativo del modelo. **Siempre**: carrera para la respuesta más rápida. **Estándar**: se activa durante períodos de alto tráfico. **Desactivado**: deshabilitado.",
       invalidApiKeyFormat: "Formato de clave API inválido.",
       failedToLoadApiKey: "Error al cargar la clave API.",
       failedToSaveApiKey: "Error al guardar la clave API.",
@@ -411,6 +431,11 @@ export const LANGUAGE_DATA: Record<AppLanguage, {
       save: "Lưu",
       noApiKeyAdded: "Chưa thêm khóa API. Nhấp vào nút cộng để thêm một cái.",
       howToGetApiKey: "Làm thế nào để có được khóa API?",
+      modelAdaptation: "Điều chỉnh mô hình",
+      modelAdaptationOff: "Tắt",
+      modelAdaptationStandard: "Tiêu chuẩn",
+      modelAdaptationAlways: "Luôn luôn",
+      modelAdaptationTooltip: "Chọn khi nào bật định tuyến mô hình thích ứng. **Luôn luôn**: chạy đua để có phản hồi nhanh nhất. **Tiêu chuẩn**: kích hoạt trong thời gian cao điểm. **Tắt**: vô hiệu hóa.",
       invalidApiKeyFormat: "Định dạng khóa API không hợp lệ.",
       failedToLoadApiKey: "Không thể tải khóa API.",
       failedToSaveApiKey: "Không thể lưu khóa API.",

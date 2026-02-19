@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Pencil, Save , ArrowBigLeftIcon, Plus} from "lucide-react";
+import { Pencil, Save , ArrowBigLeftIcon, Plus, Info} from "lucide-react";
 import { decryptApiKey, encryptApiKey} from './services/edgeCrypto.ts';
 import { supabase } from "./services/supabaseClient";
 import { AppLanguage, LANGUAGE_DATA } from "./lang/Language.tsx";
@@ -24,6 +24,8 @@ const ProfilePage: React.FC<ProfilePageProps> = ({
   const [isEditing, setIsEditing] = useState(false);
   const [apiKeyPlain, setApiKeyPlain] = useState("");
   const hasApiKey = Boolean(encryptedApiKey);
+
+  const [showTooltip, setShowTooltip] = useState(false);
 
   const avatarUrl =
     user?.user_metadata?.avatar_url ||
@@ -194,27 +196,119 @@ const ProfilePage: React.FC<ProfilePageProps> = ({
         </div>
        
 
-        <div className="flex max-w-xs">
-          <label className="text-xs text-slate-500 dark:text-slate-400 mb-1 mx-5">
-            {LANGUAGE_DATA[language].ui.language}
-          </label>
-          <select
-            value={language}
-            onChange={(e) => onLanguageChange(e.target.value as AppLanguage)}
-            className="
-              px-3 py-2 rounded-lg
-              bg-slate-100 dark:bg-slate-800
-              text-slate-900 dark:text-slate-200
-              border border-black/5 dark:border-white/10
-              text-sm min-w-max
-            "
-          >
-            <option value="en">English</option>
-            <option value="fr">Français</option>
-            <option value="es">Español</option>
-            <option value="vi">Tiếng Việt</option>
-          </select>
-        </div>
+          <div className="w-full max-w-md space-y-6 mb-[10vh]">
+
+            {/* Language */}
+            <div className="
+              grid 
+              grid-cols-1 
+              sm:grid-cols-[180px_1fr] 
+              gap-2 sm:gap-4 
+              items-start sm:items-center
+            ">
+              <label className="
+                text-xs 
+                text-slate-500 dark:text-slate-400 
+                sm:text-right
+              ">
+                {LANGUAGE_DATA[language].ui.language}
+              </label>
+
+              <select
+                value={language}
+                onChange={(e) => onLanguageChange(e.target.value as AppLanguage)}
+                className="
+                  w-full px-3 py-2 rounded-lg
+                  bg-slate-100 dark:bg-slate-800
+                  text-slate-900 dark:text-slate-200
+                  border border-black/5 dark:border-white/10
+                  text-sm
+                "
+              >
+                <option value="en">English</option>
+                <option value="fr">Français</option>
+                <option value="es">Español</option>
+                <option value="vi">Tiếng Việt</option>
+              </select>
+            </div>
+
+            {/* Model Adaptation */}
+            <div className="
+              grid 
+              grid-cols-1 
+              sm:grid-cols-[180px_1fr] 
+              gap-2 sm:gap-4 
+              items-start sm:items-center
+            ">
+              
+              <div className="flex items-center gap-2 sm:justify-end">
+                <label className="
+                  text-xs 
+                  text-slate-500 dark:text-slate-400 
+                  sm:text-right
+                "
+                >
+                  {LANGUAGE_DATA[language].ui.modelAdaptation}
+                </label>
+                <div
+                  className="relative flex items-center"
+                  onMouseEnter={() => setShowTooltip(true)}
+                  onMouseLeave={() => setShowTooltip(false)}
+                >
+                  <Info
+                    size={14}
+                    className="text-slate-400 cursor-pointer hover:text-slate-600 dark:hover:text-slate-200 transition-colors"
+                  />
+
+                  {showTooltip && (
+                    <div
+                      className="
+                        absolute
+                        bottom-full
+                        mb-2
+                        left-1/2
+                        -translate-x-1/2
+                        w-64
+                        rounded-lg
+                        bg-slate-100
+                        text-slate-900
+                        dark:bg-slate-800
+                        dark:text-white
+                        text-xs
+                        px-3
+                        py-2
+                        shadow-lg
+                        z-50
+                      "
+                    >
+                      {LANGUAGE_DATA[language].ui.modelAdaptationTooltip}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <select
+                value={localStorage.getItem("academic-oracle-tailoring") || "standard"}
+                onChange={(e) => {
+                  localStorage.setItem("academic-oracle-tailoring", e.target.value);
+                  window.dispatchEvent(new Event("tailoring-change"));
+                }}
+                className="
+                  w-full px-3 py-2 rounded-lg
+                  bg-slate-100 dark:bg-slate-800
+                  text-slate-900 dark:text-slate-200
+                  border border-black/5 dark:border-white/10
+                  text-sm
+                "
+              >
+                <option value="no">{LANGUAGE_DATA[language].ui.modelAdaptationOff}</option>
+                <option value="standard">{LANGUAGE_DATA[language].ui.modelAdaptationStandard}</option>
+                <option value="always">{LANGUAGE_DATA[language].ui.modelAdaptationAlways}</option>
+              </select>
+            </div>
+
+          </div>
+
         </div>
       </div>
 

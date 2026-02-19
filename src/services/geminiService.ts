@@ -6,6 +6,9 @@ import { decryptApiKey } from "./edgeCrypto";
 import { getNextEnvKey } from "./envKeys";
 import { InvalidAIResponseError , InvalidAPIError} from "../types";
 import { AppLanguage } from "../lang/Language";
+import { callStepFunFlash } from "./stepFunCaller";
+import { classifyIntent } from "./chatIntentClassifier";
+import { raceModels } from "./raceModels";
 
 // const SYSTEM_INSTRUCTION = `You are the 'Academic Oracle', a world-class polymath and supportive mentor. 
 // Your scope is UNLIMITED: from primary education and competitive exams (IGCSE, SAT, AP, IELTS) to University-level research and professional Industrial practices.
@@ -385,7 +388,7 @@ export const getChat = (apiKey: string, model: string): Chat => {
 export const sleep = (ms: number) =>
   new Promise<void>(resolve => setTimeout(resolve, ms));
 
-const temperatureHelper = async (decryptedKey: string, request: any): Promise<number> => { // return the best fit temperature
+const temperatureHelper = async (decryptedKey: string, request: any): Promise<number> => { // abandoned for effciency since temp are mostly fixed and can be cached before on client side
   const genAI = new GoogleGenerativeAI( decryptedKey );
   const ai = await genAI.getGenerativeModel({ model: "gemini-2.5-flash-lite" });
   const prompt = `System Language (FORCED INPUT/OUTPUT CONTENT LANGUAGE): English
@@ -406,6 +409,134 @@ Request/Prompt: ${JSON.stringify(request)}
   }
   return JSON.parse(result.response.text()).temperature;
 }
+
+export const sendMessageToBotRace = async (params: {
+  history: { role: "user" | "model"; content: string }[];
+  memory?: string | null;
+  encryptedKeyPayload: any;
+  language: AppLanguage;
+}): Promise<OracleResponse> => {
+  const { history, memory, encryptedKeyPayload, language } = params;
+
+  const memoryBlock = memory
+    ? `ORACLE MEMORY (Persistent Student Profile):
+  ${memory}
+
+  ---`
+    : "";
+
+  const prompt = `
+    ${memoryBlock}
+    CHAT HISTORY (Trimmed)
+    ${history.map(h => `${h.role.toUpperCase()}: ${h.content}`).join("\n\n")}
+    `.trim();
+
+  let api_key: string | null = null;
+  
+  if (!encryptedKeyPayload) {
+    // Use environment key
+    api_key = getNextEnvKey();
+  } else {
+    // Decrypt user key
+
+    // 🔓 decrypt JUST-IN-TIME with jsonb type guard
+    if (!isEncryptedPayload(encryptedKeyPayload)) {
+      throw new Error("Invalid encrypted API key payload");
+    }
+
+    api_key = await decryptApiKey(encryptedKeyPayload);
+  }
+
+  if (!api_key) { // should never happen
+    throw new Error("No API key available for free mode.");
+  }
+
+  // last: Language update
+  const systemPrompt = SYSTEM_INSTRUCTION.replace(
+    "{{LANGUAGE}}",
+    language === "en" ? "English"
+    : language === "fr" ? "French"
+    : language === "es" ? "Spanish"
+    : "Vietnamese"
+  );
+
+  // Set temperature to 0.7 default, no need for helper here as we want to prioritize speed in the race
+  let temp = 0.7;
+  
+  const intent = await classifyIntent(api_key, prompt);
+
+  const callGemini = async (model: string) => {
+    const ai = new GoogleGenAI({ apiKey: api_key! });
+
+    const chat = ai.chats.create({
+      model,
+      config: {
+        systemInstruction: systemPrompt,
+        responseMimeType: "application/json",
+        temperature: temp
+      }
+    });
+
+    const response = await chat.sendMessage({ message: prompt });
+
+    return { model, text: response.text };
+  };
+
+  const callStepFun = async () => {
+    const res = await callStepFunFlash({
+      systemInstruction: systemPrompt,
+      prompt,
+      temperature: temp
+    });
+
+    return { model: "stepfun-3.5-flash", text: res.text };
+  };
+
+  try {
+    let raceResult;
+
+    if (intent === "agentic") {
+      console.log("Using agentic strategy for this request");
+      raceResult = await raceModels([
+        () => callStepFun(),
+        () => callGemini("gemini-3-flash-preview")
+      ]);
+    }
+    else if (intent === "fast") {
+      console.log("Using fast strategy for this request");
+      raceResult = await raceModels([
+        () => callGemini("gemini-2.5-flash-lite"),
+        () => callStepFun()
+      ]);
+    }
+    else {
+      console.log("Using balanced strategy for this request");
+      raceResult = await raceModels([
+        () => callGemini("gemini-3-flash-preview"),
+        () => callStepFun()
+      ]);
+    }
+
+    const parsed = extractAndParseJSONSafe(raceResult.text);
+
+    if (!parsed.ok || !isOraclePayload(parsed.data)) {
+      throw new InvalidAIResponseError("Malformed Oracle payload");
+    }
+
+    return {
+      answer: parsed.data.answer,
+      memory: parsed.data.memory,
+      model: raceResult.model,
+      sessionForTopicDone: parsed.data.sessionForTopicDone
+    };
+  } catch (err: any) {
+    if (err.message && err.message.includes("Race timeout")) {
+      throw new Error("All models timed out. Please try again.");
+    }
+    if (isInvalidApiKeyError(err)) throw new InvalidAPIError();
+    throw err;
+  }
+};
 
 export const sendMessageToBot = async (params: {
   history: { role: "user" | "model"; content: string }[];
@@ -458,16 +589,15 @@ export const sendMessageToBot = async (params: {
   );
 
   // Get temperature recommendation from helper function based on the current prompt
-  const totalPrompt = `System Instruction: ${systemPrompt}\n\nUser Prompt:\n${prompt}`;
   let temp = 0.7;
 
-  try {
-    temp = await temperatureHelper(api_key, totalPrompt);
-    console.log(`Using temperature ${temp} based on helper recommendation.`);
-  } catch (err) {
-    temp = 0.7;
-    console.log(`Temperature helper failed with error: ${(err as Error).message}. Falling back to default temp of 0.7.`);
-  }
+  // try {
+  //   temp = await temperatureHelper(api_key, totalPrompt);
+  //   console.log(`Using temperature ${temp} based on helper recommendation.`);
+  // } catch (err) {
+  //   temp = 0.7;
+  //   console.log(`Temperature helper failed with error: ${(err as Error).message}. Falling back to default temp of 0.7.`);
+  // }
   
   let lastError: any = null;
   for (const model of MODEL_FALLBACK_CHAIN) {
@@ -779,7 +909,7 @@ export const generateQuizQuestions = async (
       const liteModel = await getModelLite(decryptedKey);
       const fallbackResult = await liteModel.generateContent({
         contents: [{ role: 'user', parts: [{ text: prompt }] }],
-        generationConfig: { responseMimeType: "application/json", temperature: 0.5 } // lower temp for fallback to increase chance of valid output
+        generationConfig: { responseMimeType: "application/json", temperature: 0.4 } // lower temp for fallback to increase chance of valid output
       });
       return JSON.parse(fallbackResult.response.text());
     }
