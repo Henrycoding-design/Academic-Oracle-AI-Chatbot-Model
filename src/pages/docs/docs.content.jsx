@@ -1,11 +1,11 @@
 import GettingStarted from "./contents/GettingStarted";
 import Auth from "./contents/Auth";
-import GGAIStudio from "./contents/GGAIStudio";
+import AIStudio from "./contents/AIStudio";
 import ChatFlow from "./contents/ChatFlow";
 
 export const docsContent = {
   "getting-started": <GettingStarted />,
   auth: <Auth />,
-  ggaistudio: <GGAIStudio />,
+  aistudio: <AIStudio />,
   chatflow: <ChatFlow />
 };

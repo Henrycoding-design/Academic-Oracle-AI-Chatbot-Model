@@ -46,6 +46,17 @@
       "Enhanced conversational stability and adaptive response depth",
       "Refined overall system polish and response consistency"
     ]
+  },
+  {
+    "version": "2.2.0",
+    "date": "2026-02-19",
+    "changes": [
+      "Introduced race-based model routing for faster and more adaptive response selection",
+      "Significantly improved system resilience and failure recovery handling",
+      "Integrated StepFun 3.5 model into the adaptive routing pipeline",
+      "Preserved draft prompts and responses across tab switches and unexpected closures",
+      "Enhanced overall session stability under high-load conditions"
+    ]
   }
 ]
 

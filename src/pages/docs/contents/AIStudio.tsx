@@ -1,6 +1,6 @@
 import React from "react";
 
-export default function GGAIStudio() {
+export default function AIStudio() {
   return (
     <div className="space-y-12 pb-20">
       {/* Header Section */}
@@ -9,7 +9,7 @@ export default function GGAIStudio() {
           Intelligence Infrastructure
         </h1>
         <p className="text-lg text-slate-400 leading-relaxed max-w-3xl">
-          Academic Oracle is powered by Google’s most advanced Gemini models. We prioritize explicit versioning and resilient request handling to ensure a seamless pedagogical experience.
+          Academic Oracle is powered by a multi-modal mesh led by Google’s Gemini-3. We prioritize explicit versioning and cross-provider off-loading to ensure a seamless pedagogical experience even during global traffic surges.
         </p>
       </section>
 
@@ -25,24 +25,31 @@ export default function GGAIStudio() {
           We avoid ambiguous aliases. By targeting specific builds, we guarantee <strong>behavioral stability</strong> and future-proof our socratic prompting logic against unexpected model shifts.
         </p>
         
-        <div className="grid md:grid-cols-3 gap-4">
+        {/* Updated Grid to include Stepfun-3.5 */}
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
           {[
             { 
               name: "gemini-3-flash", 
-              role: "Chat Socratic Flow", 
-              desc: "Optimized for high-reasoning inquiry and strategic elenchus.",
+              role: "Primary Socratic Flow", 
+              desc: "The core engine for high-reasoning inquiry and strategic elenchus.",
               color: "text-blue-400"
             },
             { 
+              name: "stepfun-3.5", 
+              role: "High-Level Off-loader", 
+              desc: "Maintains reasoning parity during Gemini traffic spikes or quota limits.",
+              color: "text-emerald-400"
+            },
+            { 
               name: "gemini-2.5-flask", 
-              role: "Quiz Assessment Engine", 
+              role: "Quiz Assessment", 
               desc: "Grades open-answers and generates hybrid MCQ sets via session memory.",
               color: "text-purple-400"
             },
             { 
               name: "gemini-2.5-flask-lite", 
-              role: "Dynamic Content Loader", 
-              desc: "Manages UI states, simple validations, and lightweight conversational cues.",
+              role: "UI Logic & Cues", 
+              desc: "Manages simple validations and lightweight conversational cues.",
               color: "text-cyan-400"
             }
           ].map((model) => (
@@ -62,7 +69,7 @@ export default function GGAIStudio() {
         <div className="space-y-4">
           <h3 className="text-xl font-bold text-white">Uninterrupted Learning</h3>
           <p className="text-slate-400 text-sm leading-relaxed text-balance">
-            Education cannot wait for a server refresh. We implement <strong>intelligent fallback routing</strong>: if a quota limit is reached on `gemini-3-flash`, the system automatically cascades the reasoning task to backup nodes to maintain the student's flow.
+            Education cannot wait for a server refresh. We implement <strong>intelligent fallback routing</strong>: if a quota limit is reached on `gemini-3-flash`, the system automatically cascades the reasoning task to `stepfun-3.5` nodes to maintain the student's flow.
           </p>
           <div className="flex gap-4">
              <div className="text-center">
@@ -70,15 +77,15 @@ export default function GGAIStudio() {
                 <p className="text-sm font-mono text-indigo-400 font-bold">Exponential Backoff</p>
              </div>
              <div className="text-center border-l border-white/10 pl-4">
-                <p className="text-[10px] uppercase tracking-widest text-white/30 font-bold">Error Handling</p>
-                <p className="text-sm font-mono text-indigo-400 font-bold">Console-Only Logs</p>
+                <p className="text-[10px] uppercase tracking-widest text-white/30 font-bold">Traffic Balancing</p>
+                <p className="text-sm font-mono text-emerald-400 font-bold">Stepfun Off-load</p>
              </div>
           </div>
         </div>
         <div className="space-y-4">
           <h3 className="text-xl font-bold text-white">The Flask-Series Stack</h3>
           <p className="text-slate-400 text-sm leading-relaxed text-balance">
-            By leveraging the <strong>Gemini Flask-Series</strong>, we ensure that every specialized task—from deep Socratic dialogue to rapid quiz generation—is handled by the engine best suited for the latency and reasoning requirements of that specific state.
+            By leveraging the <strong>Gemini Flask-Series</strong>, we ensure that every specialized task—from deep Socratic dialogue to rapid quiz generation—is handled by the engine best suited for the latency requirements of that specific state.
           </p>
         </div>
       </section>
@@ -87,7 +94,7 @@ export default function GGAIStudio() {
       <section className="space-y-4">
         <h2 className="text-2xl font-semibold text-white">User Interface Integrity</h2>
         <p className="text-slate-400">
-          In the event of a persistent network failure, we provide a clean, non-intrusive <strong>Retry Action</strong> on the UI. All technical error stacks are directed to the developer console to maintain a distraction-free environment for the learner.
+          In the event of a persistent network failure across all providers, we provide a clean, non-intrusive <strong>Retry Action</strong>. All technical error stacks are directed to the developer console to maintain a distraction-free environment for the learner.
         </p>
 
         <div className="group relative p-6 rounded-xl bg-gradient-to-br from-indigo-600/10 to-transparent border border-indigo-500/20 hover:border-indigo-500/40 transition-all">
@@ -95,13 +102,13 @@ export default function GGAIStudio() {
             Pedagogical-Stability-Index: 99.9%
           </h4>
           <p className="text-sm text-white/50 mb-4 italic">
-            "Engineered for the long-term, not just the next update."
+            "Engineered for the long-term, utilizing multi-model redundancy."
           </p>
           <a 
             href="/docs/chatflow"
             className="inline-flex items-center text-sm font-bold text-white hover:text-indigo-400 transition-colors"
           >
-            Read more on Chat Logic
+            Read more on Routing Logic
             <svg className="ml-2 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
             </svg>
