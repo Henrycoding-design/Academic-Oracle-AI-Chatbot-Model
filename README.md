@@ -91,15 +91,10 @@ You don’t just learn faster — you learn *properly*.
 ### ⚙️ Context-Aware Model Adaptation (NEW)
 
 - Dynamic model routing based on real-time traffic conditions
-
 - Promise-race orchestration during high-load periods
-
 - Automatic fallback to most efficient single-model pipeline under normal conditions
-
 - Intelligent compatibility matching per user request type
-
 - Stepfun-3.5 integration as high-load inference offloader
-
 - Automatic cancellation of non-winning model responses to preserve cost efficiency
 
 Academic Oracle *adapts not just to learners - but to system conditions*.
