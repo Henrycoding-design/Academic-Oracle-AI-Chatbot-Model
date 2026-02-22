@@ -126,12 +126,20 @@ Academic Oracle *adapts not just to learners - but to system conditions*.
    ```bash
    npm install
 
-2. Setup Environment Variables:
+2. Setup your ["Supabase Project"](https://supabase.com/dashboard?)
+
+3. Setup your ["Google AI Studio API Key(s)"](https://aistudio.google.com/api-keys)
+
+4. Setup your ["OpenRouter API Key"](https://openrouter.ai/settings/keys)
+
+5. Setup Environment Variables:
    ```env.local
    VITE_SUPABASE_URL=YOUR_SUPABASE_URL
    VITE_SUPABASE_ANON_KEY=YOUR_SUPABASE_ANON_KEY
+   VITE_GEMINI_KEYS=YOUR_GOOGLE_AI_STUDIO_API_KEY(s) EX: KEY1,KEY2,KEY3,...
+   VITE_STEPFUN_KEY=YOUR_OPENROUTER_API_KEY
 
-3. Start development server:
+6. Start development server:
    ```bash
    npm run dev
 
