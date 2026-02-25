@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { supabase } from "./services/supabaseClient";
 import { encryptApiKey } from "./services/edgeCrypto";
-import { ArrowBigLeftIcon } from "lucide-react";
+import { PlayIcon } from "lucide-react";
 
 const AuthPage: React.FC<{
   onLogin: (apiKey: any | null, mode: 'free' | 'full') => void;
@@ -256,25 +256,42 @@ const AuthPage: React.FC<{
   return (
     <div className="h-screen flex flex-col items-center justify-center
                     bg-slate-50 dark:bg-slate-950">
-      <h1 className="text-3xl font-bold mb-6 text-slate-900 dark:text-slate-100">
+      <h1 className="text-3xl font-bold mb-7 text-slate-900 dark:text-slate-100">
         Academic Oracle
       </h1>
 
       <button
         onClick={handleLogin}
-        className="px-6 py-3 bg-indigo-600 text-white rounded-lg
-                   hover:bg-indigo-700 transition-colors"
+        className="inline-flex items-center gap-2 px-5 py-3 mt-2
+             bg-indigo-600 text-white rounded-xl
+             shadow-lg shadow-indigo-600/30
+             hover:bg-indigo-600/90
+             hover:-translate-y-0.5
+             active:translate-y-0
+             transition-all duration-300"
       >
-        Continue with Google
+        <img 
+          src="./googleIcon.svg"
+          alt="Google logo"
+          className="w-8 h-7"
+        />
+        <span>Sign in with Google</span>
       </button>
 
       <button
         onClick={() => window.open("https://app.arcade.software/share/IND40hWmfztK51AUs2ah", "_blank")}
-        className="mt-4 px-6 py-3 border border-indigo-600 text-indigo-600
-                   rounded-lg hover:bg-indigo-50 dark:hover:bg-slate-900
-                   transition-colors"
+        className="inline-flex items-center gap-3 mt-5 px-7 py-3
+             dark:bg-slate-900
+             border-[1px] border-indigo-500
+             text-indigo-500
+             rounded-lg
+             dark:shadow-lg dark:shadow-indigo-500/10
+             dark:hover:shadow-indigo-500/40
+             hover:border-indigo-400/80
+             transition-all duration-300"
       >
-        View Interactive Guide
+        <PlayIcon className="w-5 h-5" />
+        Interactive Demo
       </button>
       <button
         className="absolute bottom-8 text-sm text-slate-600 dark:text-slate-300
