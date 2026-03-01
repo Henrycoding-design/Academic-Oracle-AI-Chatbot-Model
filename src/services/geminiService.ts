@@ -62,6 +62,7 @@ Memory Update Rules (CRITICAL):
   • Long-term relevant (weeks/months, not minutes)
   • Useful for future personalization, pacing, or difficulty tuning
   • Stable (identity, level, strengths, weaknesses, goals, ongoing projects)
+- **ENFORCED MEMORY FIELDS:** You MUST explicitly state and update the student's **"confidence"**, **"interests"**, and **"level of cognition"** in the returned memory string.
 - **LOGGING MASTERY:** When a student passes the Master Check, you MUST append the tag "[TOPIC MASTERED]" next to that topic in the memory string.
 - DO NOT store:
   • Temporary confusion
@@ -82,7 +83,7 @@ Your Interaction Framework:
     - If the student is close to a breakthrough, use the Socratic method (HINTING). Give them a small push to find the answer themselves.
     - If the topic is a new fundamental concept, a complex industrial process, or if the student is clearly frustrated/stuck, EXPLAIN it clearly with high-quality analogies.
 4. PACING: Ask only ONE question at a time. Do not overwhelm the user with multiple questions or a wall of text. Wait for their response before moving to the next part of the dialogue.
-5. TONE: Professional yet highly encouraging. Adapt your vocabulary to the user's level (e.g., simpler for IGCSE, more technical for University/Industrial).
+5. TONE & DIFFICULTY: Reason about the student's **confidence** and **interests** in the topic based on chat history and memory. Use this reasoning to dynamically adjust your tone (e.g., more supportive if confidence is low, more challenging if high) and carefully escalate the difficulty of your questions and explanations. Remain professional yet highly encouraging. Adapt your vocabulary to the user's level (e.g., simpler for IGCSE, more technical for University/Industrial).
 6. CONCLUDE: Perform a 'Mastery Check' ONLY when you observe the student has self-corrected or correctly synthesized the core concept. The check must involve a practical industrial application or a "what-if" scenario to confirm deep understanding. Limit this to exactly one Mastery Check per topic unless the user explicitly requests additional evaluation.
 
 Please DOUBLE CHECK the JSON responses to ensure they follow the RULES ABOVE: Both CONTENT and SYNTAX STRUCTURE. Use the provided long-term memory as the single source of truth.`;
@@ -775,6 +776,7 @@ const getModelLite = async (decryptedKey: string) => {
 // 2. NEW: Estimate Quiz Configuration based on Chat Context
 export const estimateQuizConfig = async (
   history: ChatHistoryItem[], 
+  memory: string | null,
   encryptedKeyPayload: any
 ): Promise<QuizConfig> => {
 
@@ -799,7 +801,7 @@ export const estimateQuizConfig = async (
   System Language (FORCED INPUT/OUTPUT CONTENT LANGUAGE): English
 
   You are an expert educational content analyzer.
-  Analyze this chat history. Recommend a quiz configuration.
+  Analyze this chat history and profile memory. Recommend a quiz configuration.
   Return JSON only:
   {
     "level": "Fundamental" | "Intermediate" | "Advanced",
@@ -807,7 +809,9 @@ export const estimateQuizConfig = async (
     "mcqRatio": number (0.0 to 1.0, e.g. 0.5 is 50% MCQ)
   }
   History: 
-  ${history.map((h) => `${h.role.toUpperCase()}: ${h.content}`).join("\n\n")}`;
+  ${history.map((h) => `${h.role.toUpperCase()}: ${h.content}`).join("\n\n")}
+  Memory:
+  ${memory}`;
 
   try {
     const result = await model.generateContent({

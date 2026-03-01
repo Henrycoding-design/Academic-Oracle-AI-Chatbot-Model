@@ -68,7 +68,7 @@ export const QuizView: React.FC<QuizViewProps> = ({
   const estimateConfig = async () => {
     if (history.length > 2) {
       try {
-        const estimated = await estimateQuizConfig(history, encryptedApiKey);
+        const estimated = await estimateQuizConfig(history, memory, encryptedApiKey);
         setConfig(estimated);
       } catch (e) { console.error("Auto-config failed", e); }
     }
