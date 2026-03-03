@@ -57,6 +57,17 @@
       "Preserved draft prompts and responses across tab switches and unexpected closures",
       "Enhanced overall session stability under high-load conditions"
     ]
+  },
+  {
+    "version": "2.2.5",
+    "date": "2026-03-03",
+    "changes": [
+      "Refined chat input UI to dynamically expand on multiline input without covering conversation content",
+      "Enhanced adaptive prompt logic for both chat and quiz modes with improved confidence-based pacing",
+      "Expanded Socratic engine techniques to include flip questioning, verification checks, practical applications, theoretical framing, and abstract reasoning transitions",
+      "Improved guided-thinking flow to better scale difficulty before escalation",
+      "Strengthened response coherence and instructional stability across varying learner profiles"
+    ]
   }
 ]
 
