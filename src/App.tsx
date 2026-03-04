@@ -981,9 +981,33 @@ const App: React.FC = () => {
                 document.body
               )
             }
-            <button onClick={() => setIsDark(!isDark)} className="p-2 rounded-full bg-white/60 dark:bg-slate-950 text-slate-700 dark:text-slate-200 hover:bg-white/80 dark:hover:bg-slate-700 transition-colors">
-              {isDark ? <SunIcon /> : <MoonIcon />}
-            </button>
+            <div className="flex items-center">
+              <button
+                onClick={() => setIsDark(!isDark)}
+                className="p-1.5 mr-2 rounded-full bg-white/60 dark:bg-slate-950 
+                text-slate-700 dark:text-slate-200 
+                hover:bg-white/80 dark:hover:bg-slate-700 
+                transition-colors 
+                flex items-center justify-center"
+              >
+                {isDark ? <SunIcon className="w-5 h-5" /> : <MoonIcon className="w-5 h-5" />}
+              </button>
+
+              <button
+                className="p-1.5 rounded-full bg-white/60 dark:bg-slate-950 
+                text-slate-700 dark:text-slate-200 
+                hover:bg-white/80 dark:hover:bg-slate-700 
+                transition-colors 
+                flex items-center justify-center"
+                onClick={ ()=> window.open("https://buymeacoffee.com/votanbinh", "_blank")}
+              >
+                <img
+                  src={isDark? "/buymeacoffeeblack.svg" : "/buymeacoffee.svg"}
+                  alt="Buy Me A Coffee"
+                  className="w-6 h-5 object-contain"
+                />
+              </button>
+            </div>     
           </header>
 
           {/* MAIN VIEW SWITCHER */}
