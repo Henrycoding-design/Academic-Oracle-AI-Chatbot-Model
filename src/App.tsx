@@ -14,7 +14,7 @@ import { createPortal } from "react-dom";
 import { useClickOutside } from './services/useClickOutsite';
 import { generateSessionSummary } from './services/geminiService.ts';
 import { createSummaryDoc } from './services/createSummaryDoc.ts';
-import { SquarePen, ScrollText, ChevronDown, BrainCircuit} from 'lucide-react';
+import { SquarePen, ScrollText, ChevronDown, BrainCircuit, LogOut, User} from 'lucide-react';
 import ProfilePage from './ProfilePage.tsx';
 import { QuizView } from './components/QuizView'; // Added QuizView
 import { getQuota, isOutOfQuota, saveQuota } from './services/sessionMarker.ts';
@@ -923,14 +923,14 @@ const App: React.FC = () => {
                     border border-black/5 dark:border-white/10
                     text-sm z-[9999]
                   ">
-                    <button className="block w-full px-3 py-2 text-left hover:bg-black/5" onClick={() => {navigate("/profile")}}>
-                      {LANGUAGE_DATA[language].ui.profile}
+                    <button className="flex items-center w-full px-3 py-2 text-left hover:bg-black/5" onClick={() => {navigate("/profile")}}>
+                      <User size="17" /> <span className='mx-2'>{LANGUAGE_DATA[language].ui.profile}</span> 
                     </button>
                     <button
                       onClick={handleLogout}
-                      className="block w-full px-3 py-2 text-left text-rose-600 hover:bg-black/5"
+                      className="flex items-center w-full px-3 py-2 text-left text-rose-600 hover:bg-black/5"
                     >
-                      {LANGUAGE_DATA[language].ui.logOut}
+                      <LogOut size="16" /> <span className='mx-2'>{LANGUAGE_DATA[language].ui.logOut}</span> 
                     </button>
                   </div>,
                   document.body
