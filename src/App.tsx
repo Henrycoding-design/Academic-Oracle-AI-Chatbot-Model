@@ -14,7 +14,7 @@ import { createPortal } from "react-dom";
 import { useClickOutside } from './services/useClickOutsite';
 import { generateSessionSummary } from './services/geminiService.ts';
 import { createSummaryDoc } from './services/createSummaryDoc.ts';
-import { SquarePen, ScrollText, ChevronDown, BrainCircuit} from 'lucide-react';
+import { SquarePen, ScrollText, ChevronDown, BrainCircuit, LogOut, User} from 'lucide-react';
 import ProfilePage from './ProfilePage.tsx';
 import { QuizView } from './components/QuizView'; // Added QuizView
 import { getQuota, isOutOfQuota, saveQuota } from './services/sessionMarker.ts';
@@ -923,14 +923,14 @@ const App: React.FC = () => {
                     border border-black/5 dark:border-white/10
                     text-sm z-[9999]
                   ">
-                    <button className="block w-full px-3 py-2 text-left hover:bg-black/5" onClick={() => {navigate("/profile")}}>
-                      {LANGUAGE_DATA[language].ui.profile}
+                    <button className="flex items-center w-full px-3 py-2 text-left hover:bg-black/5" onClick={() => {navigate("/profile")}}>
+                      <User size="17" /> <span className='mx-2'>{LANGUAGE_DATA[language].ui.profile}</span> 
                     </button>
                     <button
                       onClick={handleLogout}
-                      className="block w-full px-3 py-2 text-left text-rose-600 hover:bg-black/5"
+                      className="flex items-center w-full px-3 py-2 text-left text-rose-600 hover:bg-black/5"
                     >
-                      {LANGUAGE_DATA[language].ui.logOut}
+                      <LogOut size="16" /> <span className='mx-2'>{LANGUAGE_DATA[language].ui.logOut}</span> 
                     </button>
                   </div>,
                   document.body
@@ -981,9 +981,33 @@ const App: React.FC = () => {
                 document.body
               )
             }
-            <button onClick={() => setIsDark(!isDark)} className="p-2 rounded-full bg-white/60 dark:bg-slate-950 text-slate-700 dark:text-slate-200 hover:bg-white/80 dark:hover:bg-slate-700 transition-colors">
-              {isDark ? <SunIcon /> : <MoonIcon />}
-            </button>
+            <div className="flex items-center">
+              <button
+                onClick={() => setIsDark(!isDark)}
+                className="p-1.5 mr-2 rounded-full bg-white/60 dark:bg-slate-950 
+                text-slate-700 dark:text-slate-200 
+                hover:bg-white/80 dark:hover:bg-slate-700 
+                transition-colors 
+                flex items-center justify-center"
+              >
+                {isDark ? <SunIcon className="w-5 h-5" /> : <MoonIcon className="w-5 h-5" />}
+              </button>
+
+              <button
+                className="p-1.5 rounded-full bg-white/60 dark:bg-slate-950 
+                text-slate-700 dark:text-slate-200 
+                hover:bg-white/80 dark:hover:bg-slate-700 
+                transition-colors 
+                flex items-center justify-center"
+                onClick={ ()=> window.open("https://buymeacoffee.com/votanbinh", "_blank")}
+              >
+                <img
+                  src={isDark? "/buymeacoffeeblack.svg" : "/buymeacoffee.svg"}
+                  alt="Buy Me A Coffee"
+                  className="w-6 h-5 object-contain"
+                />
+              </button>
+            </div>     
           </header>
 
           {/* MAIN VIEW SWITCHER */}

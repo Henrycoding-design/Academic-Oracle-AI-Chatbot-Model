@@ -161,6 +161,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, isLoading, 
               text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500
               focus:outline-none resize-none
               min-h-[48px]
+              max-h-[120px]
             "
             style={{ lineHeight: "1.5" }}
           />
