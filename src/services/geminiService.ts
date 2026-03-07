@@ -46,10 +46,20 @@ All responses MUST be returned as a valid JSON object.
 }
 
 CRITICAL FOR MATH & CODE:
-1. **LATEX DELIMITERS:** Strictly use "$$" for block math and "$" for inline math. **Do NOT use "\\[" or "\\("**.
-2. **JSON ESCAPING:** All backslashes in LaTeX must be double-escaped (e.g., use "\\\\frac" so it appears as "\\frac" in the string).
+1. **LATEX DELIMITERS:** YOU MUST FOLLOW the instructions below STRICTLY:
+   - Block math: ALWAYS use "\\\\[ ... \\\\]". Example: "\\\\[ v^2 = \\\\frac{2GM}{r} \\\\]"
+   - Inline math: ALWAYS use "\\\\( ... \\\\)". Example: "The value \\\\( v_{esc} \\\\) is..."
+   - NEVER use bare "[ ... ]" or "( ... )" for math expressions.
+   - DO NOT use "$" or "$$".
+2. **JSON ESCAPING:** You are writing inside a JSON string. 
+   A single LaTeX backslash must be written as double-slashes (\\\\) in JSON.
+   Examples:
+   - \\frac  → write as  \\\\frac
+   - \\left  → write as  \\\\left  
+   - \\right → write as  \\\\right
+   - \\[     → write as  \\\\[
+   - \\(     → write as  \\\\(
 3. **Markdown:** Code blocks must use standard markdown fences.
-4. **Newlines:** Use literal "\\n" for line breaks within the JSON string.
 
 "sessionForTopicDone" & [TOPIC MASTERED] Synchronization Rules:
 - **ATOMIC SET RULE (The Completion):** You MUST set 'sessionForTopicDone' to **true** and print the tag **[TOPIC MASTERED]** at the exact same time. This occurs ONLY in the turn where the user successfully passes the final Mastery Check. They must be logged together to finalize the current topic state.
@@ -58,6 +68,11 @@ CRITICAL FOR MATH & CODE:
 
 Memory Update Rules (CRITICAL):
 - The "answer" is ALWAYS the top priority.
+- **PRIORITY RULE:** ALWAYS answer the user's specific question or address their topic FIRST. Only after providing a helpful, high-quality answer should you ask for their name or background info if it is missing. NEVER block or delay an answer to ask for personal details.
+- **MEMORY FORMAT:** The "memory" field MUST always be a plain string. 
+  Never return memory as a JSON object or array. 
+  Write it as a single human-readable text summary.
+  Example: "Confidence: High. Interests: Physics. Level: University. Extra info..."
 - Update memory ONLY if new information is:
   • Long-term relevant (weeks/months, not minutes)
   • Useful for future personalization, pacing, or difficulty tuning
@@ -77,7 +92,7 @@ STOPPING CRITERIA (DYNAMIC MASTERY):
 - **NEVER LOOP:** If the user has correctly applied a concept twice, do not ask further clarifying questions; progress to the next difficulty tier or conclude.
 
 Your Interaction Framework:
-1. START & CONVERSATIONAL ETIQUETTE: If the conversation is just beginning and you don't know the user's name, greet them warmly and ask for their name and topic. However, if the chat history shows an ongoing dialogue, **DO NOT greet the user again**. Dive straight into the validation or the next step of the explanation to maintain a natural flow.
+1. START & ANSWER: If a user asks a question in their first message, provide a comprehensive answer immediately. If you don't know their name/study level yet, append a warm request for those details at the end of your response. If the chat history shows an ongoing dialogue, **DO NOT greet the user again**; dive straight into the validation.
 2. VALIDATE: Always start by acknowledging the user's input. If they share a thought or answer, tell them exactly what they got right and where the logic might be slipping.
 3. DECIDE:
     - If the student is close to a breakthrough, use the Socratic method (HINTING). Give them a small push to find the answer themselves.
@@ -87,7 +102,10 @@ Your Interaction Framework:
     - **Cognitive/Theoretical:** Use "What-if" or "Compare/Contrast" questions to test high-level synthesis.
     - **The Bridge:** Ensure every topic covers both the **First Principles (Theory)** and the **Industrial/Real-world Execution (Practical)**.
     - **Escalation:** Only escalate difficulty after the student answers a "Check Question" correctly. If they struggle, "flip" back to a simpler analogy.
-5. PACING & LEARNING PHASE CONTINUITY: Ask only ONE question at a time. Do not overwhelm the user with multiple questions or a wall of text. **During the learning phase (whenever 'sessionForTopicDone' is false), you MUST ALWAYS end your response with a single, targeted question to keep the learning process active and the user engaged.**
+5. PACING: **Ask only ONE question at a time**. **Do not overwhelm the user with multiple questions or a wall of text**. Wait for their response before moving to the next part of the dialogue. Use a mix of these techniques naturally:
+    - *Diagnostic checks* (Can you define...?)
+    - *Process checks* (How would you calculate...?)
+    - *Conceptual flips* (What happens to X if Y is removed?)
 6. TONE & DIFFICULTY: Reason about the student's **confidence** and **interests** in the topic based on chat history and memory. Use this reasoning to dynamically adjust your tone (e.g., more supportive if confidence is low, more challenging if high) and carefully escalate the difficulty of your questions and explanations. Remain professional yet highly encouraging. Adapt your vocabulary to the user's level (e.g., simpler for IGCSE, more technical for University/Industrial).
 7. CONCLUDE: Perform a 'Mastery Check' ONLY when you observe the student has self-corrected or correctly synthesized the core concept. The check must involve a practical industrial application or a "what-if" scenario to confirm deep understanding. Limit this to exactly one Mastery Check per topic unless the user explicitly requests additional evaluation.
 
@@ -299,15 +317,40 @@ const isInvalidApiKeyError = (err: unknown): boolean => {
 function extractBalancedJSON(text: string): string {
   let depth = 0;
   let start = -1;
+  let inString = false;
+  let escaped = false;
 
   for (let i = 0; i < text.length; i++) {
-    if (text[i] === "{") {
+    const char = text[i];
+
+    if (inString) {
+      if (escaped) {
+        escaped = false;
+      } else if (char === "\\") {
+        escaped = true;
+      } else if (char === '"') {
+        inString = false;
+      }
+      continue;
+    }
+
+    if (char === '"') {
+      inString = true;
+      continue;
+    }
+
+    if (char === "{") {
       if (depth === 0) start = i;
       depth++;
-    } else if (text[i] === "}") {
+    } else if (char === "}") {
       depth--;
+
       if (depth === 0 && start !== -1) {
         return text.slice(start, i + 1);
+      }
+
+      if (depth < 0) {
+        break;
       }
     }
   }
@@ -317,11 +360,14 @@ function extractBalancedJSON(text: string): string {
 
 function sanitizeJSON(json: string): string {
   return json
+    .replace(/^\uFEFF/, "")
     .replace(/[“”]/g, '"')
     .replace(/[‘’]/g, "'")
     .replace(/,\s*([}\]])/g, "$1")
     // Remove zero-width characters that can cause JSON.parse to fail
     .replace(/[\u200B-\u200D\uFEFF]/g, "")
+    // Fix single-escaped LaTeX delimiters before JSON.parse
+    .replace(/(?<!\\)\\(?!\\)(\[|\]|\(|\))/g, '\\\\$1');
 }
 
 export function extractAndParseJSONSafe(
@@ -332,11 +378,18 @@ export function extractAndParseJSONSafe(
     const jsonString = extractBalancedJSON(text);
     let sanitized = sanitizeJSON(jsonString);
 
-    if (options?.fixLatex) {
-      sanitized = sanitized.replace(/\\(?!["\\/bfnrtu])/g, "\\\\");
+    if (options?.fixLatex) { // -> DEAD OPTION: this is used to correct non-correct LaTex (ex: \frac instead of \\frac) but it also make correct Latex -> incorrect ones
+      sanitized = sanitized.replace(/(?<!\\)\\([a-zA-Z]+)/g, "\\\\$1");
     }
 
-    return { ok: true, data: JSON.parse(sanitized) };
+    const parsed = JSON.parse(sanitized);
+
+    // Coerce memory to string if model returned an object
+    if (parsed?.memory && typeof parsed.memory !== 'string') {
+      parsed.memory = JSON.stringify(parsed.memory);
+    }
+
+    return { ok: true, data: parsed };
   } catch {
     return { ok: false};
   }
@@ -523,6 +576,8 @@ export const sendMessageToBotRace = async (params: {
       ]);
     }
 
+    console.log(raceResult.text);
+
     const parsed = extractAndParseJSONSafe(raceResult.text);
 
     if (!parsed.ok || !isOraclePayload(parsed.data)) {
@@ -616,7 +671,7 @@ export const sendMessageToBot = async (params: {
 
       const response: GenerateContentResponse = await chat.sendMessage({ message: prompt });
 
-      // console.log(`Raw response from model ${model}:`, response.text);
+      console.log(`Raw response from model ${model}:`, response.text);
       
       // USE THE HYBRID PARSER HERE
       const parsed = extractAndParseJSONSafe(response.text);
@@ -627,7 +682,7 @@ export const sendMessageToBot = async (params: {
         throw new InvalidAIResponseError("Malformed Oracle payload");
       }
 
-      // console.log(`Response from model ${model}:`, parsed);
+      console.log(`Response from model ${model}:`, parsed);
 
       return {
         answer: parsed.data.answer,

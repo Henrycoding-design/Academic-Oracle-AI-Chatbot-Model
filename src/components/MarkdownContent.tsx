@@ -8,9 +8,6 @@ interface MarkdownContentProps {
 }
 
 // ... (Keep CopyIcon, CheckIcon, CodeBlock, InlineCode as they are) ...
-
-let codeLanguage: string | undefined;
-
 const LANG_ALIASES: Record<string, string> = {
   // JavaScript / TS
   js: "javascript",
@@ -115,7 +112,7 @@ const CodeBlock: React.FC<{ code: string; language?: string }> = ({
         </button>
       </div>
       
-      <pre className="p-4 overflow-x-auto text-sm font-mono leading-relaxed">
+      <pre className="p-4 overflow-x-auto text-sm font-mono leading-relaxed tab-size-2" style={{tabSize: 2}}>
         <code 
           ref={codeRef} 
           /* Using !text-slate-900 and dark:!text-slate-200 ensures 
@@ -193,8 +190,21 @@ const TableBlock: React.FC<{ lines: string[], parseInline: (text: string) => Rea
 
 
 export const MarkdownContent: React.FC<MarkdownContentProps> = ({ content, ismcq = false }) => {
-  const lines = content.split('\n');
+  const normalizedContent = content
+    // 1. MUST run first, before any other replace touches LaTeX commands
+    .replace(/\\t(?![a-zA-Z])/g, '\t')        // \t only if NOT followed by a letter
+    .replace(/\\n(?![a-zA-Z])/g, '\n')        // same guard for \n (protects \nabla, \nu etc.)
+
+    // 2. Fix bare [ ... ] block math — now runs on clean content
+    .replace(/(?<!\\)\[([^\]]*(?:\\.[^\]]*)*)\](?!\()/g, (match, inner) => {
+      if (/\\[a-zA-Z]|\^|_/.test(inner)) {
+        return `\\[${inner}\\]`;
+      }
+      return match;
+  });
+  const lines = normalizedContent.split('\n');
   const elements: React.ReactNode[] = [];
+  let codeLanguage: string | undefined;
   
   let currentList: React.ReactNode[] = [];
   let inCodeBlock = false;
@@ -219,7 +229,7 @@ export const MarkdownContent: React.FC<MarkdownContentProps> = ({ content, ismcq
   const parseInline = (text: string): React.ReactNode[] => {
     // UPDATED REGEX: 
     // Removed nested capturing groups (...) around $$ and $ patterns to prevent double-rendering
-    const regex = /(`[^`]+`|\\\[[\s\S]+?\\\]|\\\([\s\S]+?\\\)|[\s\S]*?\$\$[\s\S]+?\$\$|\$[^$\n]+\$|\*\*[^*]+\*\*|\*[^*]+\*)/g;
+    const regex = /(`[^`]+`|\\\[[\s\S]+?\\\]|\\\([\s\S]+?\\\)|\*\*.+?\*\*|\*.+?\*)/g;
 
     return text.split(regex).map((part, index) => {
       if (!part) return null;
@@ -260,7 +270,7 @@ export const MarkdownContent: React.FC<MarkdownContentProps> = ({ content, ismcq
       }
 
       return part;
-    });
+    }).filter(Boolean);
   };
 
   for (let i = 0; i < lines.length; i++) {
@@ -367,5 +377,12 @@ export const MarkdownContent: React.FC<MarkdownContentProps> = ({ content, ismcq
   }
   
   flushList(lines.length);
+
+  if (inTable && tableLines.length > 0) {
+    elements.push(
+      <TableBlock key="table-end" lines={[...tableLines]} parseInline={parseInline} />
+    );
+  }
+
   return <div className={ismcq ? "markdown-container" : "markdown-container py-2"}>{elements}</div>;
 };
