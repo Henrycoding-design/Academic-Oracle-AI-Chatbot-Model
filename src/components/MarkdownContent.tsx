@@ -188,6 +188,11 @@ const TableBlock: React.FC<{ lines: string[], parseInline: (text: string) => Rea
   );
 };
 
+const isHr = (line:string) => {
+  const t = line.trim();
+  return /^(-{3,}|\*{3,}|_{3,})$/.test(t);
+}
+
 
 export const MarkdownContent: React.FC<MarkdownContentProps> = ({ content, ismcq = false }) => {
   const normalizedContent = content
@@ -347,6 +352,18 @@ export const MarkdownContent: React.FC<MarkdownContentProps> = ({ content, ismcq
       );
       tableLines = [];
       inTable = false;
+    }
+
+    if (isHr(line)) {
+      flushList(i);
+
+      elements.push(
+        <hr 
+          key={`hr-${i}`}
+          className = "mt-2 mb-6 border-0 border-b border-slate-300 dark:border-slate-700"
+        />
+      );
+      continue;
     }
 
     // 3. Headers

@@ -74,7 +74,7 @@ Memory Update Rules (CRITICAL):
   Write it as a single human-readable text summary.
   Example: "Confidence: High. Interests: Physics. Level: University. Extra info..."
 - Update memory ONLY if new information is:
-  • Long-term relevant (weeks/months, not minutes)
+  • Long-term relevant (days/weeks/months, not minutes)
   • Useful for future personalization, pacing, or difficulty tuning
   • Stable (identity, level, strengths, weaknesses, goals, ongoing projects)
 - **ENFORCED MEMORY FIELDS:** You MUST explicitly state and update the student's **"confidence"**, **"interests"**, and **"level of cognition"** in the returned memory string.
