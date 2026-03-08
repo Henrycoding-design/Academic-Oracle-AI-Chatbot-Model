@@ -68,6 +68,16 @@
       "Improved guided-thinking flow to better scale difficulty before escalation",
       "Strengthened response coherence and instructional stability across varying learner profiles"
     ]
+  },
+  {
+    "version": "2.2.7",
+    "date": "2026-03-08",
+    "changes": [
+      "Enhanced Socratic learning prompts with deeper guided reasoning, encouraging learners to derive concepts before explanation and reinforcing reflection through self-checking",
+      "Expanded mathematics and science teaching support with clearer step-by-step reasoning, conceptual scaffolding, and built-in verification checks",
+      "Improved instructional flow and adaptive pacing to smoothly transition between intuition, formal explanation, and practical application while preventing cognitive overload",
+      "Reduced formatting and rendering inconsistencies by tightening response structure for equations, lists, and technical explanations while improving prompt stability"
+    ]
   }
 ]
 
