@@ -576,7 +576,7 @@ export const sendMessageToBotRace = async (params: {
       ]);
     }
 
-    console.log(raceResult.text);
+    // console.log(raceResult.text);
 
     const parsed = extractAndParseJSONSafe(raceResult.text);
 
@@ -671,7 +671,8 @@ export const sendMessageToBot = async (params: {
 
       const response: GenerateContentResponse = await chat.sendMessage({ message: prompt });
 
-      console.log(`Raw response from model ${model}:`, response.text);
+      // Debug only
+      // console.log(`Raw response from model ${model}:`, response.text);
       
       // USE THE HYBRID PARSER HERE
       const parsed = extractAndParseJSONSafe(response.text);
@@ -682,7 +683,8 @@ export const sendMessageToBot = async (params: {
         throw new InvalidAIResponseError("Malformed Oracle payload");
       }
 
-      console.log(`Response from model ${model}:`, parsed);
+      // Debug Only
+      // console.log(`Response from model ${model}:`, parsed);
 
       return {
         answer: parsed.data.answer,
