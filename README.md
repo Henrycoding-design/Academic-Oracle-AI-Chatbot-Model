@@ -104,7 +104,7 @@ Academic Oracle *adapts not just to learners - but to system conditions*.
 ## Tech Stack
 
 - **Frontend:** React 19 + TypeScript
-- **Backend (AI):** Google GenAI models (Gemini-3, Gemini-2.5)
+- **Backend (AI):** Google GenAI models (Gemini-3, Gemini-2.5) and StepFun-3.5
 - **Backend (Auth):** Supabase & Google OAuth
 - **Build Tool:** Vite 6
 - **Styling:** Tailwind CSS
@@ -142,8 +142,6 @@ Academic Oracle *adapts not just to learners - but to system conditions*.
 6. Start development server:
    ```bash
    npm run dev
-
-*API Key will be asked during initial signup for an account*
 
 ---
 
