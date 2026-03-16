@@ -11,6 +11,7 @@ export const LANGUAGE_DATA: Record<AppLanguage, {
   ui: {
     // Quiz UI labels
     chat: string;
+    jailbreakMessage: string;
     masteryDetected: string;
     masteryPopupExplain: string;
     masteryPopupYes: string;
@@ -31,6 +32,8 @@ export const LANGUAGE_DATA: Record<AppLanguage, {
     aiGrading: string;
     correctExclaim: string;
     notQuite: string;
+    explainSelectionButton: string;
+    explainSelectionPrompt: string;
     explainContext: string; // template for explain-in-chat context: {question},{answer},{result},{feedback}
     quizSummary: string; // template for summary: {score},{total},{level}
     askExplain: string;
@@ -101,6 +104,7 @@ export const LANGUAGE_DATA: Record<AppLanguage, {
     },
     ui: {
       chat: "Chat",
+      jailbreakMessage: "I'm here to help with academic topics. I can't follow instructions that ask me to bypass my guidelines — but I'm happy to help you study, research, or learn something new! 📚",
       masteryDetected: "Mastery Detected!",
       masteryPopupExplain: "You've mastered the topic. Would you like to take a quick quiz to test your understanding and solidify your knowledge?",
       masteryPopupYes: "Yes, let's do it!",
@@ -123,6 +127,8 @@ export const LANGUAGE_DATA: Record<AppLanguage, {
       aiGrading: "AI is grading your answer...",
       correctExclaim: "Correct!",
       notQuite: "Not quite right",
+      explainSelectionButton: "Explain further",
+      explainSelectionPrompt: "Explain this part more clearly and simply:\n\n\"{selection}\"",
       askExplain: "Ask Oracle to explain in Chat",
       seeResults: "See Results",
       nextQuestion: "Next Question",
@@ -191,6 +197,7 @@ export const LANGUAGE_DATA: Record<AppLanguage, {
     },
     ui: {
       chat: "Chat",
+      jailbreakMessage: "Je suis là pour vous aider avec des sujets académiques. Je ne peux pas suivre des instructions qui me demandent de contourner mes directives — mais je serais ravi de vous aider à étudier, faire des recherches ou apprendre quelque chose de nouveau ! 📚",
       masteryDetected: "Maîtrise détectée !",
       masteryPopupExplain: "Vous avez maîtrisé le sujet. Souhaitez-vous faire un petit quiz pour tester votre compréhension et solidifier vos connaissances ?",
       masteryPopupYes: "Oui, faisons-le !",
@@ -213,6 +220,8 @@ export const LANGUAGE_DATA: Record<AppLanguage, {
       explainContext: "Je fais un quiz sur notre sujet précédent.\nQuestion: \"{question}\"\nMa réponse: \"{answer}\"\nRésultat: {result}\nRetour reçu: \"{feedback}\"\n\nPeux-tu expliquer ce concept plus en détail ?",
       quizSummary: "Quiz terminé. Score : {score}/{total}. Difficulté : {level}.",
       chatTooShortForQuiz: "Historique de discussion ou mémoire de session insuffisant pour générer un quiz.",
+      explainSelectionButton: "Expliquer davantage",
+      explainSelectionPrompt: "Expliquez cette partie plus clairement et simplement :\n\n\"{selection}\"",
       askExplain: "Demander à l'Oracle d'expliquer dans le chat",
       seeResults: "Voir les résultats",
       nextQuestion: "Question suivante",
@@ -281,6 +290,7 @@ export const LANGUAGE_DATA: Record<AppLanguage, {
     },
     ui: {
       chat: "Chat",
+      jailbreakMessage: "Estoy aquí para ayudarte con temas académicos. No puedo seguir instrucciones que me pidan saltarme mis directrices — ¡pero estaré encantado de ayudarte a estudiar, investigar o aprender algo nuevo! 📚",
       masteryDetected: "¡Dominio detectado!",
       masteryPopupExplain: "Has dominado el tema. ¿Te gustaría hacer un pequeño cuestionario para probar tu comprensión y solidificar tu conocimiento?",
       masteryPopupYes: "¡Sí, hagámoslo!",
@@ -303,6 +313,8 @@ export const LANGUAGE_DATA: Record<AppLanguage, {
       explainContext: "Estoy haciendo un cuestionario sobre nuestro tema anterior.\nPregunta: \"{question}\"\nMi respuesta: \"{answer}\"\nResultado: {result}\nRetroalimentación recibida: \"{feedback}\"\n\n¿Puedes explicar este concepto con más detalle?",
       quizSummary: "Cuestionario completado. Puntuación: {score}/{total}. Dificultad: {level}.",
       chatTooShortForQuiz: "Historial de chat o memoria de sesión insuficiente para generar un cuestionario.",
+      explainSelectionButton: "Explicar más",
+      explainSelectionPrompt: "Explica esta parte con más claridad y sencillez:\n\n\"{selection}\"",
       askExplain: "Pedirle al Oráculo que explique en el chat",
       seeResults: "Ver resultados",
       nextQuestion: "Siguiente pregunta",
@@ -371,6 +383,7 @@ export const LANGUAGE_DATA: Record<AppLanguage, {
     },
     ui: {
       chat: "Trò chuyện",
+      jailbreakMessage: "Mình ở đây để hỗ trợ các chủ đề học thuật. Mình không thể thực hiện các yêu cầu yêu cầu bỏ qua nguyên tắc hoạt động — nhưng mình rất sẵn lòng giúp bạn học, nghiên cứu hoặc khám phá điều gì đó mới! 📚",
       masteryDetected: "Phát hiện bạn đã thành thạo!",
       masteryPopupExplain: "Bạn đã thành thạo chủ đề này. Bạn có muốn làm một bài kiểm tra nhỏ để kiểm tra sự hiểu biết và củng cố kiến thức của mình không?",
       masteryPopupYes: "Vâng, hãy làm thôi!",
@@ -393,6 +406,8 @@ export const LANGUAGE_DATA: Record<AppLanguage, {
       explainContext: "Tôi đang làm một bài kiểm tra về chủ đề trước đó.\nCâu hỏi: \"{question}\"\nCâu trả lời của tôi: \"{answer}\"\nKết quả: {result}\nPhản hồi nhận được: \"{feedback}\"\n\nBạn có thể giải thích khái niệm này chi tiết hơn không?",
       quizSummary: "Hoàn thành bài kiểm tra. Điểm: {score}/{total}. Mức độ: {level}.",
       chatTooShortForQuiz: "Lịch sử trò chuyện hoặc bộ nhớ phiên không đủ để tạo bài kiểm tra.",
+      explainSelectionButton: "Giải thích thêm",
+      explainSelectionPrompt: "Giải thích phần này rõ ràng và đơn giản hơn:\n\n\"{selection}\"",
       askExplain: "Yêu cầu Oracle giải thích trong trò chuyện",
       seeResults: "Xem kết quả",
       nextQuestion: "Câu tiếp theo",

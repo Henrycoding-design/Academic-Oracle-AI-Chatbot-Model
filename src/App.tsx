@@ -1,7 +1,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import type { Message, ChatHistoryItem, ChatTailoringMode } from './types';
-import { sendMessageToBot, sendMessageToBotRace } from './services/geminiService';
+import { sendMessageToBot, sendMessageToBotRace, runCronPromptGuard} from './services/geminiService';
 import { ChatInput } from './components/ChatInput';
 import { ChatMessage } from './components/ChatMessage';
 import AuthPage from "./AuthPage";
@@ -14,7 +14,7 @@ import { createPortal } from "react-dom";
 import { useClickOutside } from './services/useClickOutsite';
 import { generateSessionSummary } from './services/geminiService.ts';
 import { createSummaryDoc } from './services/createSummaryDoc.ts';
-import { SquarePen, ScrollText, ChevronDown, BrainCircuit, LogOut, User} from 'lucide-react';
+import { Sparkles, SquarePen, ScrollText, ChevronDown, BrainCircuit, LogOut, User} from 'lucide-react';
 import ProfilePage from './ProfilePage.tsx';
 import { QuizView } from './components/QuizView'; // Added QuizView
 import { getQuota, isOutOfQuota, saveQuota } from './services/sessionMarker.ts';
@@ -22,6 +22,9 @@ import { InvalidAPIError } from './types';
 import { AppLanguage , LANGUAGE_DATA } from './lang/Language.tsx';
 import { normalizeSummary } from './services/normalizeSummary.ts';
 import { isRushHourUTC } from './services/rushHours.ts';
+import { analyzePrompt } from './services/promptGuard.ts';
+import { runQuotaSafeSearch } from './services/webSearchSafe.ts';
+import { isWebSearchLimitReached, incrementWebSearch } from './services/webSearchQuota.ts';
 
 const SunIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
@@ -339,6 +342,128 @@ const App: React.FC = () => {
   const userMenuRef = useRef<HTMLDivElement>(null);
   useClickOutside([userButtonRef, userMenuRef], () => setIsUserMenuOpen(false), isUserMenuOpen); // hook to close user menu on outside click
 
+  // UX mouse select tools
+  const [selectedText, setSelectedText] = useState<string | null>(null);
+  const [selectionPos, setSelectionPos] = useState<{
+    x:number,
+    y:number,
+    placeAbove:boolean
+  } | null>(null);
+
+  function selectionToLatexText(): string {
+    const selection = window.getSelection();
+    if (!selection || selection.rangeCount === 0) return ""; console.log("Failed first");
+
+    const range = selection.getRangeAt(0);
+    const fragment = range.cloneContents();
+
+    let result = "";
+
+    function walk(node: Node) {
+      // console.log("got here"); // reached here
+
+      // TEXT
+      if (node.nodeType === Node.TEXT_NODE) {
+
+        const parent = node.parentElement;
+
+        if (parent?.closest(".katex")) return;
+        // console.log("reached text"); // reached here
+        result += node.textContent ?? "";
+      }
+
+      // ELEMENT LOGIC
+      if (node instanceof Element) {
+        // console.log("passed checks"); // reached here
+
+        if (node.matches("annotation[encoding='application/x-tex']")) {
+          // console.log("reached math"); // reached here
+
+          const tex = node.textContent?.trim() ?? "";
+          result += ` \\(${tex}\\) `;
+
+          return;
+        }
+      }
+
+      // ALWAYS WALK CHILDREN
+      for (const child of node.childNodes) {
+        // console.log("running"); // reached here
+        walk(child);
+      }
+    }
+
+    walk(fragment);
+    console.log(result);
+    return result.replace(/\s+/g, " ").trim();
+  }
+
+  useEffect(() => {
+    let timeoutId: number;
+
+    const handleSelection = () => {
+      // 1. CLEAR existing timeouts to reset the "wait" timer
+      if (timeoutId) window.clearTimeout(timeoutId);
+
+      const selection = window.getSelection();
+
+      // 2. IMMEDIATE HIDE: If the user clicks away or the selection is cleared,
+      // we want the button to vanish instantly, not after a delay.
+      if (!selection || selection.isCollapsed || !selection.toString().trim()) {
+        setSelectedText(null);
+        setSelectionPos(null);
+        return;
+      }
+
+      // 3. DELAYED SHOW: Wait for the user to finish selecting
+      timeoutId = window.setTimeout(() => {
+        if (!selection || selection.isCollapsed) return;
+
+        const container = selection.getRangeAt(0)
+          .commonAncestorContainer
+          ?.parentElement
+          ?.closest(".model-message");
+        if (!container) return;
+
+        const text = selectionToLatexText();
+        const range = selection.getRangeAt(0);
+        const rect = range.getBoundingClientRect();
+
+        setSelectedText(text);
+
+        const PADDING = 6;
+        const APPROX_BUTTON_H = 32;
+        const TOOLBAR_HEIGHT = 72;
+
+        let y: number;
+        let placeAbove: boolean;
+
+        if (rect.top - APPROX_BUTTON_H - PADDING > TOOLBAR_HEIGHT) {
+          y = rect.top - APPROX_BUTTON_H - PADDING;
+          placeAbove = true;
+        } else {
+          y = rect.bottom + PADDING;
+          placeAbove = false;
+        }
+
+        setSelectionPos({
+          x: rect.left + rect.width / 2,
+          y,
+          placeAbove,
+        });
+      }, 150); // 150ms is usually the "sweet spot" for human pause detection
+    };
+
+    document.addEventListener("selectionchange", handleSelection);
+    // document.addEventListener("mouseup", handleSelection);
+
+    return () => {
+      if (timeoutId) window.clearTimeout(timeoutId);
+      document.removeEventListener("selectionchange", handleSelection);
+      // document.removeEventListener("mouseup", handleSelection);
+    };
+  }, []);
+
   const [model, setModel] = useState<string>('gemini-3-flash-preview'); // default model -> never empty/crash on this optional feature
   const chatEndRef = useRef<HTMLDivElement>(null);
   const masteryTimerRef = useRef<number | null>(null);
@@ -419,32 +544,15 @@ const App: React.FC = () => {
       if (isOutOfQuota(quota)) {
         setError(LANGUAGE_DATA[language].ui.freeSessionLimit);
         return;
-      } else {
-        quota.used += 1;
-        quota.chats[currentChatIdRef.current] ??= 0;
-        quota.chats[currentChatIdRef.current] += 1;
-        saveQuota(quota);
       }
+      // No increment yet -> wait until no jailbreak detected
     }
 
     setIsLoading(true);
     setError(null);
 
     try {
-      let fileContext = "";
-
-      if (file) {
-        const extractedText = await readFileAsText(file);
-        fileContext = `
-  --- FILE CONTEXT (${file.name}) ---
-  ${extractedText}
-  --- END FILE CONTEXT ---
-  `;
-      }
-
-      let outgoingHistory = chatHistory;
-
-      if (!isRetry) { // avoid double user questions if reTry
+      if (!isRetry) {
         // 🖼️ UI update (unchanged, clean)
         setMessages(prev => [
           ...prev,
@@ -467,10 +575,119 @@ const App: React.FC = () => {
             block: "start",
           });
         });
+      }
+      
+      const guard = analyzePrompt(userMessage, language);
+      let decision = guard;
+      let webContext = "";
 
+      // jailbreak block
+      if (decision.jailbreak) {
+        setMessages(prev => [
+          ...prev,
+          { role: "model", content: LANGUAGE_DATA[language].ui.jailbreakMessage },
+        ]);
+
+        setIsLoading(false);
+        return;
+      }
+
+      // cron model verification
+      if (guard.web_search || guard.jailbreak) {
+        try {
+          const res = await runCronPromptGuard(userMessage, encryptedApiKey);
+          if (!res.reason.includes("Error")) {
+            decision = res;
+          }
+        } catch (e) {
+          console.warn("Cron guard failed", e);
+        }
+      }
+
+      // jailbreak block: second round
+      if (decision.jailbreak) {
+        setMessages(prev => [
+          ...prev,
+          { role: "model", content: LANGUAGE_DATA[language].ui.jailbreakMessage },
+        ]);
+
+        setIsLoading(false);
+        return;
+      }
+
+      // increment quota here
+      if (!encryptedApiKey){
+        quota.used += 1;
+        quota.chats[currentChatIdRef.current] ??= 0;
+        quota.chats[currentChatIdRef.current] += 1;
+        saveQuota(quota);
+      }
+
+      // web search
+      if (decision.web_search && !isWebSearchLimitReached()) {
+        try {
+          console.log("running web search");
+          incrementWebSearch();
+
+          const webResults = await runQuotaSafeSearch(userMessage);
+
+          if (webResults && webResults.length > 0) {
+
+            const overview = webResults
+              .map(w => w.overview)
+              .filter(Boolean)
+              .join("\n\n");
+
+            const seen = new Set();
+
+            const results = webResults
+              .flatMap(w => w.results ?? [])
+              .filter(r => {
+                if (seen.has(r.link)) return false;
+                seen.add(r.link);
+                return true;
+              })
+              .slice(0, 3); // limit total results
+
+            webContext = `
+          --- WEB SEARCH RESULTS ---
+          ${overview}
+
+          ${results.map((r: any) =>
+          `${r.title}
+          ${r.snippet}
+          ${r.link}`
+          ).join("\n\n")}
+
+          --- END WEB SEARCH ---
+          `;
+          }
+
+        } catch (e) {
+          console.warn("Web search failed", e);
+        }
+      } else if (isWebSearchLimitReached()){
+        console.warn("Web Search Limit reaches");
+        alert("You have reached Web Search Quota. The model will fallback to knowlegde before 2024. Sorry for the inconvience!"); // replace this with language support
+      }
+
+      let fileContext = "";
+
+      if (file) {
+        const extractedText = await readFileAsText(file);
+        fileContext = `
+  --- FILE CONTEXT (${file.name}) ---
+  ${extractedText}
+  --- END FILE CONTEXT ---
+  `;
+      }
+
+      let outgoingHistory = chatHistory;
+
+      if (!isRetry) { // avoid double user questions if reTry
         const userEntry: ChatHistoryItem = {
           role: "user",
-          content: `${fileContext}\nUSER QUESTION:\n${userMessage}`.trim(),
+          content: `${webContext}\n${fileContext}\nUSER QUESTION:\n${userMessage}`.trim(),
         };
 
         outgoingHistory = trimHistory([...chatHistory, userEntry]);
@@ -870,7 +1087,10 @@ const App: React.FC = () => {
             <div className="mb-6">
               {/* <span className="text-[10px] px-1.5 py-0.5 rounded-sm bg-indigo-500/90 text-white tracking-wide">UNIV</span> */}
               <div className="p-1 rounded-[8px] transition-colors hover:bg-black/5 dark:hover:bg-white/10">
-              <a href="/home">
+              <a onClick={() => {
+                if (isLoading) {alert(LANGUAGE_DATA[language].ui.pleaseWait); return; }
+                window.open('/home', '_self');
+              }}>
                 <img src="/icon.png" alt="Academic Oracle Logo" className="w-8 h-7 select-none"/>
               </a>
               </div>
@@ -1102,6 +1322,43 @@ const App: React.FC = () => {
                 onAddToMemory={handleAddToMemory}
               />
             )}
+            {selectedText && selectionPos &&
+              createPortal(
+                <button
+                  data-explain-btn
+                  style={{
+                    position: "fixed",
+                    top: selectionPos.y,
+                    left: selectionPos.x,
+                      transform: selectionPos.placeAbove
+                      ? "translate(-65%, 15%)"
+                      : "translate(-65%, 0)"
+                  }}
+                  className="
+                    z-[9999] flex items-center gap-1.5 bg-indigo-600 text-white
+                    text-xs font-medium px-3 py-1.5 rounded-lg shadow-lg
+                  hover:bg-indigo-500 transition-colors animate-in fade-in zoom-in-95
+                  "
+                  onClick={() => {
+                    if (isLoading) {return}
+
+                    const prompt = LANGUAGE_DATA[language].ui.explainSelectionPrompt.replace(
+                      "{selection}",
+                      selectedText
+                    );
+
+                    handleSendMessage(prompt);
+
+                    window.getSelection()?.removeAllRanges();
+                    setSelectedText(null);
+                  }}
+                >
+                  <Sparkles size={14}/>
+                  {LANGUAGE_DATA[language].ui.explainSelectionButton}
+                </button>,
+                document.body
+              )
+            }
           </main>
 
           {/* INPUT FOOTER (Only show in Chat Mode) */}

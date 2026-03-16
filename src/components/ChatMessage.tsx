@@ -54,7 +54,7 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({ message, scrollRef }) 
       <div
         className={`max-w-[85%] sm:max-w-xl px-5 py-3.5 rounded-2xl shadow-sm border ${
           isModel
-            ? 'bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 rounded-tl-none border-slate-100 dark:border-slate-800'
+            ? 'model-message bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 rounded-tl-none border-slate-100 dark:border-slate-800'
             : 'bg-indigo-600 text-white rounded-br-none border-indigo-500 shadow-indigo-200 dark:shadow-none'
         }`}
       >

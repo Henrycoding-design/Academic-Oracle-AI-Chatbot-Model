@@ -62,3 +62,9 @@ export interface QuizResult {
 export type ChatIntent = "agentic" | "fast" | "balance";
 
 export type ChatTailoringMode = "no" | "standard" | "always";
+
+export type GuardResult = {
+  web_search: boolean;
+  jailbreak: boolean;
+  reason: string;
+};
