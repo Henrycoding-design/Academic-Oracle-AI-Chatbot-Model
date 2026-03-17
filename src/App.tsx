@@ -1331,8 +1331,8 @@ const App: React.FC = () => {
                     top: selectionPos.y,
                     left: selectionPos.x,
                       transform: selectionPos.placeAbove
-                      ? "translate(-65%, 15%)"
-                      : "translate(-65%, 0)"
+                      ? "translate(-53%, 15%)"
+                      : "translate(-53%, 0)"
                   }}
                   className="
                     z-[9999] flex items-center gap-1.5 bg-indigo-600 text-white
