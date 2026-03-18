@@ -3,6 +3,7 @@ import { Pencil, Save , ArrowBigLeftIcon, Plus, Info} from "lucide-react";
 import { decryptApiKey, encryptApiKey} from './services/edgeCrypto.ts';
 import { supabase } from "./services/supabaseClient";
 import { AppLanguage, LANGUAGE_DATA } from "./lang/Language.tsx";
+import { MarkdownContent } from "./components/MarkdownContent.tsx";
 
 interface ProfilePageProps {
   user: any;
@@ -281,7 +282,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({
                         z-50
                       "
                     >
-                      {LANGUAGE_DATA[language].ui.modelAdaptationTooltip}
+                      <MarkdownContent content={LANGUAGE_DATA[language].ui.modelAdaptationTooltip} />
                     </div>
                   )}
                 </div>

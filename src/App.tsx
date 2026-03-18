@@ -17,7 +17,7 @@ import { createSummaryDoc } from './services/createSummaryDoc.ts';
 import { Sparkles, SquarePen, ScrollText, ChevronDown, BrainCircuit, LogOut, User} from 'lucide-react';
 import ProfilePage from './ProfilePage.tsx';
 import { QuizView } from './components/QuizView'; // Added QuizView
-import { getQuota, isOutOfQuota, saveQuota } from './services/sessionMarker.ts';
+import { canSendMessage } from './services/sessionMarker.ts';
 import { InvalidAPIError } from './types';
 import { AppLanguage , LANGUAGE_DATA } from './lang/Language.tsx';
 import { normalizeSummary } from './services/normalizeSummary.ts';
@@ -429,7 +429,10 @@ const App: React.FC = () => {
         const range = selection.getRangeAt(0);
         const rect = range.getBoundingClientRect();
 
-        setSelectedText(text);
+        setSelectedText(prev => {
+          if (prev === text) return prev;
+          return text;
+        });
 
         const PADDING = 6;
         const APPROX_BUTTON_H = 32;
@@ -531,6 +534,11 @@ const App: React.FC = () => {
     });
   }, []);
 
+  const checkAuth = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    return user;
+  };
+
   const currentChatIdRef = useRef<string>(crypto.randomUUID());
 
   // ✅ Handle sending messages with dynamic encryptedApiKey
@@ -539,13 +547,12 @@ const App: React.FC = () => {
     file?: File | null,
     isRetry = false
   ) => {
-    const quota = getQuota();
-    if (!encryptedApiKey) {
-      if (isOutOfQuota(quota)) {
-        setError(LANGUAGE_DATA[language].ui.freeSessionLimit);
-        return;
-      }
-      // No increment yet -> wait until no jailbreak detected
+    const user = checkAuth();
+
+    if (!user) {
+      alert("Session expired. Please login again.");
+      handleLogout();
+      return;
     }
 
     setIsLoading(true);
@@ -615,12 +622,14 @@ const App: React.FC = () => {
         return;
       }
 
+      const token = session?.access_token;
       // increment quota here
       if (!encryptedApiKey){
-        quota.used += 1;
-        quota.chats[currentChatIdRef.current] ??= 0;
-        quota.chats[currentChatIdRef.current] += 1;
-        saveQuota(quota);
+        const result = await canSendMessage(currentChatIdRef, token!);
+        if (!result.allowed) {
+          setError(LANGUAGE_DATA[language].ui.freeSessionLimit);
+          return;
+        }
       }
 
       // web search
@@ -877,12 +886,6 @@ const App: React.FC = () => {
       setOracleMemory(null);
     }
 
-    // 🗄️ reset quota
-    const quota = getQuota();
-    currentChatIdRef.current = crypto.randomUUID();
-    quota.chats[currentChatIdRef.current] = 0;
-    saveQuota(quota);
-
     navigate("/"); // navigate back to chat
 
     // 🖼️ reset UI messages
@@ -956,12 +959,15 @@ const App: React.FC = () => {
   };
 
   const handleGenerateSummary = async () => { // generate summary docx
-    if (!isAuthenticated) {
-      alert(LANGUAGE_DATA[language].ui.pleaseLogin);
+    const user = checkAuth();
+
+    if (!user) {
+      alert("Session expired. Please login again.");
+      handleLogout();
       return;
     }
-    if (isOutOfQuota(getQuota())) {
-      alert(LANGUAGE_DATA[language].ui.freeSessionLimit);
+    if (!isAuthenticated) {
+      alert(LANGUAGE_DATA[language].ui.pleaseLogin);
       return;
     }
     if (isLoading) {
@@ -975,6 +981,16 @@ const App: React.FC = () => {
 
     try {
       setIsGeneratingSummary(true);
+
+      // move here: below the animation trigger to prevent the feel of 'laggy' delay
+      const token = session?.access_token;
+      if (!encryptedApiKey){
+        const result = await canSendMessage(currentChatIdRef, token!);
+        if (!result.allowed) {
+          setError(LANGUAGE_DATA[language].ui.freeSessionLimit);
+          return;
+        }
+      }
 
       const summary = await generateSessionSummary({
         history: chatHistory,

@@ -497,7 +497,7 @@ export const sendMessageToBotRace = async (params: {
   
   if (!encryptedKeyPayload) {
     // Use environment key
-    api_key = getNextEnvKey();
+    api_key = await getNextEnvKey("gemini");
   } else {
     // Decrypt user key
 
@@ -627,7 +627,7 @@ export const sendMessageToBot = async (params: {
   
   if (!encryptedKeyPayload) {
     // Use environment key
-    api_key = getNextEnvKey();
+    api_key = await getNextEnvKey("gemini");
   } else {
     // Decrypt user key
 
@@ -764,7 +764,7 @@ export const generateSessionSummary = async (params: {
   let api_key: string | null = null;
 
   if (!encryptedKeyPayload) {
-    api_key = getNextEnvKey();
+    api_key = await getNextEnvKey("gemini");
   } else {
     // 🔓 decrypt JUST-IN-TIME with jsonb type guard
     if (!isEncryptedPayload(encryptedKeyPayload)) {
@@ -848,7 +848,7 @@ export const estimateQuizConfig = async (
   let decryptedKey: string | null = null;
 
   if (!encryptedKeyPayload) {
-    decryptedKey = getNextEnvKey();
+    decryptedKey = await getNextEnvKey("gemini");
   } else {
     // 🔓 decrypt JUST-IN-TIME with jsonb type guard
     if (!isEncryptedPayload(encryptedKeyPayload)) {
@@ -912,7 +912,7 @@ export const generateQuizQuestions = async (
   let decryptedKey: string | null = null;
 
   if (!encryptedKeyPayload) {
-    decryptedKey = getNextEnvKey();
+    decryptedKey = await getNextEnvKey("gemini");
   } else { 
     // 🔓 decrypt JUST-IN-TIME with jsonb type guard
     if (!isEncryptedPayload(encryptedKeyPayload)) {
@@ -1001,7 +1001,7 @@ export const validateOpenAnswer = async (
   let decryptedKey: string | null = null;
 
   if (!encryptedKeyPayload) {
-    decryptedKey = getNextEnvKey();
+    decryptedKey = await getNextEnvKey("gemini");
   } else {
     // 🔓 decrypt JUST-IN-TIME with jsonb type guard
     if (!isEncryptedPayload(encryptedKeyPayload)) {
@@ -1123,7 +1123,7 @@ export const runCronPromptGuard = async (
   let decryptedKey: string | null = null;
 
   if (!encryptedKeyPayload) {
-    decryptedKey = getNextEnvKey();
+    decryptedKey = await getNextEnvKey("gemini");
   } else {
     if (!isEncryptedPayload(encryptedKeyPayload)) {
       throw new Error("Invalid encrypted API key payload");
@@ -1162,7 +1162,7 @@ export const runCronPromptGuard = async (
 
   } catch (err) {
 
-    // safety fallback: fail OPEN for web search but block jailbreak
+    // safety fallback
     return {
       web_search: false,
       jailbreak: false,

@@ -68,3 +68,11 @@ export type GuardResult = {
   jailbreak: boolean;
   reason: string;
 };
+
+export const PROVIDERS = ["gemini", "stepfun"] as const;
+
+export type Provider = typeof PROVIDERS[number];
+
+export const isValidProvider = (value: any): value is Provider => {
+  return PROVIDERS.includes(value);
+};

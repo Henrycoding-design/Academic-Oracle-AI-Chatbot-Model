@@ -9,3 +9,25 @@ entrypoint = "./functions/encrypt-api-key/index.ts"
 # Specifies static files to be bundled with the function. Supports glob patterns.
 # For example, if you want to serve static HTML pages in your function:
 # static_files = [ "./functions/encrypt-api-key/*.html" ]
+
+[functions.rate-limit-check]
+enabled = true
+verify_jwt = true
+import_map = "./functions/rate-limit-check/deno.json"
+# Uncomment to specify a custom file path to the entrypoint.
+# Supported file extensions are: .ts, .js, .mjs, .jsx, .tsx
+entrypoint = "./functions/rate-limit-check/index.ts"
+# Specifies static files to be bundled with the function. Supports glob patterns.
+# For example, if you want to serve static HTML pages in your function:
+# static_files = [ "./functions/rate-limit-check/*.html" ]
+
+[functions.get-api-key]
+enabled = true
+verify_jwt = true
+import_map = "./functions/get-api-key/deno.json"
+# Uncomment to specify a custom file path to the entrypoint.
+# Supported file extensions are: .ts, .js, .mjs, .jsx, .tsx
+entrypoint = "./functions/get-api-key/index.ts"
+# Specifies static files to be bundled with the function. Supports glob patterns.
+# For example, if you want to serve static HTML pages in your function:
+# static_files = [ "./functions/get-api-key/*.html" ]
