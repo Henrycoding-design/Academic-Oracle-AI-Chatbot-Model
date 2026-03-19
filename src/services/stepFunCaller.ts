@@ -2,17 +2,26 @@
 import { InvalidAIResponseError } from "../types";
 import { getNextEnvKey } from "./envKeys";
 
-const STEPFUN_API_KEY = await getNextEnvKey("stepfun");
+let cachedKey: string | null = null;
 
-if (!STEPFUN_API_KEY) {
-  throw new Error("CANNOT_RETRIEVE_STEPFUN_KEY");
-}
+const getStepFunKey = async () => {
+  if (cachedKey) return cachedKey;
+
+  cachedKey = await getNextEnvKey("stepfun");
+  return cachedKey;
+};
 
 const callStepFunFlash = async (params: {
   systemInstruction: string;
   prompt: string;
   temperature: number;
 }): Promise<{ text: string }> => {
+  const STEPFUN_API_KEY = await getStepFunKey();
+
+  if (!STEPFUN_API_KEY) {
+    throw new Error("CANNOT_RETRIEVE_STEPFUN_KEY");
+  }
+  
   const { systemInstruction, prompt, temperature } = params;
 
   const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {

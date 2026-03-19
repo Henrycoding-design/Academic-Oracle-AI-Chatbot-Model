@@ -3,6 +3,15 @@ import { Provider, isValidProvider } from "../types";
 
 export async function getNextEnvKey(provider: Provider): Promise<string | null> {
   try {
+    const { // check to prevent accidental calls
+      data: { session },
+    } = await supabase.auth.getSession();
+
+    if (!session) {
+      console.warn("No session → skipping key fetch");
+      return null;
+    }
+
     if (!isValidProvider(provider)) {
       console.log("Invalid Provider");
       return null; // reduce hanlding in the caller (geminiService.ts)

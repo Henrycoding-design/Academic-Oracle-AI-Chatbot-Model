@@ -547,7 +547,7 @@ const App: React.FC = () => {
     file?: File | null,
     isRetry = false
   ) => {
-    const user = checkAuth();
+    const user = await checkAuth();
 
     if (!user) {
       alert("Session expired. Please login again.");
@@ -622,6 +622,7 @@ const App: React.FC = () => {
         return;
       }
 
+      if (!session) return;
       const token = session?.access_token;
       // increment quota here
       if (!encryptedApiKey){
@@ -959,7 +960,7 @@ const App: React.FC = () => {
   };
 
   const handleGenerateSummary = async () => { // generate summary docx
-    const user = checkAuth();
+    const user = await checkAuth();
 
     if (!user) {
       alert("Session expired. Please login again.");
@@ -983,6 +984,7 @@ const App: React.FC = () => {
       setIsGeneratingSummary(true);
 
       // move here: below the animation trigger to prevent the feel of 'laggy' delay
+      if (!session) return;
       const token = session?.access_token;
       if (!encryptedApiKey){
         const result = await canSendMessage(currentChatIdRef, token!);
