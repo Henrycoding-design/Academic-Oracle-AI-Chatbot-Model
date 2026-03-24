@@ -200,8 +200,8 @@ npm run dev
 
 **v2.3.0 marks a major shift**:
 
-> **From: Client-heavy AI calls** \n
-  → To: Backend-controlled AI orchestration
+> **From: Client-heavy AI calls**  
+> → To: Backend-controlled AI orchestration
 
 This enables:
 
