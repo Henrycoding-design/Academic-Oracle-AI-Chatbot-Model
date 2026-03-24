@@ -67,7 +67,6 @@ You don’t just learn faster — you learn *properly*.
   - Enables deeper exploration without breaking learning flow
   - Reduces friction between curiosity → action
 
----
 
 ### 📝 Integrated Quiz Platform
 
@@ -78,7 +77,6 @@ You don’t just learn faster — you learn *properly*.
 - Mid-session language switching
 - Unified Chat + Quiz UI system
 
----
 
 ### ⚙️ Intelligent Request Routing (UPDATED v2.3.0)
 
@@ -98,7 +96,6 @@ You don’t just learn faster — you learn *properly*.
 
 Academic Oracle doesn’t just respond — it **decides how to think first**.
 
----
 
 ### 🌐 Web Search Integration (NEW v2.3.0)
 
@@ -110,7 +107,6 @@ Academic Oracle doesn’t just respond — it **decides how to think first**.
 - Hybrid reasoning:
   - AI + live data synthesis
 
----
 
 ### 🔐 Security & Architecture (MAJOR UPDATE v2.3.0)
 
@@ -121,6 +117,7 @@ Academic Oracle doesn’t just respond — it **decides how to think first**.
 - AES-GCM-256 encryption for sensitive data
 - Supabase-backed session continuity
 
+
 #### 🛡️ Prompt Security Layer
 - Jailbreak detection & filtering system
 - Prompt sanitation before model execution
@@ -129,7 +126,6 @@ Academic Oracle doesn’t just respond — it **decides how to think first**.
 Academic Oracle is no longer just a frontend AI tool —  
 it is a **secured distributed AI system**.
 
----
 
 ### 🎨 UX & Rendering
 
@@ -150,7 +146,6 @@ it is a **secured distributed AI system**.
 ### Prerequisites
 - **Node.js** (v18+ recommended)
 
----
 
 ### Setup
 
@@ -184,6 +179,8 @@ VITE_JIGSAWSTACK_KEY=YOUR_JIGSAWSTACK_API_KEY
 npm run dev
 ```
 
+---
+
 ### Tech Stack
 * Frontend: React 19 + TypeScript
 * Backend (AI Orchestration): Supabase Edge Functions
@@ -195,6 +192,8 @@ npm run dev
 * Build Tool: Vite 6
 * Styling: Tailwind CSS
 * Math Rendering: KaTeX
+
+---
 
 ### Architecture Evolution
 
