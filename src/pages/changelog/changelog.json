@@ -78,6 +78,19 @@
       "Improved instructional flow and adaptive pacing to smoothly transition between intuition, formal explanation, and practical application while preventing cognitive overload",
       "Reduced formatting and rendering inconsistencies by tightening response structure for equations, lists, and technical explanations while improving prompt stability"
     ]
+  },
+  {
+    "version": "2.3.0",
+    "date": "2026-03-24",
+    "changes": [
+      "Migrated entire AI orchestration layer to Supabase Edge Functions, achieving zero-client exposure of API keys and implementing AES-GCM-256 encryption for production-grade security.",
+      "Introduced a context-aware 'Explain on Select' feature, allowing students to trigger Socratic follow-ups and deep-dives directly from highlighted text without breaking learning flow.",
+      "Integrated JigsawStack Web Search API to provide real-time factual grounding and high-fidelity parsing of dynamic web content, overcoming LLM training cutoffs.",
+      "Developed a multi-modal execution pipeline with five specialized routing modes (Standard, Fast, Balanced, Agentic, Web Search) to optimize for query complexity and latency.",
+      "Implemented a dedicated Prompt Security Layer featuring jailbreak detection, input sanitation, and response shaping to maintain pedagogical integrity and prevent misuse.",
+      "Enhanced UI transparency with a real-time Loading Status Text Bar, providing learners with visibility into the AI's current cognitive state and processing stage.",
+      "Upgraded core tech stack to React 19, Vite 6, and TypeScript 5.8, while implementing a non-blocking UI architecture for graceful degradation and error handling."
+    ]
   }
 ]
 

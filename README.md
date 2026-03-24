@@ -171,7 +171,8 @@ VITE_JIGSAWSTACK_KEY=YOUR_JIGSAWSTACK_API_KEY
 
 ❌ Removed:
 * VITE_GEMINI_KEYS
-* VITE_STEPFUN_KEY
+* VITE_STEPFUN_KEY  
+
 ✅ All AI provider keys are now handled securely in Supabase backend
 
 4. Start development server:

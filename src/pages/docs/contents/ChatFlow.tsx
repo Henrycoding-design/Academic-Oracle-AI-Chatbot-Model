@@ -46,7 +46,57 @@ export default function ChatFlow() {
         </div>
       </section>
 
-      {/* NEW: The Validation Loop (Quiz Platform) */}
+      {/* NEW: Contextual Clarification (Explain on Select) */}
+      <section className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+        <div className="order-2 md:order-1 relative group">
+          <div className="absolute -inset-1 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-2xl blur opacity-25 group-hover:opacity-50 transition duration-1000"></div>
+          <div className="relative bg-[#0f172a] border border-white/10 p-6 rounded-2xl">
+            <div className="flex flex-col gap-3">
+              <div className="bg-white/5 p-3 rounded-lg border border-white/5">
+                <p className="text-xs text-slate-300 italic">"Quantum entanglement is a physical phenomenon..."</p>
+                <div className="mt-4 flex gap-2">
+                  <span className="px-2 py-1 bg-blue-600 text-[10px] text-white rounded shadow-lg animate-bounce">Explain this</span>
+                </div>
+              </div>
+              <p className="text-[10px] text-slate-500 font-mono uppercase tracking-tighter">Feature: Text-Selection Trigger</p>
+            </div>
+          </div>
+        </div>
+        <div className="order-1 md:order-2 space-y-4">
+          <h3 className="text-xl font-bold text-white">Frictionless Deep-Dives</h3>
+          <p className="text-slate-400 text-sm leading-relaxed">
+            Never leave the flow to search for a definition. Our <strong>"Explain on Select"</strong> feature allows students to highlight any term or sentence to trigger an immediate, Socratic follow-up without losing their place in the conversation.
+          </p>
+        </div>
+      </section>
+
+      {/* NEW: Augmented Search & Guardrails */}
+      <section className="p-8 rounded-3xl bg-gradient-to-b from-white/5 to-transparent border border-white/10">
+        <div className="flex items-center gap-3 mb-6">
+          <div className="p-2 bg-emerald-500/20 rounded-lg">
+            <svg className="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04a11.735 11.735 0 00-1.59 7.477c.282 1.499 1.05 2.872 2.103 3.93a11.954 11.954 0 0015.536 0c1.053-1.058 1.822-2.43 2.103-3.93a11.732 11.732 0 00-1.59-7.477z" />
+            </svg>
+          </div>
+          <h3 className="text-xl font-bold text-white">Augmented Intelligence & Safety</h3>
+        </div>
+        <div className="grid md:grid-cols-2 gap-8">
+          <div className="space-y-2">
+            <h5 className="text-emerald-400 text-sm font-semibold">Real-time Web Search (JigsawStack)</h5>
+            <p className="text-xs text-slate-400 leading-relaxed">
+              When textbooks aren't enough, the Oracle leverages <strong>JigsawStack (Interfaze AI)</strong> to pull real-time academic papers and news, grounding every response in verified, current data.
+            </p>
+          </div>
+          <div className="space-y-2">
+            <h5 className="text-red-400 text-sm font-semibold">Jailbreak Prevention System</h5>
+            <p className="text-xs text-slate-400 leading-relaxed">
+              A dedicated <strong>Interfaze-shielded guardrail</strong> analyzes incoming prompts to block prompt injection and bypass attempts, ensuring the Oracle remains a safe, academic-focused environment.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* The Validation Loop (Quiz Platform) */}
       <section className="space-y-8">
         <div className="flex flex-col md:flex-row justify-between items-end gap-4">
           <div className="max-w-xl">
