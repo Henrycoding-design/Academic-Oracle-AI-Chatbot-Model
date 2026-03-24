@@ -62,8 +62,14 @@ You don’t just learn faster — you learn *properly*.
 - Hint-based reasoning flow (Ask first, reveal progressively)
 - Structured thinking prompts
 - Pattern extraction instead of answer dumping
+- **Follow-up suggestion system (NEW v2.3.0)**
+  - Context-aware follow-up buttons appear on text selection
+  - Enables deeper exploration without breaking learning flow
+  - Reduces friction between curiosity → action
 
-### 📝 Integrated Quiz Platform (NEW)
+---
+
+### 📝 Integrated Quiz Platform
 
 - Auto-generated concept-specific quizzes
 - Multi-question adaptive testing
@@ -71,6 +77,59 @@ You don’t just learn faster — you learn *properly*.
 - Reinforcement-based correction
 - Mid-session language switching
 - Unified Chat + Quiz UI system
+
+---
+
+### ⚙️ Intelligent Request Routing (UPDATED v2.3.0)
+
+- Multi-mode execution pipeline:
+  - **Standard**
+  - **Fast**
+  - **Balanced**
+  - **Agentic**
+  - **Web Search**
+- Real-time system state visibility via **Loading Status Text Bar**
+  - Displays current processing stage
+  - Improves transparency of AI behavior
+- Dynamic routing based on:
+  - Query complexity
+  - Latency conditions
+  - System load
+
+Academic Oracle doesn’t just respond — it **decides how to think first**.
+
+---
+
+### 🌐 Web Search Integration (NEW v2.3.0)
+
+- JigsawStack-powered search pipeline
+- Designed for:
+  - Real-time knowledge retrieval
+  - SPA / dynamic site parsing
+- Activated only when needed (cost-efficient routing)
+- Hybrid reasoning:
+  - AI + live data synthesis
+
+---
+
+### 🔐 Security & Architecture (MAJOR UPDATE v2.3.0)
+
+- **All AI API calls moved to Supabase backend**
+  - No direct client exposure of sensitive keys
+  - Production-grade architecture
+- Secure Edge Function orchestration
+- AES-GCM-256 encryption for sensitive data
+- Supabase-backed session continuity
+
+#### 🛡️ Prompt Security Layer
+- Jailbreak detection & filtering system
+- Prompt sanitation before model execution
+- Controlled response shaping to prevent misuse
+
+Academic Oracle is no longer just a frontend AI tool —  
+it is a **secured distributed AI system**.
+
+---
 
 ### 🎨 UX & Rendering
 
@@ -80,38 +139,9 @@ You don’t just learn faster — you learn *properly*.
 - Code blocks
 - Dark / Light mode
 - Responsive design (desktop & mobile)
-- Fail-in-console architecture (UI never crashes)
-
-### 🔐 Security & Architecture
-
-- AES-GCM-256 encryption for sensitive keys
-- Supabase-backed session continuity
-- Arcade-style interactive onboarding demo
-
-### ⚙️ Context-Aware Model Adaptation (NEW)
-
-- Dynamic model routing based on real-time traffic conditions
-- Promise-race orchestration during high-load periods
-- Automatic fallback to most efficient single-model pipeline under normal conditions
-- Intelligent compatibility matching per user request type
-- Stepfun-3.5 integration as high-load inference offloader
-- Automatic cancellation of non-winning model responses to preserve cost efficiency
-
-Academic Oracle *adapts not just to learners - but to system conditions*.
-
----
-
-## Tech Stack
-
-- **Frontend:** React 19 + TypeScript
-- **Backend (AI):** Google GenAI models (Gemini-3, Gemini-2.5) and StepFun-3.5
-- **Backend (Auth):** Supabase & Google OAuth
-- **Build Tool:** Vite 6
-- **Styling:** Tailwind CSS
-- **Math Rendering:** KaTeX
-- **State & UX:** Custom lightweight logic (no heavy frameworks)
-- **Security:** AES-GCM-256 encryption for sensitive keys
-- **AI Provider:** Gemini API (user-supplied key)
+- **Non-blocking UI architecture**
+  - Failures never crash the interface
+  - Graceful degradation on errors
 
 ---
 
@@ -120,28 +150,65 @@ Academic Oracle *adapts not just to learners - but to system conditions*.
 ### Prerequisites
 - **Node.js** (v18+ recommended)
 
+---
+
 ### Setup
 
 1. Install dependencies:
-   ```bash
-   npm install
+```bash
+npm install
+```
+2. Setup your Supabase project
+* Create database
+* Configure auth
+* Deploy Edge Functions
 
-2. Setup your ["Supabase Project"](https://supabase.com/dashboard?)
+3. Configure environment variables:
+```bash
+VITE_SUPABASE_URL=YOUR_SUPABASE_URL
+VITE_SUPABASE_ANON_KEY=YOUR_SUPABASE_ANON_KEY
 
-3. Setup your ["Google AI Studio API Key(s)"](https://aistudio.google.com/api-keys)
+# Only public key needed (web search)
+VITE_JIGSAWSTACK_KEY=YOUR_JIGSAWSTACK_API_KEY
+```
 
-4. Setup your ["OpenRouter API Key"](https://openrouter.ai/settings/keys)
+**⚠️ Important Changes (v2.3.0)**:
 
-5. Setup Environment Variables:
-   ```env.local
-   VITE_SUPABASE_URL=YOUR_SUPABASE_URL
-   VITE_SUPABASE_ANON_KEY=YOUR_SUPABASE_ANON_KEY
-   VITE_GEMINI_KEYS=YOUR_GOOGLE_AI_STUDIO_API_KEY(s) EX: KEY1,KEY2,KEY3,...
-   VITE_STEPFUN_KEY=YOUR_OPENROUTER_API_KEY
+❌ Removed:
+* VITE_GEMINI_KEYS
+* VITE_STEPFUN_KEY
+✅ All AI provider keys are now handled securely in Supabase backend
 
-6. Start development server:
-   ```bash
-   npm run dev
+4. Start development server:
+```bash
+npm run dev
+```
+
+### Tech Stack
+* Frontend: React 19 + TypeScript
+* Backend (AI Orchestration): Supabase Edge Functions
+* Models:
+  * Google GenAI (Gemini-3, Gemini-2.5)
+  * Stepfun-3.5 (fallback / high-load routing)
+* Web Search: JigsawStack API
+* Auth & Database: Supabase (Postgres + OAuth)
+* Build Tool: Vite 6
+* Styling: Tailwind CSS
+* Math Rendering: KaTeX
+
+### Architecture Evolution
+
+**v2.3.0 marks a major shift**:
+
+> From: Client-heavy AI calls
+> → To: Backend-controlled AI orchestration
+
+This enables:
+
+* Real production deployment
+* Key security
+* Scalable request routing
+* Advanced filtering & control layers
 
 ---
 
