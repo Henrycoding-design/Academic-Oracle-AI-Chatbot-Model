@@ -25,6 +25,7 @@ import { isRushHourUTC } from './services/rushHours.ts';
 import { analyzePrompt } from './services/promptGuard.ts';
 import { runQuotaSafeSearch } from './services/webSearchSafe.ts';
 import { isWebSearchLimitReached, incrementWebSearch } from './services/webSearchQuota.ts';
+import { classifyIntent } from './services/chatIntentClassifier.ts';
 
 const SunIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
@@ -80,7 +81,9 @@ const SystemStatus: React.FC<{ status: 'ok' | 'loading' | 'error', model: string
     );
 };
 
-const LoadingIndicator = () => (
+type LoadingModeLabel = "Agentic" | "Fast" | "Balanced" | "Standard" | "Web Search";
+
+const LoadingIndicator: React.FC<{ statusLabel: LoadingModeLabel }> = ({ statusLabel }) => (
     <div className="flex items-start gap-3 my-4 justify-start">
         <div className="w-10 h-10 rounded-full bg-indigo-600 flex items-center justify-center text-white text-lg font-bold flex-shrink-0 shadow-lg border-2 border-white/20">
              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -88,10 +91,13 @@ const LoadingIndicator = () => (
             </svg>
         </div>
         <div className="max-w-xl px-5 py-3 rounded-2xl shadow-sm bg-white dark:bg-slate-800 text-gray-800 dark:text-gray-200 rounded-tl-none border border-gray-100 dark:border-gray-700">
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center gap-3">
                 <div className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-bounce" style={{ animationDelay: '0s' }}></div>
                 <div className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-bounce" style={{ animationDelay: '0.2s' }}></div>
                 <div className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-bounce" style={{ animationDelay: '0.4s' }}></div>
+                <span className="text-xs font-semibold uppercase tracking-[0.18em] text-indigo-500 dark:text-indigo-300 animate-pulse whitespace-nowrap">
+                    {statusLabel}
+                </span>
             </div>
         </div>
     </div>
@@ -289,6 +295,7 @@ const App: React.FC = () => {
   }, []);
 
   const [isLoading, setIsLoading] = useState(false);
+  const [loadingModeLabel, setLoadingModeLabel] = useState<LoadingModeLabel>("Standard");
   const [isGeneratingSummary, setIsGeneratingSummary] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isDark, setIsDark] = useState(() => {
@@ -394,7 +401,7 @@ const App: React.FC = () => {
     }
 
     walk(fragment);
-    console.log(result);
+    // console.log(result); debug only
     return result.replace(/\s+/g, " ").trim();
   }
 
@@ -534,11 +541,6 @@ const App: React.FC = () => {
     });
   }, []);
 
-  const checkAuth = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    return user;
-  };
-
   const currentChatIdRef = useRef<string>(crypto.randomUUID());
 
   // ✅ Handle sending messages with dynamic encryptedApiKey
@@ -547,13 +549,7 @@ const App: React.FC = () => {
     file?: File | null,
     isRetry = false
   ) => {
-    const user = await checkAuth();
-
-    if (!user) {
-      alert("Session expired. Please login again.");
-      handleLogout();
-      return;
-    }
+    if (!session?.access_token) { handleLogout(); return; }
 
     setIsLoading(true);
     setError(null);
@@ -587,6 +583,7 @@ const App: React.FC = () => {
       const guard = analyzePrompt(userMessage, language);
       let decision = guard;
       let webContext = "";
+      let currentLoadingLabel: LoadingModeLabel = "Standard";
 
       // jailbreak block
       if (decision.jailbreak) {
@@ -637,6 +634,8 @@ const App: React.FC = () => {
       if (decision.web_search && !isWebSearchLimitReached()) {
         try {
           console.log("running web search");
+          currentLoadingLabel = "Web Search";
+          setLoadingModeLabel("Web Search");
           incrementWebSearch();
 
           const webResults = await runQuotaSafeSearch(userMessage);
@@ -712,22 +711,47 @@ const App: React.FC = () => {
       };
 
       const useRace = shouldUseRace();
+      let raceIntent: "agentic" | "fast" | "balance" | null = null;
 
-      const strategy = useRace
-        ? sendMessageToBotRace
-        : sendMessageToBot;
+      if (useRace) {
+        raceIntent = await classifyIntent(
+          encryptedApiKey,
+          outgoingHistory.map(h => `${h.role.toUpperCase()}: ${h.content}`).join("\n\n")
+        );
+
+        currentLoadingLabel =
+          raceIntent === "agentic"
+            ? "Agentic"
+            : raceIntent === "fast"
+              ? "Fast"
+              : "Balanced";
+      } else if (!decision.web_search) {
+        currentLoadingLabel = "Standard";
+      }
+
+      setLoadingModeLabel(currentLoadingLabel);
 
       console.log(
         `Using ${useRace ? "RACE" : "standard"} strategy for this request`
       );
 
       const { answer, memory, model, sessionForTopicDone } =
-        await strategy({
-          history: outgoingHistory,
-          memory: oracleMemory,
-          encryptedKeyPayload: encryptedApiKey,
-          language: language,
-        });
+        await (
+          useRace
+            ? sendMessageToBotRace({
+                history: outgoingHistory,
+                memory: oracleMemory,
+                encryptedKeyPayload: encryptedApiKey,
+                language: language,
+                intent: raceIntent ?? "balance",
+              })
+            : sendMessageToBot({
+                history: outgoingHistory,
+                memory: oracleMemory,
+                encryptedKeyPayload: encryptedApiKey,
+                language: language,
+              })
+        );
 
       // 🖼️ UI response
       setMessages(prev => [
@@ -842,6 +866,7 @@ const App: React.FC = () => {
 
     } finally {
       setIsLoading(false);
+      setLoadingModeLabel("Standard");
     }
   };
 
@@ -960,13 +985,7 @@ const App: React.FC = () => {
   };
 
   const handleGenerateSummary = async () => { // generate summary docx
-    const user = await checkAuth();
-
-    if (!user) {
-      alert("Session expired. Please login again.");
-      handleLogout();
-      return;
-    }
+    if (!session?.access_token) { handleLogout(); return; }
     if (!isAuthenticated) {
       alert(LANGUAGE_DATA[language].ui.pleaseLogin);
       return;
@@ -1264,7 +1283,7 @@ const App: React.FC = () => {
                     />
                   );
                 })}
-                {isLoading && <LoadingIndicator />}
+                {isLoading && <LoadingIndicator statusLabel={loadingModeLabel} />}
                 {error && (
                   <div className="bg-rose-100/80 dark:bg-rose-900/20 text-rose-600 p-4 rounded-2xl text-center my-6">
                     <p>{error}</p>

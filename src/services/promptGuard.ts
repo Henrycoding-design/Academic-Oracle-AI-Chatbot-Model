@@ -293,23 +293,23 @@ export function analyzePrompt(prompt: string, language: AppLanguage = "en"): Gua
   const jailbreakRegex = JAILBREAK_REGEX_BY_LANG[lang];
 
   for (const kw of webKeywords) {
-    if (lower.includes(kw)) webScore++;
+    if (lower.includes(kw)) webScore+=2;
   }
 
   for (const kw of jailbreakKeywords) {
-    if (lower.includes(kw)) jailbreakScore++;
+    if (lower.includes(kw)) jailbreakScore+=2;
   }
 
   for (const r of webRegex) {
-    if (r.test(prompt)) webScore += 2;
+    if (r.test(prompt)) webScore += 3;
   }
 
   for (const r of jailbreakRegex) {
-    if (r.test(prompt)) jailbreakScore += 3;
+    if (r.test(prompt)) jailbreakScore += 4;
   }
 
   return {
-    web_search: webScore >= 2 ,
+    web_search: webScore >= 2,
     jailbreak: jailbreakScore >= 2,
     reason: "regex"
   };

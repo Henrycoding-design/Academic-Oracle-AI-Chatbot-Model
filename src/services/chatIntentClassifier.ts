@@ -1,14 +1,11 @@
 // src/services/chatIntentClassifier.ts
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { supabase } from "./supabaseClient";
 import { ChatIntent } from "../types";
 
-const classifyIntent = async (
-  apiKey: string,
+export const classifyIntent = async (
+  encryptedKeyPayload: any,
   prompt: string
 ): Promise<ChatIntent> => {
-  const genAI = new GoogleGenerativeAI(apiKey);
-  const model = await genAI.getGenerativeModel({ model: "gemini-2.5-flash-lite" });
-
   const classificationPrompt = `
 You are a high-decisiveness routing classifier. 
 
@@ -28,12 +25,27 @@ ${prompt}
 `;
 
   try {
-    const result = await model.generateContent({
-      contents: [{ role: "user", parts: [{ text: classificationPrompt }] }],
-      generationConfig: { responseMimeType: "application/json", temperature: 0.1 }
+    const { data, error } = await supabase.functions.invoke("call-ai-response", {
+      method: "POST",
+      body: {
+        provider: "gemini",
+        model: "gemini-2.5-flash-lite",
+        prompt: classificationPrompt,
+        temp: 0.1,
+        encryptedKeyPayload,
+      },
     });
 
-    const parsed = JSON.parse(result.response.text());
+    if (error || data?.error) {
+      throw new Error(data?.error || error?.message || "Intent classification failed");
+    }
+
+    const text = data?.data?.candidates?.[0]?.content?.parts?.[0]?.text;
+    if (!text) {
+      throw new Error("Intent classifier returned empty response");
+    }
+
+    const parsed = JSON.parse(text);
     if (parsed.intent === "agentic" || parsed.intent === "fast" || parsed.intent === "balance") {
       return parsed.intent;
     }
@@ -41,6 +53,3 @@ ${prompt}
 
   return "balance";
 };
-
-
-export { classifyIntent };

@@ -28,12 +28,15 @@ serve(async (req) => {
     return new Response(null, { status: 204, headers: corsHeaders });
   }
 
+  const requestId = req.headers.get("x-request-id") ?? crypto.randomUUID();
+
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
 
-    const authHeader = req.headers.get("Authorization");
+    const authHeader = req.headers.get("Authorization") || req.headers.get("authorization");
     if (!authHeader) {
+      console.error(`[get-api-key][${requestId}] missing auth header`);
       return new Response(JSON.stringify({ error: "No auth header" }), {
         status: 401,
         headers: corsHeaders,
@@ -48,6 +51,7 @@ serve(async (req) => {
     const { data: { user }, error: userError } = await supabase.auth.getUser();
 
     if (userError || !user?.email || !user.id) {
+      console.error(`[get-api-key][${requestId}] unauthorized`, userError);
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
         status: 401,
         headers: corsHeaders,
@@ -63,6 +67,7 @@ serve(async (req) => {
     const provider = body.provider?.toLowerCase(); // no fallback since client want CORRECT key type
 
     if (!provider || !(provider in KEY_MAP)) {
+      console.error(`[get-api-key][${requestId}] invalid provider`, body);
       return new Response(JSON.stringify({ error: "INVALID_PROVIDER" }), {
         status: 400,
         headers: corsHeaders,
@@ -76,9 +81,25 @@ serve(async (req) => {
       .eq("id", user.id)
       .single();
 
-    if (profileError || !profile || profile.mode !== "free") {
+    if (profileError || !profile) {
+      console.error(`[get-api-key][${requestId}] profile lookup failed`, {
+        userId: user.id,
+        profileError,
+        profile,
+      });
       return new Response(JSON.stringify({ error: "PROFILE_NOT_FOUND" }), {
         status: 404,
+        headers: corsHeaders,
+      });
+    }
+
+    if (provider === "gemini" && profile.mode !== "free") {
+      console.error(`[get-api-key][${requestId}] gemini key requires free mode`, {
+        userId: user.id,
+        profile,
+      });
+      return new Response(JSON.stringify({ error: "PROFILE_NOT_ELIGIBLE" }), {
+        status: 403,
         headers: corsHeaders,
       });
     }
@@ -95,6 +116,7 @@ serve(async (req) => {
     const key = getRandomKey(keys);
 
     if (!key) {
+      console.error(`[get-api-key][${requestId}] no keys available for provider=${provider}`);
       return new Response(JSON.stringify({ error: "NO_KEYS_AVAILABLE" }), {
         status: 500,
         headers: corsHeaders,
@@ -102,6 +124,7 @@ serve(async (req) => {
     }
 
     const maskedKey = key.slice(0, 6) + "..." + key.slice(-4);
+    console.log(`[get-api-key][${requestId}] issued key for provider=${provider} user=${user.id} masked=${maskedKey}`);
 
     return new Response(JSON.stringify({
       success: true,
@@ -115,6 +138,7 @@ serve(async (req) => {
     });
 
   } catch (err) {
+    console.error(`[get-api-key][${requestId}] unhandled error`, err);
     return new Response(JSON.stringify({ error: err.message }), {
       status: 500,
       headers: corsHeaders,
