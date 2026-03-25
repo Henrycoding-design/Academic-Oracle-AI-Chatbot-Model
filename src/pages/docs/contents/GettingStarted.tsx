@@ -136,7 +136,7 @@ export default function GettingStarted() {
             </p>
           </div>
           <a 
-            href="/docs/ggaistudio" 
+            href="/docs/aistudio" 
             className="px-6 py-2 bg-white text-black text-sm font-bold rounded-full hover:bg-blue-400 hover:text-white transition-all shadow-lg shadow-blue-500/10"
           >
             View Integration Docs

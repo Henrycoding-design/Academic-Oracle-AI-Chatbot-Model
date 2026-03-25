@@ -1,7 +1,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import type { Message, ChatHistoryItem, ChatTailoringMode } from './types';
-import { sendMessageToBot, sendMessageToBotRace } from './services/geminiService';
+import { sendMessageToBot, sendMessageToBotRace, runCronPromptGuard} from './services/geminiService';
 import { ChatInput } from './components/ChatInput';
 import { ChatMessage } from './components/ChatMessage';
 import AuthPage from "./AuthPage";
@@ -14,14 +14,18 @@ import { createPortal } from "react-dom";
 import { useClickOutside } from './services/useClickOutsite';
 import { generateSessionSummary } from './services/geminiService.ts';
 import { createSummaryDoc } from './services/createSummaryDoc.ts';
-import { SquarePen, ScrollText, ChevronDown, BrainCircuit, LogOut, User} from 'lucide-react';
+import { Sparkles, SquarePen, ScrollText, ChevronDown, BrainCircuit, LogOut, User} from 'lucide-react';
 import ProfilePage from './ProfilePage.tsx';
 import { QuizView } from './components/QuizView'; // Added QuizView
-import { getQuota, isOutOfQuota, saveQuota } from './services/sessionMarker.ts';
+import { canSendMessage } from './services/sessionMarker.ts';
 import { InvalidAPIError } from './types';
-import { AppLanguage , LANGUAGE_DATA } from './lang/Language.tsx';
+import { AppLanguage , LANGUAGE_DATA, LoadingModeLabel } from './lang/Language.tsx';
 import { normalizeSummary } from './services/normalizeSummary.ts';
 import { isRushHourUTC } from './services/rushHours.ts';
+import { analyzePrompt } from './services/promptGuard.ts';
+import { runQuotaSafeSearch } from './services/webSearchSafe.ts';
+import { isWebSearchLimitReached, incrementWebSearch } from './services/webSearchQuota.ts';
+import { classifyIntent } from './services/chatIntentClassifier.ts';
 
 const SunIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
@@ -77,7 +81,7 @@ const SystemStatus: React.FC<{ status: 'ok' | 'loading' | 'error', model: string
     );
 };
 
-const LoadingIndicator = () => (
+const LoadingIndicator: React.FC<{ statusLabel: string }> = ({ statusLabel }) => (
     <div className="flex items-start gap-3 my-4 justify-start">
         <div className="w-10 h-10 rounded-full bg-indigo-600 flex items-center justify-center text-white text-lg font-bold flex-shrink-0 shadow-lg border-2 border-white/20">
              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -85,10 +89,13 @@ const LoadingIndicator = () => (
             </svg>
         </div>
         <div className="max-w-xl px-5 py-3 rounded-2xl shadow-sm bg-white dark:bg-slate-800 text-gray-800 dark:text-gray-200 rounded-tl-none border border-gray-100 dark:border-gray-700">
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center gap-3">
                 <div className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-bounce" style={{ animationDelay: '0s' }}></div>
                 <div className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-bounce" style={{ animationDelay: '0.2s' }}></div>
                 <div className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-bounce" style={{ animationDelay: '0.4s' }}></div>
+                <span className="text-xs font-semibold tracking-[0.18em] text-indigo-500 dark:text-indigo-300 animate-pulse whitespace-nowrap">
+                    {statusLabel}
+                </span>
             </div>
         </div>
     </div>
@@ -286,6 +293,7 @@ const App: React.FC = () => {
   }, []);
 
   const [isLoading, setIsLoading] = useState(false);
+  const [loadingModeLabel, setLoadingModeLabel] = useState<LoadingModeLabel>("Standard");
   const [isGeneratingSummary, setIsGeneratingSummary] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isDark, setIsDark] = useState(() => {
@@ -338,6 +346,131 @@ const App: React.FC = () => {
   const userButtonRef = useRef<HTMLButtonElement>(null);
   const userMenuRef = useRef<HTMLDivElement>(null);
   useClickOutside([userButtonRef, userMenuRef], () => setIsUserMenuOpen(false), isUserMenuOpen); // hook to close user menu on outside click
+
+  // UX mouse select tools
+  const [selectedText, setSelectedText] = useState<string | null>(null);
+  const [selectionPos, setSelectionPos] = useState<{
+    x:number,
+    y:number,
+    placeAbove:boolean
+  } | null>(null);
+
+  function selectionToLatexText(): string {
+    const selection = window.getSelection();
+    if (!selection || selection.rangeCount === 0) return ""; console.log("Failed first");
+
+    const range = selection.getRangeAt(0);
+    const fragment = range.cloneContents();
+
+    let result = "";
+
+    function walk(node: Node) {
+      // console.log("got here"); // reached here
+
+      // TEXT
+      if (node.nodeType === Node.TEXT_NODE) {
+
+        const parent = node.parentElement;
+
+        if (parent?.closest(".katex")) return;
+        // console.log("reached text"); // reached here
+        result += node.textContent ?? "";
+      }
+
+      // ELEMENT LOGIC
+      if (node instanceof Element) {
+        // console.log("passed checks"); // reached here
+
+        if (node.matches("annotation[encoding='application/x-tex']")) {
+          // console.log("reached math"); // reached here
+
+          const tex = node.textContent?.trim() ?? "";
+          result += ` \\(${tex}\\) `;
+
+          return;
+        }
+      }
+
+      // ALWAYS WALK CHILDREN
+      for (const child of node.childNodes) {
+        // console.log("running"); // reached here
+        walk(child);
+      }
+    }
+
+    walk(fragment);
+    // console.log(result); debug only
+    return result.replace(/\s+/g, " ").trim();
+  }
+
+  useEffect(() => {
+    let timeoutId: number;
+
+    const handleSelection = () => {
+      // 1. CLEAR existing timeouts to reset the "wait" timer
+      if (timeoutId) window.clearTimeout(timeoutId);
+
+      const selection = window.getSelection();
+
+      // 2. IMMEDIATE HIDE: If the user clicks away or the selection is cleared,
+      // we want the button to vanish instantly, not after a delay.
+      if (!selection || selection.isCollapsed || !selection.toString().trim()) {
+        setSelectedText(null);
+        setSelectionPos(null);
+        return;
+      }
+
+      // 3. DELAYED SHOW: Wait for the user to finish selecting
+      timeoutId = window.setTimeout(() => {
+        if (!selection || selection.isCollapsed) return;
+
+        const container = selection.getRangeAt(0)
+          .commonAncestorContainer
+          ?.parentElement
+          ?.closest(".model-message");
+        if (!container) return;
+
+        const text = selectionToLatexText();
+        const range = selection.getRangeAt(0);
+        const rect = range.getBoundingClientRect();
+
+        setSelectedText(prev => {
+          if (prev === text) return prev;
+          return text;
+        });
+
+        const PADDING = 6;
+        const APPROX_BUTTON_H = 32;
+        const TOOLBAR_HEIGHT = 72;
+
+        let y: number;
+        let placeAbove: boolean;
+
+        if (rect.top - APPROX_BUTTON_H - PADDING > TOOLBAR_HEIGHT) {
+          y = rect.top - APPROX_BUTTON_H - PADDING;
+          placeAbove = true;
+        } else {
+          y = rect.bottom + PADDING;
+          placeAbove = false;
+        }
+
+        setSelectionPos({
+          x: rect.left + rect.width / 2,
+          y,
+          placeAbove,
+        });
+      }, 150); // 150ms is usually the "sweet spot" for human pause detection
+    };
+
+    document.addEventListener("selectionchange", handleSelection);
+    // document.addEventListener("mouseup", handleSelection);
+
+    return () => {
+      if (timeoutId) window.clearTimeout(timeoutId);
+      document.removeEventListener("selectionchange", handleSelection);
+      // document.removeEventListener("mouseup", handleSelection);
+    };
+  }, []);
 
   const [model, setModel] = useState<string>('gemini-3-flash-preview'); // default model -> never empty/crash on this optional feature
   const chatEndRef = useRef<HTMLDivElement>(null);
@@ -414,37 +547,13 @@ const App: React.FC = () => {
     file?: File | null,
     isRetry = false
   ) => {
-    const quota = getQuota();
-    if (!encryptedApiKey) {
-      if (isOutOfQuota(quota)) {
-        setError(LANGUAGE_DATA[language].ui.freeSessionLimit);
-        return;
-      } else {
-        quota.used += 1;
-        quota.chats[currentChatIdRef.current] ??= 0;
-        quota.chats[currentChatIdRef.current] += 1;
-        saveQuota(quota);
-      }
-    }
+    if (!session?.access_token) { handleLogout(); return; }
 
     setIsLoading(true);
     setError(null);
 
     try {
-      let fileContext = "";
-
-      if (file) {
-        const extractedText = await readFileAsText(file);
-        fileContext = `
-  --- FILE CONTEXT (${file.name}) ---
-  ${extractedText}
-  --- END FILE CONTEXT ---
-  `;
-      }
-
-      let outgoingHistory = chatHistory;
-
-      if (!isRetry) { // avoid double user questions if reTry
+      if (!isRetry) {
         // 🖼️ UI update (unchanged, clean)
         setMessages(prev => [
           ...prev,
@@ -467,10 +576,125 @@ const App: React.FC = () => {
             block: "start",
           });
         });
+      }
+      
+      const guard = analyzePrompt(userMessage, language);
+      let decision = guard;
+      let webContext = "";
+      let currentLoadingLabel: LoadingModeLabel = "Standard";
 
+      // jailbreak block
+      if (decision.jailbreak) {
+        setMessages(prev => [
+          ...prev,
+          { role: "model", content: LANGUAGE_DATA[language].ui.jailbreakMessage },
+        ]);
+
+        setIsLoading(false);
+        return;
+      }
+
+      // cron model verification
+      if (guard.web_search || guard.jailbreak) {
+        try {
+          const res = await runCronPromptGuard(userMessage, encryptedApiKey);
+          if (!res.reason.includes("Error")) {
+            decision = res;
+          }
+        } catch (e) {
+          console.warn("Cron guard failed", e);
+        }
+      }
+
+      // jailbreak block: second round
+      if (decision.jailbreak) {
+        setMessages(prev => [
+          ...prev,
+          { role: "model", content: LANGUAGE_DATA[language].ui.jailbreakMessage },
+        ]);
+
+        setIsLoading(false);
+        return;
+      }
+
+      if (!session) return;
+      const token = session?.access_token;
+      // increment quota here
+      if (!encryptedApiKey){
+        const result = await canSendMessage(currentChatIdRef, token!);
+        if (!result.allowed) {
+          setError(LANGUAGE_DATA[language].ui.freeSessionLimit);
+          return;
+        }
+      }
+
+      // web search
+      if (decision.web_search && !isWebSearchLimitReached()) {
+        try {
+          console.log("running web search");
+          currentLoadingLabel = "Web Search";
+          setLoadingModeLabel("Web Search");
+          incrementWebSearch();
+
+          const webResults = await runQuotaSafeSearch(userMessage);
+
+          if (webResults && webResults.length > 0) {
+
+            const overview = webResults
+              .map(w => w.overview)
+              .filter(Boolean)
+              .join("\n\n");
+
+            const seen = new Set();
+
+            const results = webResults
+              .flatMap(w => w.results ?? [])
+              .filter(r => {
+                if (seen.has(r.link)) return false;
+                seen.add(r.link);
+                return true;
+              })
+              .slice(0, 3); // limit total results
+
+            webContext = `
+          --- WEB SEARCH RESULTS ---
+          ${overview}
+
+          ${results.map((r: any) =>
+          `${r.title}
+          ${r.snippet}
+          ${r.link}`
+          ).join("\n\n")}
+
+          --- END WEB SEARCH ---
+          `;
+          }
+
+        } catch (e) {
+          console.warn("Web search failed", e);
+        }
+      } else if (isWebSearchLimitReached()){
+        console.warn("Web Search Limit reaches");
+        alert(LANGUAGE_DATA[language].ui.webSearchQuotaReached);
+      }
+
+      let fileContext = "";
+
+      if (file) {
+        const extractedText = await readFileAsText(file);
+        fileContext = `
+  --- FILE CONTEXT (${file.name}) ---
+  ${extractedText}
+  --- END FILE CONTEXT ---
+  `;
+      }
+
+      let outgoingHistory = chatHistory;
+
+      if (!isRetry) { // avoid double user questions if reTry
         const userEntry: ChatHistoryItem = {
           role: "user",
-          content: `${fileContext}\nUSER QUESTION:\n${userMessage}`.trim(),
+          content: `${webContext}\n${fileContext}\nUSER QUESTION:\n${userMessage}`.trim(),
         };
 
         outgoingHistory = trimHistory([...chatHistory, userEntry]);
@@ -485,22 +709,47 @@ const App: React.FC = () => {
       };
 
       const useRace = shouldUseRace();
+      let raceIntent: "agentic" | "fast" | "balance" | null = null;
 
-      const strategy = useRace
-        ? sendMessageToBotRace
-        : sendMessageToBot;
+      if (useRace) {
+        raceIntent = await classifyIntent(
+          encryptedApiKey,
+          outgoingHistory.map(h => `${h.role.toUpperCase()}: ${h.content}`).join("\n\n")
+        );
+
+        currentLoadingLabel =
+          raceIntent === "agentic"
+            ? "Agentic"
+            : raceIntent === "fast"
+              ? "Fast"
+              : "Balanced";
+      } else if (!decision.web_search) {
+        currentLoadingLabel = "Standard";
+      }
+
+      setLoadingModeLabel(currentLoadingLabel);
 
       console.log(
         `Using ${useRace ? "RACE" : "standard"} strategy for this request`
       );
 
       const { answer, memory, model, sessionForTopicDone } =
-        await strategy({
-          history: outgoingHistory,
-          memory: oracleMemory,
-          encryptedKeyPayload: encryptedApiKey,
-          language: language,
-        });
+        await (
+          useRace
+            ? sendMessageToBotRace({
+                history: outgoingHistory,
+                memory: oracleMemory,
+                encryptedKeyPayload: encryptedApiKey,
+                language: language,
+                intent: raceIntent ?? "balance",
+              })
+            : sendMessageToBot({
+                history: outgoingHistory,
+                memory: oracleMemory,
+                encryptedKeyPayload: encryptedApiKey,
+                language: language,
+              })
+        );
 
       // 🖼️ UI response
       setMessages(prev => [
@@ -615,6 +864,7 @@ const App: React.FC = () => {
 
     } finally {
       setIsLoading(false);
+      setLoadingModeLabel("Standard");
     }
   };
 
@@ -659,12 +909,6 @@ const App: React.FC = () => {
       sessionStorage.removeItem("academic-oracle-memory");
       setOracleMemory(null);
     }
-
-    // 🗄️ reset quota
-    const quota = getQuota();
-    currentChatIdRef.current = crypto.randomUUID();
-    quota.chats[currentChatIdRef.current] = 0;
-    saveQuota(quota);
 
     navigate("/"); // navigate back to chat
 
@@ -739,12 +983,9 @@ const App: React.FC = () => {
   };
 
   const handleGenerateSummary = async () => { // generate summary docx
+    if (!session?.access_token) { handleLogout(); return; }
     if (!isAuthenticated) {
       alert(LANGUAGE_DATA[language].ui.pleaseLogin);
-      return;
-    }
-    if (isOutOfQuota(getQuota())) {
-      alert(LANGUAGE_DATA[language].ui.freeSessionLimit);
       return;
     }
     if (isLoading) {
@@ -758,6 +999,17 @@ const App: React.FC = () => {
 
     try {
       setIsGeneratingSummary(true);
+
+      // move here: below the animation trigger to prevent the feel of 'laggy' delay
+      if (!session) return;
+      const token = session?.access_token;
+      if (!encryptedApiKey){
+        const result = await canSendMessage(currentChatIdRef, token!);
+        if (!result.allowed) {
+          setError(LANGUAGE_DATA[language].ui.freeSessionLimit);
+          return;
+        }
+      }
 
       const summary = await generateSessionSummary({
         history: chatHistory,
@@ -870,7 +1122,10 @@ const App: React.FC = () => {
             <div className="mb-6">
               {/* <span className="text-[10px] px-1.5 py-0.5 rounded-sm bg-indigo-500/90 text-white tracking-wide">UNIV</span> */}
               <div className="p-1 rounded-[8px] transition-colors hover:bg-black/5 dark:hover:bg-white/10">
-              <a href="/home">
+              <a onClick={() => {
+                if (isLoading) {alert(LANGUAGE_DATA[language].ui.pleaseWait); return; }
+                window.open('/home', '_self');
+              }}>
                 <img src="/icon.png" alt="Academic Oracle Logo" className="w-8 h-7 select-none"/>
               </a>
               </div>
@@ -1026,7 +1281,11 @@ const App: React.FC = () => {
                     />
                   );
                 })}
-                {isLoading && <LoadingIndicator />}
+                {isLoading && (
+                  <LoadingIndicator
+                    statusLabel={LANGUAGE_DATA[language].ui.loadingModeLabels[loadingModeLabel]}
+                  />
+                )}
                 {error && (
                   <div className="bg-rose-100/80 dark:bg-rose-900/20 text-rose-600 p-4 rounded-2xl text-center my-6">
                     <p>{error}</p>
@@ -1102,6 +1361,43 @@ const App: React.FC = () => {
                 onAddToMemory={handleAddToMemory}
               />
             )}
+            {selectedText && selectionPos &&
+              createPortal(
+                <button
+                  data-explain-btn
+                  style={{
+                    position: "fixed",
+                    top: selectionPos.y,
+                    left: selectionPos.x,
+                      transform: selectionPos.placeAbove
+                      ? "translate(-53%, 15%)"
+                      : "translate(-53%, 0)"
+                  }}
+                  className="
+                    z-[9999] flex items-center gap-1.5 bg-indigo-600 text-white
+                    text-xs font-medium px-3 py-1.5 rounded-lg shadow-lg
+                  hover:bg-indigo-500 transition-colors animate-in fade-in zoom-in-95
+                  "
+                  onClick={() => {
+                    if (isLoading) {return}
+
+                    const prompt = LANGUAGE_DATA[language].ui.explainSelectionPrompt.replace(
+                      "{selection}",
+                      selectedText
+                    );
+
+                    handleSendMessage(prompt);
+
+                    window.getSelection()?.removeAllRanges();
+                    setSelectedText(null);
+                  }}
+                >
+                  <Sparkles size={14}/>
+                  {LANGUAGE_DATA[language].ui.explainSelectionButton}
+                </button>,
+                document.body
+              )
+            }
           </main>
 
           {/* INPUT FOOTER (Only show in Chat Mode) */}

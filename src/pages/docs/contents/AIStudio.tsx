@@ -25,7 +25,6 @@ export default function AIStudio() {
           We avoid ambiguous aliases. By targeting specific builds, we guarantee <strong>behavioral stability</strong> and future-proof our socratic prompting logic against unexpected model shifts.
         </p>
         
-        {/* Updated Grid to include Stepfun-3.5 */}
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
           {[
             { 
@@ -61,6 +60,55 @@ export default function AIStudio() {
               <p className="text-[11px] text-slate-500 mt-3 leading-tight">{model.desc}</p>
             </div>
           ))}
+        </div>
+      </section>
+
+      {/* Augmented Search Layer (JigsawStack) */}
+      <section className="relative group">
+        <div className="absolute -inset-0.5 bg-gradient-to-r from-emerald-500/20 to-blue-500/20 rounded-2xl blur opacity-30"></div>
+        <div className="relative p-8 rounded-2xl bg-[#0f172a] border border-emerald-500/20">
+          <div className="flex flex-col md:flex-row gap-8 items-center">
+            <div className="flex-1 space-y-4">
+              <h3 className="text-xl font-bold text-white flex items-center gap-3">
+                <span className="p-2 bg-emerald-500/10 rounded-lg">
+                  <svg className="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                </span>
+                The Augmented Search Layer
+              </h3>
+              <p className="text-slate-400 text-sm leading-relaxed">
+                To eliminate hallucinations and ensure factual grounding, we integrate the <strong>JigsawStack Web Search API</strong>. When the Oracle detects a knowledge gap or requires real-time data—such as recent academic breakthroughs—it triggers a live search loop.
+              </p>
+              <div className="flex gap-6">
+                <div>
+                  <p className="text-[10px] uppercase tracking-widest text-emerald-500/60 font-bold mb-1">Provider</p>
+                  <p className="text-xs font-mono text-white">JigsawStack (Interfaze AI)</p>
+                </div>
+                <div>
+                  <p className="text-[10px] uppercase tracking-widest text-emerald-500/60 font-bold mb-1">Function</p>
+                  <p className="text-xs font-mono text-white">Real-time Grounding</p>
+                </div>
+              </div>
+            </div>
+            <div className="hidden lg:block w-px h-24 bg-white/10" />
+            <div className="flex-1">
+               <ul className="space-y-3">
+                  {[
+                    "Overcomes LLM training cutoffs",
+                    "Validates source citations in real-time",
+                    "Fetches latest open-access research papers",
+                    "Enhanced RAG (Retrieval-Augmented Generation)"
+                  ].map((item) => (
+                    /* Text size increased to text-sm here */
+                    <li key={item} className="flex items-center gap-2 text-sm text-slate-300">
+                      <div className="w-1 h-1 rounded-full bg-emerald-400" />
+                      {item}
+                    </li>
+                  ))}
+               </ul>
+            </div>
+          </div>
         </div>
       </section>
 

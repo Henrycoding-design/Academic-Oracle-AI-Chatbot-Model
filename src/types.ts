@@ -62,3 +62,17 @@ export interface QuizResult {
 export type ChatIntent = "agentic" | "fast" | "balance";
 
 export type ChatTailoringMode = "no" | "standard" | "always";
+
+export type GuardResult = {
+  web_search: boolean;
+  jailbreak: boolean;
+  reason: string;
+};
+
+export const PROVIDERS = ["gemini", "stepfun"] as const;
+
+export type Provider = typeof PROVIDERS[number];
+
+export const isValidProvider = (value: any): value is Provider => {
+  return PROVIDERS.includes(value);
+};
