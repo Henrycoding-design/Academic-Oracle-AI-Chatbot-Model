@@ -19,7 +19,7 @@ import ProfilePage from './ProfilePage.tsx';
 import { QuizView } from './components/QuizView'; // Added QuizView
 import { canSendMessage } from './services/sessionMarker.ts';
 import { InvalidAPIError } from './types';
-import { AppLanguage , LANGUAGE_DATA } from './lang/Language.tsx';
+import { AppLanguage , LANGUAGE_DATA, LoadingModeLabel } from './lang/Language.tsx';
 import { normalizeSummary } from './services/normalizeSummary.ts';
 import { isRushHourUTC } from './services/rushHours.ts';
 import { analyzePrompt } from './services/promptGuard.ts';
@@ -81,9 +81,7 @@ const SystemStatus: React.FC<{ status: 'ok' | 'loading' | 'error', model: string
     );
 };
 
-type LoadingModeLabel = "Agentic" | "Fast" | "Balanced" | "Standard" | "Web Search";
-
-const LoadingIndicator: React.FC<{ statusLabel: LoadingModeLabel }> = ({ statusLabel }) => (
+const LoadingIndicator: React.FC<{ statusLabel: string }> = ({ statusLabel }) => (
     <div className="flex items-start gap-3 my-4 justify-start">
         <div className="w-10 h-10 rounded-full bg-indigo-600 flex items-center justify-center text-white text-lg font-bold flex-shrink-0 shadow-lg border-2 border-white/20">
              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -95,7 +93,7 @@ const LoadingIndicator: React.FC<{ statusLabel: LoadingModeLabel }> = ({ statusL
                 <div className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-bounce" style={{ animationDelay: '0s' }}></div>
                 <div className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-bounce" style={{ animationDelay: '0.2s' }}></div>
                 <div className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-bounce" style={{ animationDelay: '0.4s' }}></div>
-                <span className="text-xs font-semibold uppercase tracking-[0.18em] text-indigo-500 dark:text-indigo-300 animate-pulse whitespace-nowrap">
+                <span className="text-xs font-semibold tracking-[0.18em] text-indigo-500 dark:text-indigo-300 animate-pulse whitespace-nowrap">
                     {statusLabel}
                 </span>
             </div>
@@ -677,7 +675,7 @@ const App: React.FC = () => {
         }
       } else if (isWebSearchLimitReached()){
         console.warn("Web Search Limit reaches");
-        alert("You have reached Web Search Quota. The model will fallback to knowlegde before 2024. Sorry for the inconvience!"); // replace this with language support
+        alert(LANGUAGE_DATA[language].ui.webSearchQuotaReached);
       }
 
       let fileContext = "";
@@ -1283,7 +1281,11 @@ const App: React.FC = () => {
                     />
                   );
                 })}
-                {isLoading && <LoadingIndicator statusLabel={loadingModeLabel} />}
+                {isLoading && (
+                  <LoadingIndicator
+                    statusLabel={LANGUAGE_DATA[language].ui.loadingModeLabels[loadingModeLabel]}
+                  />
+                )}
                 {error && (
                   <div className="bg-rose-100/80 dark:bg-rose-900/20 text-rose-600 p-4 rounded-2xl text-center my-6">
                     <p>{error}</p>

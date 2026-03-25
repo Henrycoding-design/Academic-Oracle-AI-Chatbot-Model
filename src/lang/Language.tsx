@@ -1,5 +1,7 @@
 export type AppLanguage = "en" | "fr" | "es" | "vi";
 
+export type LoadingModeLabel = "Agentic" | "Fast" | "Balanced" | "Standard" | "Web Search";
+
 export const LANGUAGE_DATA: Record<AppLanguage, {
   greeting: string;
   shortGreeting: string;
@@ -90,6 +92,8 @@ export const LANGUAGE_DATA: Record<AppLanguage, {
     placeholderMedium: string;
     placeholderShort: string;
     disclaimer: string;
+    webSearchQuotaReached: string;
+    loadingModeLabels: Record<LoadingModeLabel, string>;
   };
 }> = {
   en: {
@@ -183,6 +187,14 @@ export const LANGUAGE_DATA: Record<AppLanguage, {
       placeholderMedium: "Type your academic question…",
       placeholderShort: "Ask a question…",
       disclaimer: "Academic Oracle may generate inaccurate or incomplete information. Verify all results independently before relying on them.",
+      webSearchQuotaReached: "You have reached the Web Search quota. The model will fall back to knowledge from before 2024. Sorry for the inconvenience!",
+      loadingModeLabels: {
+        Agentic: "Agentic",
+        Fast: "Fast",
+        Balanced: "Balanced",
+        Standard: "Standard",
+        "Web Search": "Web Search",
+      },
     },
   },
   fr: {
@@ -276,6 +288,14 @@ export const LANGUAGE_DATA: Record<AppLanguage, {
       placeholderMedium: "Entrez votre question académique…",
       placeholderShort: "Posez une question…",
       disclaimer: "Oracle Académique peut générer des informations inexactes ou incomplètes. Vérifiez tous les résultats indépendamment avant de vous y fier.",
+      webSearchQuotaReached: "Vous avez atteint le quota de recherche Web. Le modèle reviendra à des connaissances antérieures à 2024. Désolé pour le désagrément !",
+      loadingModeLabels: {
+        Agentic: "Agentique",
+        Fast: "Rapide",
+        Balanced: "Équilibré",
+        Standard: "Standard",
+        "Web Search": "Recherche Web",
+      },
     },
   },
   es: {
@@ -369,6 +389,14 @@ export const LANGUAGE_DATA: Record<AppLanguage, {
       placeholderMedium: "Escribe tu pregunta académica…",
       placeholderShort: "Haz una pregunta…",
       disclaimer: "Oracle Académico puede generar información inexacta o incompleta. Verifica todos los resultados de forma independiente antes de confiar en ellos.",
+      webSearchQuotaReached: "Has alcanzado la cuota de búsqueda web. El modelo volverá a usar conocimiento anterior a 2024. ¡Perdón por las molestias!",
+      loadingModeLabels: {
+        Agentic: "Agéntico",
+        Fast: "Rápido",
+        Balanced: "Equilibrado",
+        Standard: "Estándar",
+        "Web Search": "Búsqueda web",
+      },
     },
   },
   vi: {
@@ -462,6 +490,14 @@ export const LANGUAGE_DATA: Record<AppLanguage, {
       placeholderMedium: "Nhập câu hỏi học tập của bạn…",
       placeholderShort: "Hỏi một câu hỏi…",
       disclaimer: "Academic Oracle có thể tạo ra thông tin không chính xác hoặc không đầy đủ. Xác minh tất cả kết quả độc lập trước khi dựa vào chúng.",
+      webSearchQuotaReached: "Bạn đã đạt giới hạn tìm kiếm web. Mô hình sẽ quay về phần kiến thức trước năm 2024. Xin lỗi vì sự bất tiện này!",
+      loadingModeLabels: {
+        Agentic: "Tác vụ thông minh",
+        Fast: "Nhanh",
+        Balanced: "Cân bằng",
+        Standard: "Tiêu chuẩn",
+        "Web Search": "Tìm kiếm web",
+      },
     },
   },
 };
