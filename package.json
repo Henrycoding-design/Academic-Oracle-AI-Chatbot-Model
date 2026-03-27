@@ -23,6 +23,7 @@
     "@google/genai": "^1.22.0",
     "@google/generative-ai": "^0.24.1",
     "@supabase/supabase-js": "^2.89.0",
+    "@tavily/core": "^0.7.2",
     "buffer": "^6.0.3",
     "docx": "^9.5.1",
     "file-saver": "^2.0.5",
