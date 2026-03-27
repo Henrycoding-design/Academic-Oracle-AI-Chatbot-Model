@@ -235,9 +235,19 @@ The long-term goal is to build *a universal academic cognition system* that scal
 
 ---
 
+## Official Repository
+
+This is the **official source repository** for **Academic Oracle AI Chatbot**.
+
+Canonical source:
+https://github.com/Henrycoding-design/Academic-Oracle-AI-Chatbot-Model
+
+Product link:
+https://academicoracle.onrender.com
+
 ## Credits
 
-**Academic Oracle** was designed and built by **Vo Tan Binh**.
+**Academic Oracle** was designed and built by **Vo Tan Binh (Henrycoding-design)**.
 
 This project represents original work in:
 - Learning-science–driven AI interaction design
@@ -245,7 +255,7 @@ This project represents original work in:
 - Closed-feedback AI tutoring systems
 - Secure, minimal, and distraction-free educational UX
 
-If you build upon this work, attribution is appreciated.
+If you build on this project, please **fork this repository** or provide clear attribution to the original source.
 
 ## Support
 
