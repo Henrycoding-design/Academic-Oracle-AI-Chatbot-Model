@@ -41,7 +41,7 @@ Create a local environment file with the values described in the README:
 ```bash
 VITE_SUPABASE_URL=YOUR_SUPABASE_URL
 VITE_SUPABASE_ANON_KEY=YOUR_SUPABASE_ANON_KEY
-VITE_JIGSAWSTACK_KEYS=YOUR_JIGSAWSTACK_API_KEYS
+VITE_JIGSAWSTACK_KEYS=YOUR_JIGSAWSTACK_API_KEY_1,YOUR_JIGSAWSTACK_API_KEY_2
 ```
 
 Important:
@@ -49,6 +49,14 @@ Important:
 - Do not commit secrets.
 - Do not reintroduce direct client-side AI provider keys.
 - AI provider keys should remain in the Supabase backend flow.
+
+Supabase Edge Function secrets:
+
+```bash
+GEMINI_KEYS=GEMINI_KEY_1,GEMINI_KEY_2
+STEPFUN_KEYS=STEPFUN_KEY_1,STEPFUN_KEY_2
+API_KEY_ENCRYPTION_SECRET=YOUR_ENCRYPTION_SECRET
+```
 
 ### Run Locally
 

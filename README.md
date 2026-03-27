@@ -159,12 +159,23 @@ npm install
 * Deploy Edge Functions
 
 3. Configure environment variables:
+
+Local secrets:
+
 ```bash
 VITE_SUPABASE_URL=YOUR_SUPABASE_URL
 VITE_SUPABASE_ANON_KEY=YOUR_SUPABASE_ANON_KEY
 
 # Only public key needed (web search)
 VITE_JIGSAWSTACK_KEY=YOUR_JIGSAWSTACK_API_KEY
+```
+
+Supabase Edge Function secrets:
+
+```bash
+GEMINI_KEYS=GEMINI_KEY_1,GEMINI_KEY_2
+STEPFUN_KEYS=STEPFUN_KEY_1,STEPFUN_KEY_2
+API_KEY_ENCRYPTION_SECRET=YOUR_ENCRYPTION_SECRET
 ```
 
 **⚠️ Important Changes (v2.3.0)**:
