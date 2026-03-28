@@ -1,5 +1,15 @@
 [
   {
+    "version": "2.3.1",
+    "date": "2026-03-28",
+    "changes": [
+      { "type": "improve", "text": "Refined Changelog and Documentation UI with a cleaner visual structure and more consistent content presentation." },
+      { "type": "fix", "text": "Resolved scroll window sticking issues affecting Changelog and Documentation panels during navigation." },
+      { "type": "improve", "text": "Improved layout behavior and viewport responsiveness for a smoother reading and browsing experience." },
+      { "type": "improve", "text": "Enhanced Docs interface robustness to reduce UI friction and improve overall usability stability." }
+    ]
+  },
+  {
     "version": "2.3.0",
     "date": "2026-03-24",
     "changes": [
