@@ -5,142 +5,159 @@ export default function GettingStarted() {
     window.history.pushState({}, "", "/quiz");
     window.dispatchEvent(new PopStateEvent("popstate"));
   }
+
   return (
-    <div className="space-y-16">
-      {/* Intro */}
-      <header>
-        <h1 className="text-5xl font-bold tracking-tight mb-4">The <span className="text-blue-400">Academic Oracle</span></h1>
-        <p className="text-xl text-white/50 max-w-2xl">
-          An intelligent pedagogical layer designed to move beyond simple information retrieval toward true cognitive mastery.
+    <div className="space-y-32">
+      {/* Intro Header */}
+      <header className="pt-10">
+        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 mb-6">
+          <span className="text-[10px] font-black uppercase tracking-[0.2em] text-blue-400">Documentation v2.3</span>
+        </div>
+        <h1 className="text-6xl font-black tracking-tighter mb-6">
+          The <span className="bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text text-transparent">Academic Oracle</span>
+        </h1>
+        <p className="text-xl text-slate-400 max-w-2xl leading-relaxed font-medium">
+          An intelligent pedagogical layer designed to move beyond simple information retrieval toward <span className="text-white">true cognitive mastery</span>.
         </p>
       </header>
 
-      {/* Learning Methods */}
-      <section className="space-y-10">
-        <h2 className="text-2xl font-semibold border-b border-white/10 pb-2">Learning Methods</h2>
+      {/* Learning Methods Section */}
+      <section className="space-y-16">
+        <div className="flex items-center gap-4">
+            <h2 className="text-3xl font-bold tracking-tight text-white">Learning Methods</h2>
+            <div className="h-[1px] flex-1 bg-gradient-to-r from-white/10 to-transparent" />
+        </div>
         
-        {/* The Socratic AI */}
-        <div className="grid md:grid-cols-2 gap-8 items-start">
-          <div className="space-y-4">
-            <h3 className="text-blue-400 text-lg font-medium">The Socratic AI</h3>
-            <p className="text-white/70 leading-relaxed">
-              We leverage the <strong>Socratic Method</strong>—a form of cooperative argumentative dialogue. Instead of providing direct answers, Academic Oracle uses <strong>strategic elenchus</strong> (probing) to expose contradictions in a student's logic and guide them to self-correction.
+        {/* The Socratic AI Card */}
+        <div className="grid md:grid-cols-2 gap-16 items-center">
+          <div className="space-y-6">
+            <div className="space-y-2">
+                <h3 className="text-blue-400 text-sm font-black uppercase tracking-widest">The Socratic AI</h3>
+                <p className="text-white text-2xl font-bold leading-snug">Strategic Elenchus & <br/>Discovery Loops</p>
+            </div>
+            <p className="text-slate-400 leading-relaxed text-lg">
+              Instead of providing direct answers, Academic Oracle uses <strong>strategic elenchus</strong> (probing) to expose contradictions in a student's logic and guide them to self-correction.
             </p>
-            <ul className="list-none p-0 space-y-2 text-sm text-white/60">
-              <li className="flex items-center gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-blue-500" />
-                Inquiry-based discovery loops
-              </li>
-              <li className="flex items-center gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-blue-500" />
-                Active recall stimulation
-              </li>
-              <li className="flex items-center gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-blue-500" />
-                Adaptive difficulty scaling
-              </li>
+            <ul className="grid grid-cols-1 gap-4 pt-4">
+              {[
+                "Inquiry-based discovery loops",
+                "Active recall stimulation",
+                "Adaptive difficulty scaling"
+              ].map((item) => (
+                <li key={item} className="flex items-center gap-3 text-sm text-slate-300 group">
+                  <div className="w-5 h-5 rounded-lg bg-blue-500/10 border border-blue-500/20 flex items-center justify-center group-hover:bg-blue-500/20 transition-colors">
+                    <div className="w-1.5 h-1.5 rounded-full bg-blue-400" />
+                  </div>
+                  {item}
+                </li>
+              ))}
             </ul>
           </div>
-          <div className="bg-white/5 border border-white/10 p-6 rounded-xl">
-             <h4 className="text-sm font-bold uppercase text-white/40 mb-4 tracking-wider">Effectiveness Metric</h4>
-             <div className="text-4xl font-light text-blue-300 mb-2">92%</div>
-             <p className="text-sm text-white/50">Engagement increase in students compared to traditional "Ask-and-Answer" AI models.</p>
-          </div>
-        </div>
-      </section>
 
-        {/* NEW SECTION: Dynamic Mastery Assessment (Quiz) */}
-        <div className="grid md:grid-cols-2 gap-8 items-start pt-4">
-          <div className="bg-gradient-to-br from-blue-500/5 to-purple-500/5 border border-white/10 p-6 rounded-xl order-2 md:order-1">
-            <h4 className="text-sm font-bold uppercase text-blue-400 mb-4 tracking-wider">Quiz Engine Features</h4>
-            <div className="space-y-4 text-sm text-white/60">
-              <div className="flex flex-col gap-1">
-                <span className="text-white font-medium">Hybrid Questioning</span>
-                <p>Seamlessly mix MCQs with AI-graded open-ended responses for deeper conceptual testing.</p>
+          <div className="relative group">
+            <div className="absolute -inset-1 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-3xl blur opacity-20 group-hover:opacity-40 transition duration-700" />
+            <div className="relative bg-[#0a0f1d] border border-white/10 p-10 rounded-3xl text-center md:text-left shadow-2xl">
+              <h4 className="text-[10px] font-black uppercase text-slate-500 mb-6 tracking-[0.3em]">Effectiveness Metric</h4>
+              <div className="flex items-baseline gap-2 mb-2 justify-center md:justify-start">
+                <span className="text-6xl font-black text-white">92</span>
+                <span className="text-3xl font-bold text-blue-400">%</span>
               </div>
-              <div className="flex flex-col gap-1">
-                <span className="text-white font-medium">Contextual Persistence</span>
-                <p>Quiz states and answers are cached in <code>sessionStorage</code> to prevent data loss during tab switching.</p>
-              </div>
-              <div className="flex flex-col gap-1">
-                <span className="text-white font-medium">Feedback Loops</span>
-                <p>Instant explanations with direct deep-links back to the Oracle Chat for remediation.</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="space-y-6 order-1 md:order-2"> {/* Increased space-y to 6 for better button separation */}
-            <div className="space-y-4">
-              <h3 className="text-blue-400 text-lg font-medium">Dynamic Mastery Assessment</h3>
-              <p className="text-white/70 leading-relaxed">
-                Transitioning from dialogue to validation, the <strong>Quiz Platform</strong> provides a rigorous check of the student’s mental model. Triggered automatically after mastery checks or accessed via the sidebar, it bridges the gap between conversation and retained knowledge.
+              <p className="text-sm text-slate-400 leading-relaxed font-medium">
+                Engagement increase in students compared to traditional "Ask-and-Answer" static models.
               </p>
-              <ul className="list-none p-0 space-y-2 text-sm text-white/60">
-                <li className="flex items-center gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-purple-500" />
-                  Memory-synced question generation
-                </li>
-                <li className="flex items-center gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-purple-500" />
-                  Customizable level & mix ratios
-                </li>
-                <li className="flex items-center gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-purple-500" />
-                  Automated session memory updates
-                </li>
-              </ul>
-            </div>
-
-            {/* NEW CALL TO ACTION BUTTON */}
-            <div className="pt-2">
-              <button className="px-6 py-2.5 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white text-sm font-medium rounded-lg transition-all shadow-lg shadow-purple-500/20 active:scale-95" onClick={goToQuiz}>
-                Try Quiz Now
-              </button>
             </div>
           </div>
         </div>
-
-      {/* Vision & Mission */}
-      <section className="bg-gradient-to-r from-blue-500/10 to-transparent p-8 rounded-2xl border-l-4 border-blue-500">
-        <h2 className="text-xl font-semibold mb-4">Vision & Mission</h2>
-        <div className="space-y-4">
-          <p className="italic text-lg text-white/80">
-            "To build the world's most accessible mentor by codifying the art of teaching into scalable architecture."
-          </p>
-          <p className="text-sm text-white/50 leading-relaxed">
-            We believe learning shouldn't be passive. Our vision is to replace the "search engine" mentality with a "tutor" mentality—where the goal is not to find the answer, but to understand the journey to it.
-          </p>
-        </div>
       </section>
 
-      {/* Anarchitecture & API */}
-      <section className="space-y-6">
-        <div className="flex items-center gap-4">
-          <h2 className="text-2xl font-semibold">Anarchitecture & AI Integration</h2>
-          <span className="px-2 py-1 text-[10px] font-bold bg-blue-500/20 text-blue-400 rounded border border-blue-500/30 uppercase tracking-tighter">
-            V2.0.0 Stable
-          </span>
+      {/* Dynamic Mastery Assessment (Quiz) */}
+      <section className="grid md:grid-cols-2 gap-20 items-center">
+        <div className="bg-white/[0.03] border border-white/5 p-10 rounded-[2.5rem] order-2 md:order-1 relative group overflow-hidden">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-purple-500/10 blur-[60px] rounded-full" />
+          
+          <h4 className="text-xs font-black uppercase text-purple-400 mb-8 tracking-widest flex items-center gap-2">
+            <span className="w-4 h-[1px] bg-purple-400" />
+            Engine Features
+          </h4>
+          <div className="space-y-8 relative">
+            {[
+              { title: "Hybrid Questioning", desc: "Seamlessly mix MCQs with AI-graded open-ended responses for deeper testing." },
+              { title: "Contextual Persistence", desc: "Quiz states are cached in sessionStorage to prevent data loss during session context shifts." },
+              { title: "Feedback Loops", desc: "Instant explanations with direct deep-links back to the Oracle for immediate remediation." }
+            ].map((f) => (
+              <div key={f.title} className="group/item">
+                <span className="text-white font-bold block mb-1 group-hover/item:text-purple-300 transition-colors">{f.title}</span>
+                <p className="text-sm text-slate-500 leading-relaxed">{f.desc}</p>
+              </div>
+            ))}
+          </div>
         </div>
 
-        <p className="text-white/70">
-          Academic Oracle is built on a modular <strong>Anarchitecture</strong> (Analytic Architecture) that cleanly separates
-          learning logic from AI inference. We leverage <strong>Google AI Studio</strong> as an external intelligence layer,
-          while the <strong>Oracle Core</strong> governs reasoning depth, pacing, and instructional intent.
-        </p>
-        
-        <div className="p-6 bg-[#0a0f1d] border border-white/5 rounded-xl flex flex-col md:flex-row justify-between items-center gap-6">
-          <div>
-            <h4 className="font-mono text-blue-400">gg-ai.integration.flow</h4>
-            <p className="text-sm text-white/40">
-              Learn how Google AI Studio is orchestrated within Academic Oracle’s guided learning pipeline.
+        <div className="space-y-8 order-1 md:order-2">
+          <div className="space-y-4">
+            <h3 className="text-purple-400 text-sm font-black uppercase tracking-widest">Assessment Layer</h3>
+            <h2 className="text-4xl font-bold text-white tracking-tight">Dynamic Mastery <br/><span className="italic font-serif">Assessment</span></h2>
+            <p className="text-slate-400 leading-relaxed text-lg">
+              Transitioning from dialogue to validation, the <strong>Quiz Platform</strong> bridges the gap between conversation and retained knowledge. Triggered automatically after mastery checks or accessed via the sidebar.
             </p>
           </div>
-          <a 
-            href="/docs/aistudio" 
-            className="px-6 py-2 bg-white text-black text-sm font-bold rounded-full hover:bg-blue-400 hover:text-white transition-all shadow-lg shadow-blue-500/10"
-          >
-            View Integration Docs
-          </a>
+
+          <div className="pt-4 flex flex-col sm:flex-row items-center gap-6">
+            <button 
+              className="w-full sm:w-auto px-10 py-4 bg-gradient-to-r from-purple-600 to-indigo-600 text-white text-xs font-black uppercase tracking-widest rounded-2xl transition-all shadow-xl shadow-purple-900/40 hover:scale-105 active:scale-95" 
+              onClick={goToQuiz}
+            >
+              Try Quiz Now
+            </button>
+            <span className="text-[10px] text-slate-500 font-mono uppercase tracking-widest">Sign-up required</span>
+          </div>
+        </div>
+      </section>
+
+      {/* Vision & Mission - "The Editorial Section" */}
+      <section className="relative py-20 px-10 rounded-[3rem] bg-gradient-to-b from-blue-500/10 to-transparent border border-white/5 overflow-hidden">
+        <div className="absolute -top-20 -left-20 w-64 h-64 bg-blue-400/10 blur-[100px] rounded-full" />
+        <div className="relative max-w-4xl mx-auto text-center space-y-10">
+          <h2 className="text-xs font-black text-blue-400 uppercase tracking-[0.4em]">Our Philosophy</h2>
+          <p className="text-3xl md:text-4xl font-medium text-white italic leading-tight text-balance">
+            "To build the world's most accessible mentor by codifying the art of teaching into <span className="text-blue-400 underline decoration-blue-500/30 underline-offset-8">scalable architecture</span>."
+          </p>
+          <p className="text-slate-500 text-lg leading-relaxed max-w-2xl mx-auto">
+            We believe learning shouldn't be passive. Our vision is to replace the "search engine" mentality with a "tutor" mentality—where the goal is not just the answer, but the journey.
+          </p>
+        </div>
+      </section>
+
+      {/* Architecture & API */}
+      <section className="space-y-5">
+        <div className="flex flex-col md:flex-row md:items-center gap-4 border-b border-white/5 pb-4">
+          <div className="flex items-center gap-4">
+            <h2 className="text-3xl font-bold text-white tracking-tight">Anarchitecture & Integration</h2>
+            <span className="px-3 py-1 text-[10px] font-black bg-emerald-500/10 text-emerald-400 rounded-full border border-emerald-500/20 uppercase tracking-[0.2em] whitespace-nowrap">
+              v2.3.x Stable
+            </span>
+          </div>
+        </div>
+
+        <div className="grid md:grid-cols-[1fr_400px] gap-12 items-center">
+            <p className="text-slate-400 text-lg leading-relaxed">
+              Academic Oracle is built on a modular <strong>Anarchitecture</strong> (Analytic Architecture) that cleanly separates learning logic from AI inference. We leverage <strong>Google AI Studio</strong> as an external intelligence layer, while the <strong>Oracle Core</strong> governs reasoning depth, pacing, and instructional intent.
+            </p>
+            
+            <div className="p-10 bg-[#060912] border border-white/10 rounded-3xl space-y-8 group hover:border-blue-500/40 transition-colors shadow-2xl">
+              <div className="space-y-3">
+                <code className="text-xs text-blue-400 font-black tracking-tighter block uppercase">system.integration.flow</code>
+                <p className="text-sm text-slate-500 leading-relaxed">
+                  Learn how Google AI Studio is orchestrated within Academic Oracle’s guided learning pipeline.
+                </p>
+              </div>
+              <a 
+                href="/docs/aistudio" 
+                className="block w-full text-center px-6 py-4 bg-white text-black text-xs font-black uppercase tracking-widest rounded-xl hover:bg-blue-50 transition-all shadow-lg"
+              >
+                Integration Docs
+              </a>
+            </div>
         </div>
       </section>
     </div>

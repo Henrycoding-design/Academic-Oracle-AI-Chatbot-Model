@@ -2,31 +2,33 @@ import React from "react";
 
 export default function ChatFlow() {
   return (
-    <div className="space-y-12 pb-20">
+    <div className="space-y-32">
       {/* Header Section */}
-      <section>
-        <h1 className="text-4xl font-extrabold tracking-tight bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent pb-2">
+      <section className="pt-10">
+        <h1 className="text-5xl font-black tracking-tighter bg-gradient-to-r from-blue-400 via-cyan-400 to-indigo-400 bg-clip-text text-transparent pb-4">
           The Learning Lifecycle
         </h1>
-        <p className="text-lg text-slate-400 leading-relaxed max-w-3xl text-balance">
-          Academic Oracle isn't just a chat interface; it is a seamless cognitive loop. We combine Socratic inquiry with high-performance engineering to keep students in the "Zone of Proximal Development."
+        <p className="text-xl text-slate-400 leading-relaxed max-w-3xl text-balance font-medium">
+          Academic Oracle isn't just a chat interface; it is a <span className="text-white">seamless cognitive loop</span>. We combine Socratic inquiry with high-performance engineering to keep students in the "Zone of Proximal Development."
         </p>
       </section>
 
       {/* The Cognitive Loop Section */}
-      <section className="p-8 rounded-3xl bg-white/5 border border-white/10 backdrop-blur-md relative overflow-hidden">
-        <div className="absolute top-0 right-0 p-4 opacity-10">
-          <svg className="w-28 h-28" fill="currentColor" viewBox="0 0 24 24">
+      <section className="p-10 rounded-[2.5rem] bg-white/[0.03] border border-white/10 backdrop-blur-md relative overflow-hidden group hover:border-blue-500/30 transition-colors duration-500">
+        <div className="absolute -top-24 -right-24 w-64 h-64 bg-blue-500/10 blur-[100px] rounded-full group-hover:bg-blue-500/20 transition-colors" />
+        
+        <div className="absolute top-0 right-0 p-6 opacity-20 group-hover:rotate-12 transition-transform duration-700">
+          <svg className="w-20 h-20 text-blue-400" fill="currentColor" viewBox="0 0 24 24">
             <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
           </svg>
         </div>
 
-        <h2 className="text-2xl font-semibold text-blue-300 mb-6">Uninterrupted Intelligence</h2>
+        <h2 className="text-3xl font-bold text-white mb-10 tracking-tight">Uninterrupted Intelligence</h2>
         
-        <div className="grid md:grid-cols-2 gap-10">
-          <div className="space-y-4">
-            <h4 className="text-white font-medium flex items-center gap-2">
-              <span className="p-1 rounded bg-blue-500/20 text-blue-400 text-xs">Logic</span>
+        <div className="grid md:grid-cols-2 gap-16">
+          <div className="space-y-4 relative">
+            <h4 className="text-white font-bold text-lg flex items-center gap-3">
+              <span className="px-2 py-0.5 rounded-md bg-blue-500/10 text-blue-400 border border-blue-500/20 text-[10px] uppercase tracking-widest font-black">Logic</span>
               Socratic Engine & Model Routing
             </h4>
             <p className="text-sm text-slate-400 leading-relaxed">
@@ -34,9 +36,9 @@ export default function ChatFlow() {
             </p>
           </div>
 
-          <div className="space-y-4">
-            <h4 className="text-white font-medium flex items-center gap-2">
-              <span className="p-1 rounded bg-cyan-500/20 text-cyan-400 text-xs">State</span>
+          <div className="space-y-4 relative">
+            <h4 className="text-white font-bold text-lg flex items-center gap-3">
+              <span className="px-2 py-0.5 rounded-md bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 text-[10px] uppercase tracking-widest font-black">State</span>
               Dynamic User Profiling
             </h4>
             <p className="text-sm text-slate-400 leading-relaxed">
@@ -47,99 +49,113 @@ export default function ChatFlow() {
       </section>
 
       {/* NEW: Contextual Clarification (Explain on Select) */}
-      <section className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+      <section className="grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
         <div className="order-2 md:order-1 relative group">
-          <div className="absolute -inset-1 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-2xl blur opacity-25 group-hover:opacity-50 transition duration-1000"></div>
-          <div className="relative bg-[#0f172a] border border-white/10 p-6 rounded-2xl">
-            <div className="flex flex-col gap-3">
-              <div className="bg-white/5 p-3 rounded-lg border border-white/5">
-                <p className="text-xs text-slate-300 italic">"Quantum entanglement is a physical phenomenon..."</p>
-                <div className="mt-4 flex gap-2">
-                  <span className="px-2 py-1 bg-blue-600 text-[10px] text-white rounded shadow-lg animate-bounce">Explain this</span>
+          <div className="absolute -inset-4 bg-gradient-to-r from-blue-500/20 to-cyan-500/20 rounded-[2rem] blur-2xl opacity-0 group-hover:opacity-100 transition duration-700"></div>
+          <div className="relative bg-[#0a0f1a] border border-white/10 p-8 rounded-3xl shadow-2xl">
+            <div className="flex flex-col gap-4">
+              <div className="bg-white/5 p-5 rounded-xl border border-white/5 relative">
+                <p className="text-sm text-slate-300 italic leading-relaxed">
+                  "Quantum entanglement is a physical phenomenon..."
+                </p>
+                {/* Floating Tooltip Mockup */}
+                <div className="absolute -bottom-4 right-10 flex gap-2">
+                  <span className="px-3 py-1.5 bg-blue-600 text-xs font-bold text-white rounded-lg shadow-[0_10px_20px_rgba(37,99,235,0.4)] flex items-center gap-2 animate-bounce">
+                    <span className="text-[10px]">✨</span> Explain this
+                  </span>
                 </div>
               </div>
-              <p className="text-[10px] text-slate-500 font-mono uppercase tracking-tighter">Feature: Text-Selection Trigger</p>
+              <div className="flex items-center justify-between mt-2">
+                <p className="text-[10px] text-slate-500 font-mono uppercase tracking-[0.2em]">Feature: Selection Trigger</p>
+                <div className="flex gap-1">
+                    <div className="w-1 h-1 rounded-full bg-blue-500/40" />
+                    <div className="w-1 h-1 rounded-full bg-blue-500/40" />
+                    <div className="w-1 h-1 rounded-full bg-blue-500/40" />
+                </div>
+              </div>
             </div>
           </div>
         </div>
-        <div className="order-1 md:order-2 space-y-4">
-          <h3 className="text-xl font-bold text-white">Frictionless Deep-Dives</h3>
-          <p className="text-slate-400 text-sm leading-relaxed">
+        <div className="order-1 md:order-2 space-y-6">
+          <h3 className="text-3xl font-bold text-white tracking-tight">Frictionless <br/><span className="text-blue-400">Deep-Dives</span></h3>
+          <p className="text-slate-400 leading-relaxed">
             Never leave the flow to search for a definition. Our <strong>"Explain on Select"</strong> feature allows students to highlight any term or sentence to trigger an immediate, Socratic follow-up without losing their place in the conversation.
           </p>
         </div>
       </section>
 
       {/* NEW: Augmented Search & Guardrails */}
-      <section className="p-8 rounded-3xl bg-gradient-to-b from-white/5 to-transparent border border-white/10">
-        <div className="flex items-center gap-3 mb-6">
-          <div className="p-2 bg-emerald-500/20 rounded-lg">
-            <svg className="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <section className="p-10 rounded-[2.5rem] bg-gradient-to-br from-white/[0.05] to-transparent border border-white/10">
+        <div className="flex items-center gap-4 mb-10">
+          <div className="p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-xl">
+            <svg className="w-6 h-6 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04a11.735 11.735 0 00-1.59 7.477c.282 1.499 1.05 2.872 2.103 3.93a11.954 11.954 0 0015.536 0c1.053-1.058 1.822-2.43 2.103-3.93a11.732 11.732 0 00-1.59-7.477z" />
             </svg>
           </div>
-          <h3 className="text-xl font-bold text-white">Augmented Intelligence & Safety</h3>
+          <h3 className="text-2xl font-bold text-white tracking-tight">Safety & Grounding</h3>
         </div>
-        <div className="grid md:grid-cols-2 gap-8">
-          <div className="space-y-2">
-            <h5 className="text-emerald-400 text-sm font-semibold">Real-time Web Search (JigsawStack)</h5>
-            <p className="text-xs text-slate-400 leading-relaxed">
-              When textbooks aren't enough, the Oracle leverages <strong>JigsawStack (Interfaze AI)</strong> to pull real-time academic papers and news, grounding every response in verified, current data.
+        <div className="grid md:grid-cols-2 gap-12">
+          <div className="space-y-3">
+            <h5 className="text-emerald-400 text-sm font-bold uppercase tracking-widest">Real-time Web Search</h5>
+            <p className="text-sm text-slate-400 leading-relaxed">
+              When textbooks aren't enough, the Oracle leverages <strong>JigsawStack</strong> to pull academic papers and real-world news, grounding every response in verified, current data.
             </p>
           </div>
-          <div className="space-y-2">
-            <h5 className="text-red-400 text-sm font-semibold">Jailbreak Prevention System</h5>
-            <p className="text-xs text-slate-400 leading-relaxed">
-              A dedicated <strong>Interfaze-shielded guardrail</strong> analyzes incoming prompts to block prompt injection and bypass attempts, ensuring the Oracle remains a safe, academic-focused environment.
+          <div className="space-y-3 border-l border-white/5 pl-8">
+            <h5 className="text-rose-400 text-sm font-bold uppercase tracking-widest">Jailbreak Prevention</h5>
+            <p className="text-sm text-slate-400 leading-relaxed">
+              A dedicated <strong>Interfaze-shielded guardrail</strong> analyzes prompts to block injections, ensuring the Oracle remains a safe, strictly academic environment.
             </p>
           </div>
         </div>
       </section>
 
       {/* The Validation Loop (Quiz Platform) */}
-      <section className="space-y-8">
-        <div className="flex flex-col md:flex-row justify-between items-end gap-4">
+      <section className="space-y-12">
+        <div className="flex flex-col md:flex-row justify-between items-end gap-6 border-b border-white/5 pb-8">
           <div className="max-w-xl">
-            <h3 className="text-xl font-bold text-white mb-2">The Validation Loop</h3>
-            <p className="text-slate-400 text-sm">
-              Once the Oracle detects conceptual mastery via chat, it triggers a <strong>React-native modal</strong> prompting a short quiz. This isn't a separate app—it's a synchronized state that pulls directly from your session's memory.
+            <h3 className="text-3xl font-bold text-white mb-4 tracking-tight">The Validation Loop</h3>
+            <p className="text-slate-400 leading-relaxed text-sm md:text-base">
+              Once the Oracle detects conceptual mastery, it triggers a <strong>synchronized state</strong> quiz. It isn't a separate app—it's a persistent memory layer that builds your profile in real-time.
             </p>
           </div>
-          <div className="flex gap-2">
-            <div className="h-2 w-8 rounded-full bg-blue-500" />
-            <div className="h-2 w-8 rounded-full bg-blue-500/30" />
-            <div className="h-2 w-8 rounded-full bg-blue-500/10" />
+          <div className="flex gap-1.5 pb-2">
+            <div className="h-1.5 w-12 rounded-full bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.5)]" />
+            <div className="h-1.5 w-6 rounded-full bg-white/10" />
+            <div className="h-1.5 w-6 rounded-full bg-white/10" />
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="p-5 rounded-2xl bg-[#0f172a] border border-white/5 space-y-3">
-            <div className="w-8 h-8 rounded-lg bg-blue-500/20 flex items-center justify-center text-blue-400 text-sm font-bold">1</div>
-            <h5 className="text-white font-semibold text-sm">Automated Config</h5>
-            <p className="text-xs text-slate-500">Auto-selects level and MCQ/Open-answer ratios based on Oracle session memory.</p>
-          </div>
-          <div className="p-5 rounded-2xl bg-[#0f172a] border border-white/5 space-y-3">
-            <div className="w-8 h-8 rounded-lg bg-purple-500/20 flex items-center justify-center text-purple-400 text-sm font-bold">2</div>
-            <h5 className="text-white font-semibold text-sm">Deep-Link Remediation</h5>
-            <p className="text-xs text-slate-500">Wrong answers trigger AI explanations with buttons to "Re-ask Oracle" with full context auto-injected.</p>
-          </div>
-          <div className="p-5 rounded-2xl bg-[#0f172a] border border-white/5 space-y-3">
-            <div className="w-8 h-8 rounded-lg bg-cyan-500/20 flex items-center justify-center text-cyan-400 text-sm font-bold">3</div>
-            <h5 className="text-white font-semibold text-sm">Memory Sync</h5>
-            <p className="text-xs text-slate-500">Quiz performance is cached in <code>sessionStorage</code> and can be exported into your final .docx summary.</p>
-          </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {[
+            { id: "01", label: "Automated Config", color: "blue", text: "Auto-selects level and MCQ/Open-answer ratios based on Oracle session memory." },
+            { id: "02", label: "Deep-Link Remediation", color: "purple", text: "Wrong answers trigger AI explanations with buttons to 'Re-ask Oracle' with context." },
+            { id: "03", label: "Memory Sync", color: "cyan", text: "Performance is cached in session and exported into your final .docx summary." }
+          ].map((item) => (
+            <div key={item.id} className="p-8 rounded-3xl bg-white/[0.02] border border-white/5 hover:bg-white/[0.05] hover:border-blue-500/20 transition-all duration-300 group">
+              <div className={`text-xs font-black mb-6 text-${item.color}-400 flex items-center gap-2`}>
+                <span className={`w-6 h-6 rounded-full border border-${item.color}-400/30 flex items-center justify-center`}>{item.id}</span>
+                PHASE
+              </div>
+              <h5 className="text-white font-bold text-lg mb-3 group-hover:text-white transition-colors">{item.label}</h5>
+              <p className="text-xs text-slate-500 leading-relaxed">{item.text}</p>
+            </div>
+          ))}
         </div>
       </section>
 
       {/* Visual Rendering Section */}
-      <section className="space-y-6">
-        <h3 className="text-xl font-bold text-white italic">Premium Academic Rendering</h3>
-        <p className="text-slate-400 text-sm">
+      <section className="space-y-8 py-10">
+        <div className="inline-block px-3 py-1 rounded-full bg-white/5 border border-white/10 text-[10px] font-bold text-slate-400 uppercase tracking-[0.3em]">
+            Visual Standards
+        </div>
+        <h3 className="text-3xl font-bold text-white italic tracking-tight">Premium Academic Rendering</h3>
+        <p className="text-slate-400 max-w-2xl leading-relaxed">
           Communication is clearer when it's beautiful. Our UI supports high-fidelity rendering for complex subjects:
         </p>
         <div className="flex flex-wrap gap-3">
-          {["LaTeX & KaTeX", "Syntactic Code Blocks", "Interactive Tables", "Markdown Prose"].map((tag) => (
-            <span key={tag} className="px-3 py-1 rounded-full border border-white/10 bg-white/5 text-[11px] font-mono text-blue-400">
+          {["LaTeX & KaTeX", "Syntactic Code Blocks", "Interactive Tables", "Markdown Prose", "Adaptive Diagrams"].map((tag) => (
+            <span key={tag} className="px-4 py-2 rounded-xl border border-white/10 bg-white/5 text-xs font-mono text-blue-300 hover:border-blue-500/50 hover:bg-blue-500/5 transition-all cursor-default">
               {tag}
             </span>
           ))}
@@ -147,41 +163,47 @@ export default function ChatFlow() {
       </section>
 
       {/* Export & Master Check */}
-      <section className="grid md:grid-cols-[1fr_300px] gap-8 items-center bg-gradient-to-br from-blue-600/10 to-transparent p-8 rounded-2xl border border-blue-500/20">
-        <div className="space-y-4">
-          <div className="flex items-center gap-2">
-            <h2 className="text-2xl font-bold text-white">Mastery & Portability</h2>
-            <span className="text-[10px] bg-white/10 px-2 py-0.5 rounded text-slate-400 border border-white/10">v2.0</span>
+      <section className="grid md:grid-cols-[1fr_350px] gap-12 items-center bg-gradient-to-br from-blue-600/15 via-blue-600/5 to-transparent p-12 rounded-[3rem] border border-blue-500/20 relative overflow-hidden group">
+        <div className="space-y-6">
+          <div className="flex items-center gap-3">
+            <h2 className="text-3xl font-bold text-white tracking-tight">Mastery & Portability</h2>
+            <span className="text-[10px] bg-blue-500/20 px-2 py-0.5 rounded text-blue-300 border border-blue-500/20 font-bold uppercase">Enterprise Grade</span>
           </div>
-          <p className="text-slate-400 leading-relaxed">
-            At the end of a session, the "Summary" button generates a structured <strong>.docx revision guide</strong>. By opting to "Add Quiz to Memory," your results and focus fields are automatically woven into the document.
+          <p className="text-slate-400 leading-relaxed text-lg">
+            At the end of a session, the "Summary" button generates a structured <span className="text-white font-semibold">.docx revision guide</span>. Your results and focus fields are automatically woven into the document.
           </p>
-          <ul className="grid grid-cols-2 gap-2 text-xs text-white/60">
-            <li className="flex items-center gap-2">✓ Real-world Case Studies</li>
-            <li className="flex items-center gap-2">✓ AI-Graded Open Answers</li>
-            <li className="flex items-center gap-2">✓ Focused Revision Fields</li>
-            <li className="flex items-center gap-2">✓ Mastery Scorecards</li>
+          <ul className="grid grid-cols-2 gap-4 text-sm text-white/70">
+            <li className="flex items-center gap-2 font-medium"><span className="text-blue-400">✦</span> Real-world Case Studies</li>
+            <li className="flex items-center gap-2 font-medium"><span className="text-blue-400">✦</span> Mastery Scorecards</li>
+            <li className="flex items-center gap-2 font-medium"><span className="text-blue-400">✦</span> Focused Revision Fields</li>
+            <li className="flex items-center gap-2 font-medium"><span className="text-blue-400">✦</span> AI-Graded Answers</li>
           </ul>
         </div>
         
-        <div className="flex flex-col gap-3">
-          <div className="p-4 bg-black/40 rounded-xl border border-white/5 text-center group">
-            <p className="text-[10px] text-white/40 uppercase tracking-widest mb-2 font-bold group-hover:text-blue-400 transition-colors">Session Output</p>
-            <div className="text-xs font-mono text-blue-400 truncate">Academic_Oracle_Summary.docx</div>
-            <button className="mt-4 w-full py-2 bg-blue-500 hover:bg-blue-400 text-white text-xs font-bold rounded transition-colors shadow-lg shadow-blue-500/20">
-              Download Summary
+        <div className="relative">
+          <div className="p-8 bg-[#050810] rounded-3xl border border-white/10 text-center shadow-2xl transform group-hover:-translate-y-2 transition-transform duration-500">
+            <div className="w-16 h-16 bg-blue-600/20 rounded-2xl mx-auto mb-6 flex items-center justify-center">
+                <svg className="w-8 h-8 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+            </div>
+            <p className="text-[10px] text-blue-400 uppercase tracking-[0.2em] mb-2 font-black">Ready for Export</p>
+            <div className="text-xs font-mono text-white/60 truncate bg-white/5 p-2 rounded-lg">Summary_v2.docx</div>
+            <button className="mt-6 w-full py-4 bg-blue-600 hover:bg-blue-500 text-white text-sm font-black rounded-xl transition-all shadow-lg shadow-blue-900/40 uppercase tracking-widest">
+              Download
             </button>
           </div>
         </div>
       </section>
 
       {/* Closing Call to Action */}
-      <section className="text-center py-10">
-        <h4 className="text-white text-lg font-medium mb-2 text-balance">The ultimate learning flow, for all ages, anywhere.</h4>
-        <p className="text-slate-500 text-sm mb-6">Ready to experience the future of pedagogy?</p>
+      <section className="text-center py-10 relative">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-blue-500/5 blur-[120px] -z-10" />
+        <h4 className="text-3xl font-bold text-white mb-4 tracking-tight">The future of pedagogy is flow.</h4>
+        <p className="text-slate-500 text-lg mb-10 max-w-xl mx-auto">Ready to experience uninterrupted intelligence?</p>
         <a 
           href="/" 
-          className="inline-flex items-center px-8 py-3 bg-white text-black font-bold rounded-full hover:scale-105 transition-transform"
+          className="inline-flex items-center px-12 py-4 bg-white text-black font-black rounded-2xl hover:bg-blue-50 transition-all hover:scale-105 active:scale-95 shadow-[0_20px_40px_rgba(255,255,255,0.1)]"
         >
           Launch Oracle Session
         </a>

@@ -1,97 +1,81 @@
 [
   {
-    "version": "1.0.0",
-    "date": "2026-01-12",
+    "version": "2.3.0",
+    "date": "2026-03-24",
     "changes": [
-      "Reduced response latency",
-      "Refined UI animations",
-      "Fixed routing-related bugs",
-      "Added skip option for API setup"
-    ]
-  },
-  {
-    "version": "1.1.0",
-    "date": "2026-01-25",
-    "changes": [
-      "Improved response quality",
-      "Refined AI prompts for better contextual understanding",
-      "Fixed API-related bugs",
-      "Integrated full website ecosystem"
-    ]
-  },
-  {
-    "version": "2.0.0",
-    "date": "2026-02-14",
-    "changes": [
-      "Launched Academic Oracle AI Learning System",
-      "Integrated Quiz Platform with closed-feedback learning loop",
-      "Unified routing architecture with route-driven state management",
-      "Implemented multi-model fallback chain with dynamic load balancing",
-      "Improved Socratic dialogue flow and adaptive reasoning depth",
-      "Enhanced session summaries with contextual memory refinement",
-      "Reduced model error rates and improved response reliability",
-      "Separated quota handling between Chat and Quiz systems",
-      "Smoothed UI transitions and interaction flows",
-      "Upgraded Arcade demos, documentation, and release structure"
-    ]
-  },
-  {
-    "version": "2.1.0",
-    "date": "2026-02-17",
-    "changes": [
-      "Better UI/UX chat handling with smoother interaction logic",
-      "Improved multi-language support and localization handling",
-      "Smoothed Socratic dialogue flow with enhanced reasoning continuity",
-      "More robust and reliable chatbot responses across edge cases",
-      "Enhanced conversational stability and adaptive response depth",
-      "Refined overall system polish and response consistency"
-    ]
-  },
-  {
-    "version": "2.2.0",
-    "date": "2026-02-19",
-    "changes": [
-      "Introduced race-based model routing for faster and more adaptive response selection",
-      "Significantly improved system resilience and failure recovery handling",
-      "Integrated StepFun 3.5 model into the adaptive routing pipeline",
-      "Preserved draft prompts and responses across tab switches and unexpected closures",
-      "Enhanced overall session stability under high-load conditions"
-    ]
-  },
-  {
-    "version": "2.2.5",
-    "date": "2026-03-03",
-    "changes": [
-      "Refined chat input UI to dynamically expand on multiline input without covering conversation content",
-      "Enhanced adaptive prompt logic for both chat and quiz modes with improved confidence-based pacing",
-      "Expanded Socratic engine techniques to include flip questioning, verification checks, practical applications, theoretical framing, and abstract reasoning transitions",
-      "Improved guided-thinking flow to better scale difficulty before escalation",
-      "Strengthened response coherence and instructional stability across varying learner profiles"
+      { "type": "security", "text": "Migrated AI orchestration to Supabase Edge Functions with AES-GCM-256 encryption and zero-client API key exposure." },
+      { "type": "feature", "text": "Introduced context-aware 'Explain on Select' for instant Socratic follow-ups from highlighted text." },
+      { "type": "feature", "text": "Integrated JigsawStack Web Search API for real-time factual grounding and web parsing." },
+      { "type": "improve", "text": "Developed multi-modal execution pipeline with 5 specialized routing modes (Standard, Fast, Balanced, Agentic, Web Search)." },
+      { "type": "security", "text": "Implemented Prompt Security Layer with jailbreak detection and pedagogical input sanitation." },
+      { "type": "improve", "text": "Added real-time Loading Status Text Bar to visualize AI cognitive processing stages." },
+      { "type": "internal", "text": "Upgraded core stack to React 19, Vite 6, and TypeScript 5.8 with non-blocking UI architecture." }
     ]
   },
   {
     "version": "2.2.7",
     "date": "2026-03-08",
     "changes": [
-      "Enhanced Socratic learning prompts with deeper guided reasoning, encouraging learners to derive concepts before explanation and reinforcing reflection through self-checking",
-      "Expanded mathematics and science teaching support with clearer step-by-step reasoning, conceptual scaffolding, and built-in verification checks",
-      "Improved instructional flow and adaptive pacing to smoothly transition between intuition, formal explanation, and practical application while preventing cognitive overload",
-      "Reduced formatting and rendering inconsistencies by tightening response structure for equations, lists, and technical explanations while improving prompt stability"
+      { "type": "improve", "text": "Enhanced Socratic prompts to prioritize conceptual derivation before formal explanation." },
+      { "type": "improve", "text": "Expanded Math & Science scaffolding with clearer step-by-step verification checks." },
+      { "type": "fix", "text": "Tightened response structure to resolve formatting inconsistencies in LaTeX equations and technical lists." }
     ]
   },
   {
-    "version": "2.3.0",
-    "date": "2026-03-24",
+    "version": "2.2.5",
+    "date": "2026-03-03",
     "changes": [
-      "Migrated entire AI orchestration layer to Supabase Edge Functions, achieving zero-client exposure of API keys and implementing AES-GCM-256 encryption for production-grade security.",
-      "Introduced a context-aware 'Explain on Select' feature, allowing students to trigger Socratic follow-ups and deep-dives directly from highlighted text without breaking learning flow.",
-      "Integrated JigsawStack Web Search API to provide real-time factual grounding and high-fidelity parsing of dynamic web content, overcoming LLM training cutoffs.",
-      "Developed a multi-modal execution pipeline with five specialized routing modes (Standard, Fast, Balanced, Agentic, Web Search) to optimize for query complexity and latency.",
-      "Implemented a dedicated Prompt Security Layer featuring jailbreak detection, input sanitation, and response shaping to maintain pedagogical integrity and prevent misuse.",
-      "Enhanced UI transparency with a real-time Loading Status Text Bar, providing learners with visibility into the AI's current cognitive state and processing stage.",
-      "Upgraded core tech stack to React 19, Vite 6, and TypeScript 5.8, while implementing a non-blocking UI architecture for graceful degradation and error handling."
+      { "type": "improve", "text": "Refined chat input UI to expand dynamically without obstructing active conversation content." },
+      { "type": "improve", "text": "Expanded Socratic engine techniques including flip questioning and abstract reasoning transitions." },
+      { "type": "improve", "text": "Enhanced adaptive prompt logic for improved confidence-based pacing in Quiz modes." }
+    ]
+  },
+  {
+    "version": "2.2.0",
+    "date": "2026-02-19",
+    "changes": [
+      { "type": "improve", "text": "Introduced race-based model routing for low-latency, adaptive response selection." },
+      { "type": "feature", "text": "Integrated StepFun 3.5 model into the adaptive routing pipeline." },
+      { "type": "improve", "text": "Implemented local draft preservation for prompts and responses across tab switches or closures." },
+      { "type": "internal", "text": "Hardened system resilience and failure recovery handling under high-load conditions." }
+    ]
+  },
+  {
+    "version": "2.1.0",
+    "date": "2026-02-17",
+    "changes": [
+      { "type": "improve", "text": "Enhanced multi-language support and localization handling for global learners." },
+      { "type": "improve", "text": "Smoothed Socratic dialogue flow for better reasoning continuity." },
+      { "type": "fix", "text": "Resolved edge-case stability issues to ensure more robust chatbot responses." }
+    ]
+  },
+  {
+    "version": "2.0.0",
+    "date": "2026-02-14",
+    "changes": [
+      { "type": "feature", "text": "Launched Academic Oracle AI Learning System." },
+      { "type": "feature", "text": "Integrated Quiz Platform with closed-feedback learning loops." },
+      { "type": "internal", "text": "Unified routing architecture with route-driven state management." },
+      { "type": "improve", "text": "Implemented multi-model fallback chain with dynamic load balancing." },
+      { "type": "improve", "text": "Separated quota handling between Chat and Quiz systems." }
+    ]
+  },
+  {
+    "version": "1.1.0",
+    "date": "2026-01-25",
+    "changes": [
+      { "type": "improve", "text": "Refined AI prompts for deeper contextual understanding and response quality." },
+      { "type": "feature", "text": "Integrated full website ecosystem." },
+      { "type": "fix", "text": "Fixed various API-related bugs and connectivity issues." }
+    ]
+  },
+  {
+    "version": "1.0.0",
+    "date": "2026-01-12",
+    "changes": [
+      { "type": "improve", "text": "Reduced response latency and refined UI animations." },
+      { "type": "feature", "text": "Added skip option for initial API setup." },
+      { "type": "fix", "text": "Resolved routing-related bugs in the initial build." }
     ]
   }
 ]
-
-
