@@ -614,7 +614,7 @@ export const sendMessageToBotRace = async (params: {
     else {
       console.log("Using balanced strategy for this request");
       raceResult = await raceModels([
-        () => callGemini("gemini-3-flash-preview"),
+        () => callGemini("gemini-2.5-flash"),
         () => callStepFun()
       ]);
     }
