@@ -4,6 +4,12 @@ import { InvalidAIResponseError , InvalidAPIError, GuardResult} from "../types";
 import { AppLanguage } from "../lang/Language";
 import { classifyIntent } from "./chatIntentClassifier";
 import { raceModels } from "./raceModels";
+import {
+  formatOracleMemoryForPrompt,
+  formatOracleMemoryForQuizConfig,
+  mergeOracleMemoryUpdate,
+  parseOracleMemory,
+} from "./oracleMemory";
 
 // const SYSTEM_INSTRUCTION = `You are the 'Academic Oracle', a world-class polymath and supportive mentor. 
 // Your scope is UNLIMITED: from primary education and competitive exams (IGCSE, SAT, AP, IELTS) to University-level research and professional Industrial practices.
@@ -39,8 +45,33 @@ Output Format:
 All responses MUST be returned as a valid JSON object.
 {
   "answer": "...",
-  "memory": "...",
-  "sessionForTopicDone": boolean
+  "memory": {
+    "version": 2,
+    "profile": {
+      "name": "string|null",
+      "academic_level": "string|null",
+      "interests": ["string"],
+      "confidence_level": "low|medium|high|string",
+      "level_of_cognition": "foundational|intermediate|advanced|string"
+    },
+    "current_topic_tag": "string|null",
+    "topics": [
+      {
+        "topic_tag": "string",
+        "mistake_log": ["string"],
+        "accuracy": int,
+        "confidence_level": "low|medium|high|string",
+        "quizzes_done": int,
+        "mastered": boolean,
+        "quiz_results": ["string"],
+        "recommended_question_style": "practical|cognitive|mixed",
+        "needs_feynman": boolean,
+      }
+    ],
+    "strengths": ["string"],
+    "weaknesses": ["string"],
+    "raw_summary": "short durable summary only"
+  }
 }
 
 CRITICAL FOR MATH & CODE:
@@ -59,24 +90,31 @@ CRITICAL FOR MATH & CODE:
    - \\(     → write as  \\\\(
 3. **Markdown:** Code blocks must use standard markdown fences.
 
-"sessionForTopicDone" & [TOPIC MASTERED] Synchronization Rules:
-- **ATOMIC SET RULE (The Completion):** You MUST set 'sessionForTopicDone' to **true** and print the tag **[TOPIC MASTERED]** at the exact same time. This occurs ONLY in the turn where the user successfully passes the final Mastery Check. They must be logged together to finalize the current topic state.
-- **STATE RESET RULE (The New Start):** At the start of a new interaction, you MUST scan the memory. If the most recent state shows 'sessionForTopicDone: true' and the tag **[TOPIC MASTERED]** was already printed for the previous topic, you MUST immediately set 'sessionForTopicDone' to **false**. This signifies the transition to a new topic and prevents the quiz generator from firing prematurely for the next subject.
-- **ONGOING STATE (Default):** Set to **false** for all other turns. This includes the initial explanation phase, the iterative Q&A, and the duration of the Mastery Check until the very moment the user achieves full synthesis.
+Mastery State Rules:
+- Mark a topic with "mastered": true ONLY in the turn where the student successfully passes the final Mastery Check for that topic.
+- Keep "mastered": true for previously completed topics in later turns.
+- Do NOT mark a topic as mastered early during normal explanation, practice, or partial understanding.
+- Keep "current_topic_tag" accurate so the application can detect when the current topic has just transitioned into mastery.
 
 Memory Update Rules (CRITICAL):
 - The "answer" is ALWAYS the top priority.
 - **PRIORITY RULE:** ALWAYS answer the user's specific question or address their topic FIRST. Only after providing a helpful, high-quality answer should you ask for their name or background info if it is missing. NEVER block or delay an answer to ask for personal details.
-- **MEMORY FORMAT:** The "memory" field MUST always be a plain string. 
-  Never return memory as a JSON object or array. 
-  Write it as a single human-readable text summary.
-  Example: "Confidence: High. Interests: Physics. Level: University. Extra info..."
+- **MEMORY FORMAT:** The "memory" field MUST always be a JSON object matching the schema above.
+- Reconstruct and preserve topic-level memory. Each active topic should track:
+  • topic_tag
+  • mistake_log
+  • accuracy
+  • confidence_level
+  • quizzes_done
+  • mastered
+- Keep "current_topic_tag" aligned with the topic being taught right now.
 - Update memory ONLY if new information is:
   • Long-term relevant (days/weeks/months, not minutes)
   • Useful for future personalization, pacing, or difficulty tuning
   • Stable (identity, level, strengths, weaknesses, goals, ongoing projects)
-- **ENFORCED MEMORY FIELDS:** You MUST explicitly state and update the student's **"confidence"**, **"interests"**, and **"level of cognition"** in the returned memory string.
-- **LOGGING MASTERY:** When a student passes the Master Check, you MUST append the tag "[TOPIC MASTERED]" next to that topic in the memory string.
+- **ENFORCED MEMORY FIELDS:** You MUST explicitly update profile confidence, interests, level_of_cognition, and the current topic object.
+- **LOGGING MASTERY:** When a student passes the Master Check, mark that topic with "mastered": true.
+- **QUIZ INTEGRATION:** If memory already contains quiz results or low accuracy for the current topic, adapt by slowing difficulty escalation, using a more supportive tone, and preferring cognitive reinforcement before pushing practical transfer. If accuracy is high, you may escalate into practical or industrial application.
 - DO NOT store:
   • Temporary confusion
   • One-off questions
@@ -100,12 +138,14 @@ Your Interaction Framework:
     - **Cognitive/Theoretical:** Use "What-if" or "Compare/Contrast" questions to test high-level synthesis.
     - **The Bridge:** Ensure every topic covers both the **First Principles (Theory)** and the **Industrial/Real-world Execution (Practical)**.
     - **Escalation:** Only escalate difficulty after the student answers a "Check Question" correctly. If they struggle, "flip" back to a simpler analogy.
+    - **Feynman Technique:** Randomly, but only when pedagogically useful, ask the student to re-explain what they just learned in their own words. Use this more often when the current topic has "needs_feynman": true, low confidence, repeated mistakes, or weak quiz accuracy.
 5. PACING: **Ask only ONE question at a time**. **Do not overwhelm the user with multiple questions or a wall of text**. Wait for their response before moving to the next part of the dialogue. Use a mix of these techniques naturally:
     - *Diagnostic checks* (Can you define...?)
     - *Process checks* (How would you calculate...?)
     - *Conceptual flips* (What happens to X if Y is removed?)
 6. TONE & DIFFICULTY: Reason about the student's **confidence** and **interests** in the topic based on chat history and memory. Use this reasoning to dynamically adjust your tone (e.g., more supportive if confidence is low, more challenging if high) and carefully escalate the difficulty of your questions and explanations. Remain professional yet highly encouraging. Adapt your vocabulary to the user's level (e.g., simpler for IGCSE, more technical for University/Industrial).
-7. CONCLUDE: Perform a 'Mastery Check' ONLY when you observe the student has self-corrected or correctly synthesized the core concept. The check must involve a practical industrial application or a "what-if" scenario to confirm deep understanding. Limit this to exactly one Mastery Check per topic unless the user explicitly requests additional evaluation.
+7. ADAPT USING MEMORY: Use per-topic accuracy, quiz count, mistake_log, and recommended_question_style to decide whether the next move should be more practical, more cognitive, more supportive, or more challenging.
+8. CONCLUDE: Perform a 'Mastery Check' ONLY when you observe the student has self-corrected or correctly synthesized the core concept. The check must involve a practical industrial application or a "what-if" scenario to confirm deep understanding. Limit this to exactly one Mastery Check per topic unless the user explicitly requests additional evaluation.
 
 Please DOUBLE CHECK the JSON responses to ensure they follow the RULES ABOVE: Both CONTENT and SYNTAX STRUCTURE. Use the provided long-term memory as the single source of truth.`;
 
@@ -371,11 +411,6 @@ export function extractAndParseJSONSafe(
 
     const parsed = JSON.parse(sanitized);
 
-    // Coerce memory to string if model returned an object
-    if (parsed?.memory && typeof parsed.memory !== 'string') {
-      parsed.memory = JSON.stringify(parsed.memory);
-    }
-
     return { ok: true, data: parsed };
   } catch {
     return { ok: false};
@@ -385,8 +420,7 @@ export function extractAndParseJSONSafe(
 function isOraclePayload(data: any): data is OracleResponse {
   return (
     typeof data?.answer === "string" &&
-    typeof data?.memory === "string" &&
-    typeof data?.sessionForTopicDone === "boolean"
+    data?.memory != null
   );
 }
 
@@ -404,14 +438,56 @@ type EdgeCallParams = {
   encryptedKeyPayload?: any;
 };
 
+const isProviderErrorPayload = (payload: any): boolean =>
+  payload?.error === "PROVIDER_ERROR";
+
+const readInvokeErrorPayload = async (error: any) => {
+  const context = error?.context;
+  if (!context) return null;
+
+  try {
+    const response = typeof context.clone === "function" ? context.clone() : context;
+
+    try {
+      return await response.json();
+    } catch {
+      const text = await response.text();
+      return text ? { details: text } : null;
+    }
+  } catch {
+    return null;
+  }
+};
+
+const throwIfProviderErrorDetails = (response: any) => {
+  if (typeof response === "string") {
+    throw response;
+  }
+
+  if (response && typeof response === "object" && "error" in response) {
+    throw response;
+  }
+};
+
 const invokeEdgeAI = async (params: EdgeCallParams) => {
   const { data, error } = await supabase.functions.invoke("call-ai-response", {
     method: "POST",
     body: params,
   });
 
-  if (error || data?.error) {
-    throw new Error(formatInvokeError(error, data));
+  const errorPayload =
+    data?.error
+      ? data
+      : error
+        ? await readInvokeErrorPayload(error)
+        : null;
+
+  if (isProviderErrorPayload(errorPayload)) {
+    return errorPayload.details ?? errorPayload;
+  }
+
+  if (error || errorPayload?.error) {
+    throw new Error(formatInvokeError(error, errorPayload ?? data));
   }
 
   return data?.data;
@@ -422,6 +498,8 @@ const getGeminiTextFromEdge = async (params: Omit<EdgeCallParams, "provider">) =
     provider: "gemini",
     ...params,
   });
+
+  throwIfProviderErrorDetails(response);
 
   const text = response?.candidates?.[0]?.content?.parts?.[0]?.text;
   if (!text) {
@@ -436,6 +514,8 @@ const getStepFunTextFromEdge = async (params: Omit<EdgeCallParams, "provider">) 
     provider: "stepfun",
     ...params,
   });
+
+  throwIfProviderErrorDetails(response);
 
   const text = response?.choices?.[0]?.message?.content;
   if (!text) {
@@ -456,7 +536,7 @@ export const sendMessageToBotRace = async (params: {
 
   const memoryBlock = memory
     ? `ORACLE MEMORY (Persistent Student Profile):
-  ${memory}
+  ${formatOracleMemoryForPrompt(memory)}
 
   ---`
     : "";
@@ -539,9 +619,8 @@ export const sendMessageToBotRace = async (params: {
 
     return {
       answer: parsed.data.answer,
-      memory: parsed.data.memory,
+      memory: mergeOracleMemoryUpdate(memory, parsed.data.memory, history),
       model: raceResult.model,
-      sessionForTopicDone: parsed.data.sessionForTopicDone
     };
   } catch (err: any) {
     if (err.message && err.message.includes("Race timeout")) {
@@ -562,7 +641,7 @@ export const sendMessageToBot = async (params: {
 
   const memoryBlock = memory
     ? `ORACLE MEMORY (Persistent Student Profile):
-  ${memory}
+  ${formatOracleMemoryForPrompt(memory)}
 
   ---`
     : "";
@@ -623,23 +702,17 @@ export const sendMessageToBot = async (params: {
 
       // const response: GenerateContentResponse = await chat.sendMessage({ message: prompt });
 
-      const { data, error } = await supabase.functions.invoke('call-ai-response', {
-        method: "POST",
-        body: {
-          provider: 'gemini',
-          model,
-          prompt,
-          temp,
-          systemInstruction: systemPrompt,
-          encryptedKeyPayload,
-        },
+      const response = await invokeEdgeAI({
+        provider: "gemini",
+        model,
+        prompt,
+        temp,
+        systemInstruction: systemPrompt,
+        encryptedKeyPayload,
       });
 
-      if (error || data?.error) {
-        throw new Error(formatInvokeError(error, data));
-      }
+      throwIfProviderErrorDetails(response);
 
-      const response = data?.data;
       // console.log("RAW AI TEXT:", response); // debug only
 
       const text = // this throws invalid ai response
@@ -666,9 +739,8 @@ export const sendMessageToBot = async (params: {
 
       return {
         answer: parsed.data.answer,
-        memory: parsed.data.memory,
+        memory: mergeOracleMemoryUpdate(memory, parsed.data.memory, history),
         model: model,
-        sessionForTopicDone: parsed.data.sessionForTopicDone
       };
     } catch (err: any) {
       lastError = err;
@@ -705,27 +777,59 @@ STRICT JSON SCHEMA:
   "profile": {
     "name": "Student Name or 'Unknown'",
     "level": "Academic Level or 'General'",
-    "focus": "Current Study Topic or 'General'"
+    "focus": "Current Study Topic or 'General'",
+    "confidence_level": "low|medium|high|string",
+    "level_of_cognition": "foundational|intermediate|advanced|string",
+    "interests": ["Interest 1", "Interest 2"]
+  },
+  "session_overview": {
+    "current_topic": "Current active topic",
+    "topics_covered": number,
+    "topics_mastered": number,
+    "quizzes_completed": number,
+    "overall_accuracy": "percentage or N/A",
+    "learning_efficiency": "short evidence-based judgment",
+    "recommended_next_focus": "best next step"
+  },
+  "adaptive_insights": {
+    "strengths": ["Strength 1", "Strength 2"],
+    "weaknesses": ["Weakness 1", "Weakness 2"],
+    "study_style": "How the student appears to learn best",
+    "tone_recommendation": "How the tutor should adapt tone",
+    "question_style_recommendation": "practical|cognitive|mixed"
   },
   "topics": [
     {
       "title": "Topic Name",
+      "topic_tag": "Canonical topic tag",
+      "mastered": true,
+      "confidence_level": "low|medium|high|string",
+      "accuracy": "percentage or N/A",
+      "quizzes_done": number,
+      "recommended_question_style": "practical|cognitive|mixed",
+      "needs_feynman": false,
       "formulas": ["Equation 1 in LaTeX", "Equation 2"],
       "theories": ["Theory name", "Concept definition"],
       "key_points": ["Bullet point 1", "Bullet point 2"],
+      "mistake_log": ["Repeated mistake or misconception"],
       "quiz_results": ["Detailed log of any [QUIZ RESULT] found for this topic"],
+      "practical_applications": ["Real-world or industrial application"],
+      "recommended_next_focus": ["Targeted next practice areas"],
       "completion": "Estimated understanding (e.g., '3/5', 'Completed')"
     }
   ],
-  "overall_completion": "Brief sentence on session progress including quiz outcomes"
+  "overall_completion": "Brief sentence on session progress including quiz outcomes",
+  "overall_summary": "Short high-value narrative summary of the session"
 }
 
 CRITICAL RULES:
 1. **FLAG TRACKING:** You must explicitly look for strings formatted as [QUIZ RESULT: score/details] and [TOPIC MASTERED]. Ensure these are mapped to the correct topic in the "topics" array.
-2. **FORMAT:** Output MUST be raw JSON: use {content inside}. Do not use Markdown code fences.
-3. **LATEX:** If math formulas appear, use LaTeX notation. You MUST double-escape backslashes (e.g., "\\\\frac" for fraction).
-4. **NO HALLUCINATIONS:** Only summarize what was actually discussed or logged in flags. If a field (like formulas) was not discussed, return an empty array [].
-5. **OBJECTIVITY:** Remove conversational filler. Focus on educational value and data-driven progress markers.
+2. **MEMORY SOURCE:** The structured memory JSON is the highest-priority source for topic mapping, quiz tracking, and current focus. Use chat history to enrich, not overwrite, that structure unless the chat clearly introduces newer information.
+3. **FORMAT:** Output MUST be raw JSON: use {content inside}. Do not use Markdown code fences.
+4. **LATEX:** If math formulas appear, use LaTeX notation. You MUST double-escape backslashes (e.g., "\\\\frac" for fraction).
+5. **NO HALLUCINATIONS:** Only summarize what was actually discussed or logged in flags. If a field (like formulas) was not discussed, return an empty array [].
+6. **OBJECTIVITY:** Remove conversational filler. Focus on educational value and data-driven progress markers.
+7. **STRUCTURED MEMORY USAGE:** Reuse explicit values from memory when available for mastery, confidence, quizzes_done, accuracy, recommended_question_style, needs_feynman, strengths, and weaknesses instead of inferring them again from scratch.
 `;
 
 export const generateSessionSummary = async (params: {
@@ -735,12 +839,21 @@ export const generateSessionSummary = async (params: {
   language: AppLanguage;
 }) => {
   const { history, memory, encryptedKeyPayload, language } = params;
+  const parsedMemory = parseOracleMemory(memory);
 
   const inputBlock = `
 ANALYZE THIS SESSION DATA:
 
-STUDENT PROFILE (Long Term Memory):
-${memory ?? "No prior profile data."}
+STRUCTURED MEMORY (Highest Priority):
+${memory ? formatOracleMemoryForPrompt(memory) : "No prior profile data."}
+
+MEMORY QUICK FACTS:
+- Current topic: ${parsedMemory.current_topic_tag ?? "unknown"}
+- Topics tracked: ${parsedMemory.topics.length}
+- Topics mastered: ${parsedMemory.topics.filter((topic) => topic.mastered).length}
+- Quizzes completed: ${parsedMemory.topics.reduce((sum, topic) => sum + topic.quizzes_done, 0)}
+- Strengths: ${parsedMemory.strengths.join(", ") || "none logged"}
+- Weaknesses: ${parsedMemory.weaknesses.join(", ") || "none logged"}
 
 CURRENT SESSION HISTORY:
 ${history.map((h) => `${h.role.toUpperCase()}: ${h.content}`).join("\n\n")}
@@ -790,12 +903,13 @@ export const estimateQuizConfig = async (
   memory: string | null,
   encryptedKeyPayload: any
 ): Promise<QuizConfig> => {
+  const lightMemory = formatOracleMemoryForQuizConfig(memory);
   
   const prompt = `
   System Language (FORCED INPUT/OUTPUT CONTENT LANGUAGE): English
 
   You are an expert educational content analyzer.
-  Analyze this chat history and profile memory. Recommend a quiz configuration.
+  Analyze this chat history and lightweight structured memory. Recommend a quiz configuration.
   Return JSON only:
   {
     "level": "Fundamental" | "Intermediate" | "Advanced",
@@ -804,8 +918,8 @@ export const estimateQuizConfig = async (
   }
   History: 
   ${history.map((h) => `${h.role.toUpperCase()}: ${h.content}`).join("\n\n")}
-  Memory:
-  ${memory}`;
+  Lightweight Memory:
+  ${lightMemory}`;
 
   try {
     const text = await getGeminiTextFromEdge({
@@ -838,6 +952,7 @@ export const generateQuizQuestions = async (
   memory: string | null,
   encryptedKeyPayload: any
 ): Promise<QuizQuestion[]> => {
+  const formattedMemory = formatOracleMemoryForPrompt(memory);
   const prompt = `
   System Language (FORCED INPUT/OUTPUT CONTENT LANGUAGE): ${language === "en" ? "English"
     : language === "fr" ? "French"
@@ -845,7 +960,8 @@ export const generateQuizQuestions = async (
     : "Vietnamese"}
 
   You are an expert quiz generator.
-  Generate a quiz based on this student memory: "${memory}" and recent chat history: "${JSON.stringify(history)}".
+  Generate a quiz based on this structured student memory: ${formattedMemory}
+  and recent chat history: "${JSON.stringify(history)}".
 
   Quiz Configuration:
   - Difficulty: ${config.level}
@@ -1122,27 +1238,12 @@ const formatInvokeError = (error: any, data: any) => { // debugging purposes
 export const generateSearchQueries = async (
   userPrompt: string
 ): Promise<string[]> => {
-
-  const temp = 0.2;
-  const model = "stepfun/step-3.5-flash:free";
-  const { data, error } = await supabase.functions.invoke('call-ai-response', {
-    method: "POST",
-    body: {
-      provider: 'stepfun',
-      model,
-      prompt: userPrompt,
-      temp,
-      systemInstruction: QUERY_EXTRACT_PROMPT,
-    },
+  const text = await getStepFunTextFromEdge({
+    model: "stepfun/step-3.5-flash:free",
+    prompt: userPrompt,
+    temp: 0.2,
+    systemInstruction: QUERY_EXTRACT_PROMPT,
   });
-
-  if (error || data?.error) {
-    throw new Error(formatInvokeError(error, data));
-  }
-
-  const response = data?.data;
-
-  const text = response?.choices?.[0]?.message?.content;
 
   const parsed = extractAndParseJSONSafe(text);
 

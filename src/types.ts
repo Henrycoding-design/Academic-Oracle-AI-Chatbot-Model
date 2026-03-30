@@ -16,11 +16,41 @@ export interface ChatHistoryItem {
   content: string;
 };
 
+export interface OracleTopicMemory {
+  topic_tag: string;
+  mistake_log: string[];
+  accuracy: number | null;
+  confidence_level: string;
+  quizzes_done: number;
+  mastered: boolean;
+  quiz_results: string[];
+  recommended_question_style?: "practical" | "cognitive" | "mixed";
+  needs_feynman?: boolean;
+  last_updated?: string;
+}
+
+export interface OracleProfileMemory {
+  name: string | null;
+  academic_level: string | null;
+  interests: string[];
+  confidence_level: string;
+  level_of_cognition: string;
+}
+
+export interface OracleMemory {
+  version: number;
+  profile: OracleProfileMemory;
+  current_topic_tag: string | null;
+  topics: OracleTopicMemory[];
+  strengths: string[];
+  weaknesses: string[];
+  raw_summary: string;
+}
+
 export type OracleResponse = {
   answer: string;
-  memory?: string;
+  memory: string;
   model: string;
-  sessionForTopicDone: boolean; // NEW: Mastery Flag
 };
 
 export class InvalidAIResponseError extends Error {

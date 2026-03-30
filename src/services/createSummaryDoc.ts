@@ -2,6 +2,22 @@ import { Document, Packer, Paragraph, HeadingLevel, TextRun } from "docx";
 import { saveAs } from "file-saver";
 
 export const createSummaryDoc = async (data: any) => {
+  const metricLine = (label: string, value: string | number | boolean) =>
+    new Paragraph({
+      children: [
+        new TextRun({ text: `${label}: `, bold: true }),
+        new TextRun(String(value)),
+      ],
+    });
+
+  const bulletSection = (title: string, items: string[]) =>
+    items.length > 0
+      ? [
+          new Paragraph({ text: title, heading: HeadingLevel.HEADING_2 }),
+          ...items.map((item: string) => new Paragraph({ text: item, bullet: { level: 0 } })),
+        ]
+      : [];
+
   const doc = new Document({
     sections: [
       {
@@ -29,8 +45,57 @@ export const createSummaryDoc = async (data: any) => {
               new TextRun(`${data.profile?.focus ?? "N/A"}`),
             ],
           }),
+          new Paragraph({
+            children: [
+              new TextRun({ text: `Confidence: `, bold: true }),
+              new TextRun(`${data.profile?.confidence_level ?? "N/A"}`),
+            ],
+          }),
+          new Paragraph({
+            children: [
+              new TextRun({ text: `Cognition Level: `, bold: true }),
+              new TextRun(`${data.profile?.level_of_cognition ?? "N/A"}`),
+            ],
+          }),
+          new Paragraph({
+            children: [
+              new TextRun({ text: `Interests: `, bold: true }),
+              new TextRun(
+                Array.isArray(data.profile?.interests) && data.profile.interests.length > 0
+                  ? data.profile.interests.join(", ")
+                  : "N/A"
+              ),
+            ],
+          }),
 
           new Paragraph(""),
+          new Paragraph({
+            text: "Session Overview",
+            heading: HeadingLevel.HEADING_1,
+            spacing: { before: 300 },
+          }),
+          metricLine("Current Topic", data.session_overview?.current_topic ?? "N/A"),
+          metricLine("Topics Covered", data.session_overview?.topics_covered ?? 0),
+          metricLine("Topics Mastered", data.session_overview?.topics_mastered ?? 0),
+          metricLine("Quizzes Completed", data.session_overview?.quizzes_completed ?? 0),
+          metricLine("Overall Accuracy", data.session_overview?.overall_accuracy ?? "N/A"),
+          metricLine("Learning Efficiency", data.session_overview?.learning_efficiency ?? "N/A"),
+          metricLine("Recommended Next Focus", data.session_overview?.recommended_next_focus ?? "N/A"),
+
+          new Paragraph(""),
+          new Paragraph({
+            text: "Adaptive Insights",
+            heading: HeadingLevel.HEADING_1,
+            spacing: { before: 300 },
+          }),
+          metricLine("Study Style", data.adaptive_insights?.study_style ?? "N/A"),
+          metricLine("Tone Recommendation", data.adaptive_insights?.tone_recommendation ?? "N/A"),
+          metricLine(
+            "Question Style Recommendation",
+            data.adaptive_insights?.question_style_recommendation ?? "N/A"
+          ),
+          ...bulletSection("Strengths", data.adaptive_insights?.strengths ?? []),
+          ...bulletSection("Weaknesses", data.adaptive_insights?.weaknesses ?? []),
 
           ...data.topics.flatMap((t: any) => [
             new Paragraph({
@@ -39,44 +104,22 @@ export const createSummaryDoc = async (data: any) => {
               spacing: { before: 400 },
             }),
 
-            new Paragraph({
-              children: [
-                new TextRun({ text: "Completion: ", bold: true }),
-                new TextRun(t.completion),
-              ],
-            }),
+            metricLine("Topic Tag", t.topic_tag ?? t.title),
+            metricLine("Completion", t.completion),
+            metricLine("Mastered", t.mastered ? "Yes" : "No"),
+            metricLine("Confidence", t.confidence_level ?? "N/A"),
+            metricLine("Accuracy", t.accuracy ?? "N/A"),
+            metricLine("Quizzes Done", t.quizzes_done ?? 0),
+            metricLine("Recommended Question Style", t.recommended_question_style ?? "mixed"),
+            metricLine("Needs Feynman Reinforcement", t.needs_feynman ? "Yes" : "No"),
 
-            // Quiz Results Section
-            ...(t.quiz_results?.length > 0 
-              ? [
-                  new Paragraph({ text: "Quiz Performance:", heading: HeadingLevel.HEADING_2 }),
-                  ...t.quiz_results.map((q: string) => new Paragraph({ text: `✓ ${q}`, bullet: { level: 0 } }))
-                ] 
-              : []),
-
-            // Formulas Section
-            ...(t.formulas?.length > 0 
-              ? [
-                  new Paragraph({ text: "Formulas:", heading: HeadingLevel.HEADING_2 }),
-                  ...t.formulas.map((f: string) => new Paragraph({ text: f, bullet: { level: 0 } }))
-                ] 
-              : []),
-
-            // Theories Section
-            ...(t.theories?.length > 0 
-              ? [
-                  new Paragraph({ text: "Theories:", heading: HeadingLevel.HEADING_2 }),
-                  ...t.theories.map((th: string) => new Paragraph({ text: th, bullet: { level: 0 } }))
-                ] 
-              : []),
-
-            // Key Points Section
-            ...(t.key_points?.length > 0 
-              ? [
-                  new Paragraph({ text: "Key Takeaways:", heading: HeadingLevel.HEADING_2 }),
-                  ...t.key_points.map((kp: string) => new Paragraph({ text: kp, bullet: { level: 0 } }))
-                ] 
-              : []),
+            ...bulletSection("Mistake Log", t.mistake_log ?? []),
+            ...bulletSection("Quiz Performance", t.quiz_results ?? []),
+            ...bulletSection("Formulas", t.formulas ?? []),
+            ...bulletSection("Theories", t.theories ?? []),
+            ...bulletSection("Key Takeaways", t.key_points ?? []),
+            ...bulletSection("Practical Applications", t.practical_applications ?? []),
+            ...bulletSection("Recommended Next Focus", t.recommended_next_focus ?? []),
           ]),
 
           new Paragraph(""),
@@ -84,9 +127,15 @@ export const createSummaryDoc = async (data: any) => {
             border: { top: { color: "auto", space: 1, style: "single", size: 6 } },
             children: [
               new TextRun({ text: "Overall Summary: ", bold: true }),
-              new TextRun(data.overall_completion),
+              new TextRun(data.overall_summary ?? data.overall_completion),
             ],
             spacing: { before: 400 },
+          }),
+          new Paragraph({
+            children: [
+              new TextRun({ text: "Overall Completion: ", bold: true }),
+              new TextRun(data.overall_completion),
+            ],
           }),
         ],
       },

@@ -26,6 +26,7 @@ import { analyzePrompt } from './services/promptGuard.ts';
 import { runQuotaSafeSearch } from './services/webSearchSafe.ts';
 import { isWebSearchLimitReached, incrementWebSearch } from './services/webSearchQuota.ts';
 import { classifyIntent } from './services/chatIntentClassifier.ts';
+import { getNewlyMasteredTopicTag, hasReadyOracleMemory, recordQuizResultInMemory, serializeOracleMemory } from './services/oracleMemory.ts';
 
 const SunIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
@@ -104,6 +105,7 @@ const LoadingIndicator: React.FC<{ statusLabel: string }> = ({ statusLabel }) =>
 
 // Trimmed History to control tokens -> put necessary info on oracleMemory (1 instance) instead
 const MAX_HISTORY = 10;
+const HANDLED_MASTERY_TOPICS_KEY = "academic-oracle-handled-mastery-topics";
 
 function trimHistory(history: ChatHistoryItem[]) {
   return history.slice(-MAX_HISTORY);
@@ -238,7 +240,8 @@ const App: React.FC = () => {
   });
   const [oracleMemory, setOracleMemory] = useState<string | null>(() => { // student profile
     if (typeof window === "undefined") return null;
-    return sessionStorage.getItem("academic-oracle-memory");
+    const saved = sessionStorage.getItem("academic-oracle-memory");
+    return saved ? serializeOracleMemory(saved) : null;
   });
 
   const [showDemo, setShowDemo] = useState(false);
@@ -248,6 +251,8 @@ const App: React.FC = () => {
   useEffect(() => { // for student profile
     if (oracleMemory) {
       sessionStorage.setItem("academic-oracle-memory", oracleMemory);
+    } else {
+      sessionStorage.removeItem("academic-oracle-memory");
     }
   }, [oracleMemory]);
 
@@ -475,19 +480,47 @@ const App: React.FC = () => {
   const [model, setModel] = useState<string>('gemini-3-flash-preview'); // default model -> never empty/crash on this optional feature
   const chatEndRef = useRef<HTMLDivElement>(null);
   const masteryTimerRef = useRef<number | null>(null);
+  const handledMasteryTopicsRef = useRef<Set<string>>(new Set());
+
+  useEffect(() => {
+    const raw = sessionStorage.getItem(HANDLED_MASTERY_TOPICS_KEY);
+    if (!raw) return;
+
+    try {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) {
+        handledMasteryTopicsRef.current = new Set(
+          parsed.filter((item): item is string => typeof item === "string" && item.trim().length > 0)
+        );
+      }
+    } catch {
+      handledMasteryTopicsRef.current = new Set();
+    }
+  }, []);
+
+  const persistHandledMasteryTopics = () => {
+    sessionStorage.setItem(
+      HANDLED_MASTERY_TOPICS_KEY,
+      JSON.stringify(Array.from(handledMasteryTopicsRef.current))
+    );
+  };
+
+  const clearPendingMasteryPopup = () => {
+    if (masteryTimerRef.current) {
+      clearTimeout(masteryTimerRef.current);
+      masteryTimerRef.current = null;
+    }
+  };
 
   useEffect(() => {
     return () => {
-      if (masteryTimerRef.current) {
-        clearTimeout(masteryTimerRef.current);
-      }
+      clearPendingMasteryPopup();
     };
   }, []);
 
   useEffect(() => {
-    if (currentView !== "chat" && masteryTimerRef.current) {
-      clearTimeout(masteryTimerRef.current);
-      masteryTimerRef.current = null;
+    if (currentView !== "chat") {
+      clearPendingMasteryPopup();
     }
   }, [currentView]);
 
@@ -733,7 +766,7 @@ const App: React.FC = () => {
         `Using ${useRace ? "RACE" : "standard"} strategy for this request`
       );
 
-      const { answer, memory, model, sessionForTopicDone } =
+      const { answer, memory, model } =
         await (
           useRace
             ? sendMessageToBotRace({
@@ -767,28 +800,29 @@ const App: React.FC = () => {
 
       // Student profile/memory
       if (memory) {
+        const newlyMasteredTopicTag = getNewlyMasteredTopicTag(oracleMemory, memory);
         setOracleMemory(memory);
+
+        if (
+          newlyMasteredTopicTag &&
+          currentView === "chat" &&
+          !handledMasteryTopicsRef.current.has(newlyMasteredTopicTag.toLowerCase())
+        ) {
+          clearPendingMasteryPopup();
+          handledMasteryTopicsRef.current.add(newlyMasteredTopicTag.toLowerCase());
+          persistHandledMasteryTopics();
+
+          masteryTimerRef.current = window.setTimeout(() => {
+            if (currentView === "chat") {
+              setShowMasteryPopup(true);
+            }
+            masteryTimerRef.current = null;
+          }, 8000);
+        }
       }
 
       if (model) {
         setModel(model);
-      }
-
-      if (sessionForTopicDone) {
-        if (masteryTimerRef.current) {
-          clearTimeout(masteryTimerRef.current);
-        }
-
-        masteryTimerRef.current = window.setTimeout(() => {
-          if (currentView === "chat") {
-            setShowMasteryPopup(true);
-          }
-          masteryTimerRef.current = null;
-        }, 8000);
-
-        const newMemory = oracleMemory ? `${oracleMemory}\n\n[MASTERED TOPIC]: ${sessionForTopicDone}` : `[MASTERED TOPIC]: ${sessionForTopicDone}`;
-
-        setOracleMemory(newMemory);
       }
     } catch (err: unknown) {
       console.error(err);
@@ -899,10 +933,9 @@ const App: React.FC = () => {
     sessionStorage.removeItem("academic-oracle-history");
     sessionStorage.removeItem("academic-oracle-quiz-state"); // Clear quiz cache on reset
 
-    if (masteryTimerRef.current) {
-      clearTimeout(masteryTimerRef.current);
-      masteryTimerRef.current = null;
-    }
+    clearPendingMasteryPopup();
+    handledMasteryTopicsRef.current = new Set();
+    sessionStorage.removeItem(HANDLED_MASTERY_TOPICS_KEY);
 
     // ⚠️ optional: keep or wipe memory?
     if (window.confirm(LANGUAGE_DATA[language].ui.wipeProfile)) {
@@ -955,10 +988,9 @@ const App: React.FC = () => {
     localStorage.removeItem("chat_input_draft"); // clear draft
     setOracleMemory(null);
 
-    if (masteryTimerRef.current) {
-      clearTimeout(masteryTimerRef.current);
-      masteryTimerRef.current = null;
-    }
+    clearPendingMasteryPopup();
+    handledMasteryTopicsRef.current = new Set();
+    sessionStorage.removeItem(HANDLED_MASTERY_TOPICS_KEY);
 
     navigate("/"); // redirect to home/login page
 
@@ -992,7 +1024,7 @@ const App: React.FC = () => {
       alert(LANGUAGE_DATA[language].ui.pleaseWait);
       return;
     }
-    if (chatHistory.length <=5 || !oracleMemory) { // need enough context
+    if (chatHistory.length <= 5 || !hasReadyOracleMemory(oracleMemory)) { // need enough context
       alert(LANGUAGE_DATA[language].ui.notEnoughHistory);
       return;
     }
@@ -1045,8 +1077,7 @@ const App: React.FC = () => {
   }, [pendingExplanation, currentView]);
 
   const handleAddToMemory = (summary: string) => {
-    const newMemory = oracleMemory ? `${oracleMemory}\n\n[QUIZ RESULT]: ${summary}` : `[QUIZ RESULT]: ${summary}`;
-    setOracleMemory(newMemory);
+    setOracleMemory((prev) => recordQuizResultInMemory(prev, summary, chatHistory));
     alert(LANGUAGE_DATA[language].ui.memoryAdded);
   };
 
@@ -1370,8 +1401,8 @@ const App: React.FC = () => {
                     top: selectionPos.y,
                     left: selectionPos.x,
                       transform: selectionPos.placeAbove
-                      ? "translate(-53%, 15%)"
-                      : "translate(-53%, 0)"
+                      ? "translate(-50%, 15%)"
+                      : "translate(-50%, 0)"
                   }}
                   className="
                     z-[9999] flex items-center gap-1.5 bg-indigo-600 text-white
