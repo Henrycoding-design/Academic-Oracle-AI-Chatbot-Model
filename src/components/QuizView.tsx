@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { BrainCircuit, CheckCircle2, XCircle, ArrowRight, Settings, Play, RotateCcw, MessageSquarePlus, MessageCircle, MessageSquare } from 'lucide-react';
 import type { ChatHistoryItem, QuizConfig, QuizQuestion, QuizResult } from '../types';
 import { generateQuizQuestions, validateOpenAnswer, estimateQuizConfig } from '../services/geminiService';
+import { getCurrentTopicTag } from '../services/oracleMemory';
 import { AppLanguage, LANGUAGE_DATA } from '../lang/Language';
 import { MarkdownContent } from './MarkdownContent';
 
@@ -12,7 +13,7 @@ interface QuizViewProps {
   encryptedApiKey: any;
   onBack: () => void;
   onExplainRequest: (context: string) => void;
-  onAddToMemory: (summary: string) => void;
+  onAddToMemory: (summary: string, topicTag: string | null) => void;
 }
 
 type QuizState = 'config' | 'loading' | 'active' | 'review';
@@ -28,6 +29,7 @@ export const QuizView: React.FC<QuizViewProps> = ({
   const [userAnswers, setUserAnswers] = useState<Record<string, string>>({});
   const [results, setResults] = useState<Record<string, QuizResult>>({});
   const [isValidating, setIsValidating] = useState(false);
+  const [quizTopicTag, setQuizTopicTag] = useState<string | null>(null);
 
   const [isHydrated, setIsHydrated] = useState(false);
 
@@ -44,6 +46,7 @@ export const QuizView: React.FC<QuizViewProps> = ({
       setCurrentQIndex(parsed.currentQIndex);
       setViewState(parsed.viewState);
       setUserAnswers(parsed.userAnswers ?? {});
+      setQuizTopicTag(typeof parsed.quizTopicTag === "string" ? parsed.quizTopicTag : null);
     } else {
       // If no cache, try to auto-estimate config based on history
       estimateConfig(); 
@@ -61,9 +64,9 @@ export const QuizView: React.FC<QuizViewProps> = ({
   useEffect(() => {
     if (!isHydrated) return;
     sessionStorage.setItem('academic-oracle-quiz-state', JSON.stringify({
-      questions, results, config, currentQIndex, viewState,  userAnswers
+      questions, results, config, currentQIndex, viewState,  userAnswers, quizTopicTag
     }));
-  }, [questions, results, config, currentQIndex, viewState, userAnswers]);
+  }, [questions, results, config, currentQIndex, viewState, userAnswers, quizTopicTag]);
 
   const estimateConfig = async () => {
     if (history.length > 2) {
@@ -82,10 +85,12 @@ export const QuizView: React.FC<QuizViewProps> = ({
     }
     setViewState('loading');
     try {
+      const lockedTopicTag = getCurrentTopicTag(memory, history);
       const q = await generateQuizQuestions(language, config, history, memory, encryptedApiKey);
       setQuestions(q);
       setResults({});
       setCurrentQIndex(0);
+      setQuizTopicTag(lockedTopicTag);
       setViewState('active');
     } catch (e) {
       alert(LD.ui.failedToGenerateQuiz);
@@ -166,7 +171,7 @@ export const QuizView: React.FC<QuizViewProps> = ({
       .replace('{score}', String(score))
       .replace('{total}', String(questions.length))
       .replace('{level}', String(config.level));
-    onAddToMemory(summary);
+    onAddToMemory(summary, quizTopicTag);
   };
 
   // --- Renders ---
@@ -180,7 +185,7 @@ export const QuizView: React.FC<QuizViewProps> = ({
                     rounded-full
                     backdrop-blur-md
                     text-sm text-slate-600 dark:text-slate-300
-                   hover:text-indigo-400 dark:hover:text-indigo-400
+                   hover:text-indigo-600 dark:hover:text-indigo-400
                     transition-all shadow-sm"
         >
           ← <MessageSquare className="w-4 h-4" />
@@ -429,6 +434,7 @@ export const QuizView: React.FC<QuizViewProps> = ({
                     setViewState('config');
                     setResults({});
                     setUserAnswers({});
+                    setQuizTopicTag(null);
                 }}
                 className="w-full py-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700 font-medium flex items-center justify-center gap-2"
             >

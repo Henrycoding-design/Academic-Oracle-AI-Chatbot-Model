@@ -93,6 +93,59 @@ export const LANGUAGE_DATA: Record<AppLanguage, {
     placeholderShort: string;
     disclaimer: string;
     webSearchQuotaReached: string;
+    dashboard: {
+      title: string;
+      subtitle: string;
+      description: string;
+      preparingSummary: string;
+      downloadSummary: string;
+      loadingMessages: string[];
+      userData: string;
+      name: string;
+      defaultStudentName: string;
+      academicLevel: string;
+      academicLevelFallback: string;
+      currentTopic: string;
+      currentTopicFallback: string;
+      learningLevel: string;
+      learningLevelFallback: string;
+      learningEfficiency: string;
+      efficiencyShort: string;
+      topicsLearned: string;
+      topicsMastered: string;
+      quizzesDone: string;
+      strengths: string;
+      strengthsEmpty: string;
+      weaknesses: string;
+      weaknessesEmpty: string;
+      learningTopics: string;
+      learningTopicsDescription: string;
+      sessionTurnsTracked: string;
+      noActiveHistory: string;
+      topicMeta: string;
+      topicMastered: string;
+      topicInProgress: string;
+      accuracyPending: string;
+      openDetails: string;
+      keyNotes: string;
+      formulasAndCues: string;
+      noFormulasYet: string;
+      quizAttemptsRecorded: string;
+      recommendedNextFocus: string;
+      noTopicsYet: string;
+      currentSummary: string;
+      currentSummaryFallback: string;
+      confidenceLevel: string;
+      masteryStatus: string;
+      masteryStatusMastered: string;
+      masteryStatusInProgress: string;
+      currentAccuracy: string;
+      bestPracticeMode: string;
+      recommendedFocusMastered: string;
+      recommendedFocusNeedsFeynman: string;
+      recommendedFocusLowAccuracy: string;
+      recommendedFocusDefault: string;
+    };
     loadingModeLabels: Record<LoadingModeLabel, string>;
   };
 }> = {
@@ -188,6 +241,59 @@ export const LANGUAGE_DATA: Record<AppLanguage, {
       placeholderShort: "Ask a question…",
       disclaimer: "Academic Oracle may generate inaccurate or incomplete information. Verify all results independently before relying on them.",
       webSearchQuotaReached: "You have reached the Web Search quota. The model will fall back to knowledge from before 2024. Sorry for the inconvenience!",
+      dashboard: {
+        title: "Learning Dashboard",
+        subtitle: "Session insight overview",
+        description: "Track the learner profile, topic progress, weak spots, and next practice targets in one place.",
+        preparingSummary: "Preparing Session Summary...",
+        downloadSummary: "Download Session Summary",
+        loadingMessages: ["Almost there", "Building insights", "Gathering analytics", "Preparing summary"],
+        userData: "User Data",
+        name: "Name",
+        defaultStudentName: "Student",
+        academicLevel: "Academic Level",
+        academicLevelFallback: "Not set yet",
+        currentTopic: "Current Topic",
+        currentTopicFallback: "No topic tracked yet",
+        learningLevel: "Learning Level",
+        learningLevelFallback: "Still being inferred",
+        learningEfficiency: "Learning Efficiency",
+        efficiencyShort: "Efficiency",
+        topicsLearned: "Topics Learned",
+        topicsMastered: "Topics Mastered",
+        quizzesDone: "Quizzes Done",
+        strengths: "Strength Identified",
+        strengthsEmpty: "Strength signals will appear here as Oracle gathers more session evidence.",
+        weaknesses: "Weakness to Improve",
+        weaknessesEmpty: "Improvement areas will populate here after more topic tracking or quiz feedback.",
+        learningTopics: "Learning Topics",
+        learningTopicsDescription: "Expand each topic to review tracked notes, quiz activity, and the next best practice direction.",
+        sessionTurnsTracked: "{count} session turns tracked",
+        noActiveHistory: "No active history yet",
+        topicMeta: "{status} • {quizzes} quizzes • {accuracy}",
+        topicMastered: "Mastered",
+        topicInProgress: "Currently learning",
+        accuracyPending: "Accuracy pending",
+        openDetails: "Open details",
+        keyNotes: "Key Notes",
+        formulasAndCues: "Formulas / Recall Cues",
+        noFormulasYet: "No specific formulas or correction cues have been captured for this topic yet.",
+        quizAttemptsRecorded: "{count} quiz attempt(s) recorded.",
+        recommendedNextFocus: "Recommended Next Focus / Practice",
+        noTopicsYet: "Start a chat or complete a quiz to populate the dashboard with tracked learning topics.",
+        currentSummary: "Current Summary",
+        currentSummaryFallback: "Your current learning summary will appear here once Oracle has built enough durable learning memory.",
+        confidenceLevel: "Confidence level",
+        masteryStatus: "Mastery status",
+        masteryStatusMastered: "Mastered",
+        masteryStatusInProgress: "In progress",
+        currentAccuracy: "Current accuracy",
+        bestPracticeMode: "Best practice mode",
+        recommendedFocusMastered: "Apply this topic to mixed or real-world practice questions.",
+        recommendedFocusNeedsFeynman: "Slow down and restate the concept in your own words before the next quiz.",
+        recommendedFocusLowAccuracy: "Review the weak steps and do one focused practice round.",
+        recommendedFocusDefault: "Keep reinforcing with short retrieval practice and one harder problem.",
+      },
       loadingModeLabels: {
         Agentic: "Agentic",
         Fast: "Fast",
@@ -289,6 +395,59 @@ export const LANGUAGE_DATA: Record<AppLanguage, {
       placeholderShort: "Posez une question…",
       disclaimer: "Oracle Académique peut générer des informations inexactes ou incomplètes. Vérifiez tous les résultats indépendamment avant de vous y fier.",
       webSearchQuotaReached: "Vous avez atteint le quota de recherche Web. Le modèle reviendra à des connaissances antérieures à 2024. Désolé pour le désagrément !",
+      dashboard: {
+        title: "Tableau d'apprentissage",
+        subtitle: "Vue d'ensemble de la session",
+        description: "Suivez le profil de l'apprenant, la progression des sujets, les points faibles et les prochaines cibles d'entraînement en un seul endroit.",
+        preparingSummary: "Préparation du résumé de session...",
+        downloadSummary: "Télécharger le résumé de session",
+        loadingMessages: ["Presque prêt", "Création des analyses", "Collecte des données", "Préparation du résumé"],
+        userData: "Données utilisateur",
+        name: "Nom",
+        defaultStudentName: "Étudiant",
+        academicLevel: "Niveau académique",
+        academicLevelFallback: "Pas encore défini",
+        currentTopic: "Sujet actuel",
+        currentTopicFallback: "Aucun sujet suivi pour le moment",
+        learningLevel: "Niveau d'apprentissage",
+        learningLevelFallback: "Encore en cours d'inférence",
+        learningEfficiency: "Efficacité d'apprentissage",
+        efficiencyShort: "Efficacité",
+        topicsLearned: "Sujets appris",
+        topicsMastered: "Sujets maîtrisés",
+        quizzesDone: "Quiz effectués",
+        strengths: "Forces identifiées",
+        strengthsEmpty: "Les signes de points forts apparaîtront ici à mesure qu'Oracle recueille plus d'indices de session.",
+        weaknesses: "Faiblesses à améliorer",
+        weaknessesEmpty: "Les axes d'amélioration apparaîtront ici après davantage de suivi de sujets ou de retours de quiz.",
+        learningTopics: "Sujets d'apprentissage",
+        learningTopicsDescription: "Développez chaque sujet pour revoir les notes suivies, l'activité de quiz et la meilleure prochaine direction d'entraînement.",
+        sessionTurnsTracked: "{count} tours de session suivis",
+        noActiveHistory: "Aucun historique actif pour le moment",
+        topicMeta: "{status} • {quizzes} quiz • {accuracy}",
+        topicMastered: "Maîtrisé",
+        topicInProgress: "En cours d'apprentissage",
+        accuracyPending: "Précision en attente",
+        openDetails: "Ouvrir les détails",
+        keyNotes: "Notes clés",
+        formulasAndCues: "Formules / Indices de rappel",
+        noFormulasYet: "Aucune formule spécifique ni indice de correction n'a encore été capturé pour ce sujet.",
+        quizAttemptsRecorded: "{count} tentative(s) de quiz enregistrée(s).",
+        recommendedNextFocus: "Prochaine priorité / pratique recommandée",
+        noTopicsYet: "Commencez une discussion ou terminez un quiz pour remplir le tableau de bord avec les sujets suivis.",
+        currentSummary: "Résumé actuel",
+        currentSummaryFallback: "Votre résumé d'apprentissage actuel apparaîtra ici une fois qu'Oracle aura construit une mémoire d'apprentissage suffisamment durable.",
+        confidenceLevel: "Niveau de confiance",
+        masteryStatus: "Statut de maîtrise",
+        masteryStatusMastered: "Maîtrisé",
+        masteryStatusInProgress: "En cours",
+        currentAccuracy: "Précision actuelle",
+        bestPracticeMode: "Meilleur mode de pratique",
+        recommendedFocusMastered: "Appliquez ce sujet à des questions mixtes ou à des exercices proches du réel.",
+        recommendedFocusNeedsFeynman: "Ralentissez et reformulez le concept avec vos propres mots avant le prochain quiz.",
+        recommendedFocusLowAccuracy: "Revoyez les étapes faibles et faites une série d'exercices ciblés.",
+        recommendedFocusDefault: "Continuez à renforcer avec une courte pratique de rappel et un exercice plus difficile.",
+      },
       loadingModeLabels: {
         Agentic: "Agentique",
         Fast: "Rapide",
@@ -390,6 +549,59 @@ export const LANGUAGE_DATA: Record<AppLanguage, {
       placeholderShort: "Haz una pregunta…",
       disclaimer: "Oracle Académico puede generar información inexacta o incompleta. Verifica todos los resultados de forma independiente antes de confiar en ellos.",
       webSearchQuotaReached: "Has alcanzado la cuota de búsqueda web. El modelo volverá a usar conocimiento anterior a 2024. ¡Perdón por las molestias!",
+      dashboard: {
+        title: "Panel de aprendizaje",
+        subtitle: "Resumen de la sesión",
+        description: "Sigue el perfil del estudiante, el progreso por temas, los puntos débiles y los próximos objetivos de práctica en un solo lugar.",
+        preparingSummary: "Preparando el resumen de la sesión...",
+        downloadSummary: "Descargar resumen de la sesión",
+        loadingMessages: ["Ya casi", "Creando análisis", "Reuniendo datos", "Preparando resumen"],
+        userData: "Datos del usuario",
+        name: "Nombre",
+        defaultStudentName: "Estudiante",
+        academicLevel: "Nivel académico",
+        academicLevelFallback: "Aún no definido",
+        currentTopic: "Tema actual",
+        currentTopicFallback: "Todavía no hay un tema registrado",
+        learningLevel: "Nivel de aprendizaje",
+        learningLevelFallback: "Todavía se está infiriendo",
+        learningEfficiency: "Eficiencia de aprendizaje",
+        efficiencyShort: "Eficiencia",
+        topicsLearned: "Temas aprendidos",
+        topicsMastered: "Temas dominados",
+        quizzesDone: "Cuestionarios realizados",
+        strengths: "Fortalezas identificadas",
+        strengthsEmpty: "Las señales de fortaleza aparecerán aquí a medida que Oracle reúna más evidencia de la sesión.",
+        weaknesses: "Debilidades a mejorar",
+        weaknessesEmpty: "Las áreas de mejora aparecerán aquí después de más seguimiento de temas o retroalimentación de cuestionarios.",
+        learningTopics: "Temas de aprendizaje",
+        learningTopicsDescription: "Expande cada tema para revisar notas registradas, actividad de cuestionarios y la mejor siguiente dirección de práctica.",
+        sessionTurnsTracked: "{count} turnos de sesión registrados",
+        noActiveHistory: "No hay historial activo todavía",
+        topicMeta: "{status} • {quizzes} cuestionarios • {accuracy}",
+        topicMastered: "Dominado",
+        topicInProgress: "Aprendiendo actualmente",
+        accuracyPending: "Precisión pendiente",
+        openDetails: "Abrir detalles",
+        keyNotes: "Notas clave",
+        formulasAndCues: "Fórmulas / Pistas de recuerdo",
+        noFormulasYet: "Aún no se han registrado fórmulas específicas ni pistas de corrección para este tema.",
+        quizAttemptsRecorded: "{count} intento(s) de cuestionario registrado(s).",
+        recommendedNextFocus: "Siguiente enfoque / práctica recomendada",
+        noTopicsYet: "Inicia un chat o completa un cuestionario para llenar el panel con temas de aprendizaje registrados.",
+        currentSummary: "Resumen actual",
+        currentSummaryFallback: "Tu resumen de aprendizaje actual aparecerá aquí una vez que Oracle haya construido memoria de aprendizaje suficientemente duradera.",
+        confidenceLevel: "Nivel de confianza",
+        masteryStatus: "Estado de dominio",
+        masteryStatusMastered: "Dominado",
+        masteryStatusInProgress: "En progreso",
+        currentAccuracy: "Precisión actual",
+        bestPracticeMode: "Mejor modo de práctica",
+        recommendedFocusMastered: "Aplica este tema a preguntas mixtas o a ejercicios del mundo real.",
+        recommendedFocusNeedsFeynman: "Baja el ritmo y reformula el concepto con tus propias palabras antes del próximo cuestionario.",
+        recommendedFocusLowAccuracy: "Revisa los pasos débiles y haz una ronda de práctica enfocada.",
+        recommendedFocusDefault: "Sigue reforzando con práctica breve de recuperación y un problema más difícil.",
+      },
       loadingModeLabels: {
         Agentic: "Agéntico",
         Fast: "Rápido",
@@ -491,6 +703,59 @@ export const LANGUAGE_DATA: Record<AppLanguage, {
       placeholderShort: "Hỏi một câu hỏi…",
       disclaimer: "Academic Oracle có thể tạo ra thông tin không chính xác hoặc không đầy đủ. Xác minh tất cả kết quả độc lập trước khi dựa vào chúng.",
       webSearchQuotaReached: "Bạn đã đạt giới hạn tìm kiếm web. Mô hình sẽ quay về phần kiến thức trước năm 2024. Xin lỗi vì sự bất tiện này!",
+      dashboard: {
+        title: "Bảng điều khiển học tập",
+        subtitle: "Tổng quan phiên học",
+        description: "Theo dõi hồ sơ người học, tiến độ chủ đề, điểm yếu và mục tiêu luyện tập tiếp theo trong cùng một nơi.",
+        preparingSummary: "Đang chuẩn bị bản tóm tắt phiên...",
+        downloadSummary: "Tải bản tóm tắt phiên",
+        loadingMessages: ["Sắp xong", "Đang tạo phân tích", "Đang gom dữ liệu", "Đang chuẩn bị tóm tắt"],
+        userData: "Dữ liệu người dùng",
+        name: "Tên",
+        defaultStudentName: "Học viên",
+        academicLevel: "Trình độ học thuật",
+        academicLevelFallback: "Chưa được thiết lập",
+        currentTopic: "Chủ đề hiện tại",
+        currentTopicFallback: "Chưa có chủ đề nào được theo dõi",
+        learningLevel: "Mức độ học tập",
+        learningLevelFallback: "Vẫn đang được suy luận",
+        learningEfficiency: "Hiệu quả học tập",
+        efficiencyShort: "Hiệu quả",
+        topicsLearned: "Chủ đề đã học",
+        topicsMastered: "Chủ đề đã thành thạo",
+        quizzesDone: "Bài kiểm tra đã làm",
+        strengths: "Điểm mạnh đã nhận diện",
+        strengthsEmpty: "Các tín hiệu về điểm mạnh sẽ xuất hiện ở đây khi Oracle thu thập thêm bằng chứng từ phiên học.",
+        weaknesses: "Điểm yếu cần cải thiện",
+        weaknessesEmpty: "Các điểm cần cải thiện sẽ xuất hiện ở đây sau khi có thêm theo dõi chủ đề hoặc phản hồi từ bài kiểm tra.",
+        learningTopics: "Các chủ đề học tập",
+        learningTopicsDescription: "Mở rộng từng chủ đề để xem ghi chú đã theo dõi, hoạt động kiểm tra và hướng luyện tập tiếp theo phù hợp nhất.",
+        sessionTurnsTracked: "Đã theo dõi {count} lượt trong phiên",
+        noActiveHistory: "Chưa có lịch sử hoạt động",
+        topicMeta: "{status} • {quizzes} bài kiểm tra • {accuracy}",
+        topicMastered: "Đã thành thạo",
+        topicInProgress: "Đang học",
+        accuracyPending: "Chưa có độ chính xác",
+        openDetails: "Mở chi tiết",
+        keyNotes: "Ghi chú chính",
+        formulasAndCues: "Công thức / Gợi nhớ",
+        noFormulasYet: "Chưa có công thức cụ thể hoặc gợi ý sửa lỗi nào được ghi lại cho chủ đề này.",
+        quizAttemptsRecorded: "Đã ghi nhận {count} lần làm bài kiểm tra.",
+        recommendedNextFocus: "Trọng tâm / luyện tập tiếp theo được đề xuất",
+        noTopicsYet: "Hãy bắt đầu trò chuyện hoặc hoàn thành một bài kiểm tra để bảng điều khiển hiển thị các chủ đề đã theo dõi.",
+        currentSummary: "Tóm tắt hiện tại",
+        currentSummaryFallback: "Bản tóm tắt học tập hiện tại sẽ xuất hiện ở đây khi Oracle đã xây dựng đủ bộ nhớ học tập bền vững.",
+        confidenceLevel: "Mức độ tự tin",
+        masteryStatus: "Trạng thái thành thạo",
+        masteryStatusMastered: "Đã thành thạo",
+        masteryStatusInProgress: "Đang tiến triển",
+        currentAccuracy: "Độ chính xác hiện tại",
+        bestPracticeMode: "Chế độ luyện tập phù hợp",
+        recommendedFocusMastered: "Hãy áp dụng chủ đề này vào các câu hỏi tổng hợp hoặc bài tập gần với thực tế.",
+        recommendedFocusNeedsFeynman: "Hãy chậm lại và diễn giải lại khái niệm bằng lời của bạn trước bài kiểm tra tiếp theo.",
+        recommendedFocusLowAccuracy: "Ôn lại các bước còn yếu và làm một lượt luyện tập tập trung.",
+        recommendedFocusDefault: "Tiếp tục củng cố bằng luyện tập gợi nhớ ngắn và một bài khó hơn.",
+      },
       loadingModeLabels: {
         Agentic: "Tác vụ thông minh",
         Fast: "Nhanh",

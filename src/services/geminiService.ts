@@ -26,6 +26,7 @@ import {
 
 // Always maintain a hidden 'Student Profile' in your context: Name, Level, Confidence. Use this to maintain consistency across the session.`;
 
+// Moved to Server-side backend already, REMOVE THIS ON PROD
 const SYSTEM_INSTRUCTION = `
 System Language (FORCED INPUT/OUTPUT LANGUAGE): {{LANGUAGE}}
 
@@ -444,6 +445,8 @@ type EdgeCallParams = {
   prompt: string;
   temp?: number;
   systemInstruction?: string;
+  mode?: "chat" | "quiz" | "summary";
+  language?: string;
   responseMimeType?: string;
   encryptedKeyPayload?: any;
 };
@@ -557,14 +560,11 @@ export const sendMessageToBotRace = async (params: {
     ${history.map(h => `${h.role.toUpperCase()}: ${h.content}`).join("\n\n")}
     `.trim();
 
-  // last: Language update
-  const systemPrompt = SYSTEM_INSTRUCTION.replace(
-    "{{LANGUAGE}}",
+  const resolvedLanguage =
     language === "en" ? "English"
     : language === "fr" ? "French"
     : language === "es" ? "Spanish"
-    : "Vietnamese"
-  );
+    : "Vietnamese";
 
   // Set temperature to 0.7 default, no need for helper here as we want to prioritize speed in the race
   let temp = 0.7;
@@ -576,7 +576,8 @@ export const sendMessageToBotRace = async (params: {
       model,
       prompt,
       temp,
-      systemInstruction: systemPrompt,
+      mode: "chat",
+      language: resolvedLanguage,
       encryptedKeyPayload,
     });
 
@@ -588,7 +589,8 @@ export const sendMessageToBotRace = async (params: {
       model: "stepfun/step-3.5-flash:free",
       prompt,
       temp,
-      systemInstruction: systemPrompt,
+      mode: "chat",
+      language: resolvedLanguage,
     });
 
     return { model: "stepfun-3.5-flash", text };
@@ -614,7 +616,7 @@ export const sendMessageToBotRace = async (params: {
     else {
       console.log("Using balanced strategy for this request");
       raceResult = await raceModels([
-        () => callGemini("gemini-2.5-flash"),
+        () => callGemini("gemini-3-flash-preview"),
         () => callStepFun()
       ]);
     }
@@ -682,14 +684,11 @@ export const sendMessageToBot = async (params: {
   //   throw new Error("No API key available for free mode.");
   // }
 
-  // last: Language update
-  const systemPrompt = SYSTEM_INSTRUCTION.replace(
-    "{{LANGUAGE}}",
+  const resolvedLanguage =
     language === "en" ? "English"
     : language === "fr" ? "French"
     : language === "es" ? "Spanish"
-    : "Vietnamese"
-  );
+    : "Vietnamese";
 
   // Get temperature recommendation from helper function based on the current prompt
   let temp = 0.7;
@@ -717,7 +716,8 @@ export const sendMessageToBot = async (params: {
         model,
         prompt,
         temp,
-        systemInstruction: systemPrompt,
+        mode: "chat",
+        language: resolvedLanguage,
         encryptedKeyPayload,
       });
 
@@ -768,6 +768,7 @@ export const sendMessageToBot = async (params: {
 
 
 // Generate structured session summary using Gemini
+// Moved to Server-side backend already, REMOVE THIS ON PROD
 const SUMMARY_SYSTEM_INSTRUCTION = `
 System Language (FORCED INPUT/OUTPUT CONTENT LANGUAGE): {{LANGUAGE}}
 
@@ -869,13 +870,11 @@ CURRENT SESSION HISTORY:
 ${history.map((h) => `${h.role.toUpperCase()}: ${h.content}`).join("\n\n")}
 `.trim();
 
-  const summaryPrompt = SUMMARY_SYSTEM_INSTRUCTION.replace(
-    "{{LANGUAGE}}",
+  const resolvedLanguage =
     language === "en" ? "English"
     : language === "fr" ? "French"
     : language === "es" ? "Spanish"
-    : "Vietnamese"
-  );
+    : "Vietnamese";
 
   for (const model of MODEL_FALLBACK_CHAIN) {
     try {
@@ -883,7 +882,8 @@ ${history.map((h) => `${h.role.toUpperCase()}: ${h.content}`).join("\n\n")}
         model,
         prompt: inputBlock,
         temp: 0.6,
-        systemInstruction: summaryPrompt,
+        mode: "summary",
+        language: resolvedLanguage,
         responseMimeType: "application/json",
         encryptedKeyPayload,
       });

@@ -14,9 +14,10 @@ import { createPortal } from "react-dom";
 import { useClickOutside } from './services/useClickOutsite';
 import { generateSessionSummary } from './services/geminiService.ts';
 import { createSummaryDoc } from './services/createSummaryDoc.ts';
-import { Sparkles, SquarePen, ScrollText, ChevronDown, BrainCircuit, LogOut, User} from 'lucide-react';
+import { Sparkles, SquarePen, ChevronDown, BrainCircuit, LogOut, User, LayoutDashboard } from 'lucide-react';
 import ProfilePage from './ProfilePage.tsx';
 import { QuizView } from './components/QuizView'; // Added QuizView
+import DashboardView from './components/DashboardView.tsx';
 import { canSendMessage } from './services/sessionMarker.ts';
 import { InvalidAPIError } from './types';
 import { AppLanguage , LANGUAGE_DATA, LoadingModeLabel } from './lang/Language.tsx';
@@ -111,11 +112,15 @@ function trimHistory(history: ChatHistoryItem[]) {
   return history.slice(-MAX_HISTORY);
 }
 
+function countWords(text: string) {
+  return text.trim().split(/\s+/).filter(Boolean).length;
+}
+
 const App: React.FC = () => {
   const [session, setSession] = useState<any | null>(null);
 
   // NEW STATE: View Switching
-  const [currentView, setCurrentView] = useState<'chat' | 'quiz' | 'profile'>('chat');
+  const [currentView, setCurrentView] = useState<'chat' | 'quiz' | 'dashboard' | 'profile'>('chat');
   // NEW STATE: Mastery Popup
   const [showMasteryPopup, setShowMasteryPopup] = useState(false);
   // NEW STATE: Pending Explanation from Quiz
@@ -153,6 +158,8 @@ const App: React.FC = () => {
   useEffect(() => { // handle route changes for profile/account and quiz
     if (route === "/quiz") {
       setCurrentView("quiz");
+    } else if (route === "/dashboard") {
+      setCurrentView("dashboard");
     } else if (route === "/profile") {
       setCurrentView("profile");
     } else {
@@ -479,6 +486,7 @@ const App: React.FC = () => {
 
   const [model, setModel] = useState<string>('gemini-3-flash-preview'); // default model -> never empty/crash on this optional feature
   const chatEndRef = useRef<HTMLDivElement>(null);
+  const mainScrollRef = useRef<HTMLElement>(null);
   const masteryTimerRef = useRef<number | null>(null);
   const handledMasteryTopicsRef = useRef<Set<string>>(new Set());
 
@@ -551,6 +559,15 @@ const App: React.FC = () => {
       });
     }
   }, [currentView, route]);
+
+  useEffect(() => {
+    if (currentView === "dashboard") {
+      mainScrollRef.current?.scrollTo({
+        top: 0,
+        behavior: "auto",
+      });
+    }
+  }, [currentView]);
 
   useEffect(() => { // update oracle-api-key and only save it as string format
     if (encryptedApiKey) {
@@ -741,10 +758,14 @@ const App: React.FC = () => {
         file: file ?? null,
       };
 
-      const useRace = shouldUseRace();
+      const isShortPrompt = countWords(userMessage) < 6; // heuristic check to fast-forward short prompts directly to Balanced Racing mode -> better UX, save time, tokens cost
+      const useRace = isShortPrompt ? true : shouldUseRace();
       let raceIntent: "agentic" | "fast" | "balance" | null = null;
 
-      if (useRace) {
+      if (isShortPrompt) {
+        raceIntent = "balance";
+        currentLoadingLabel = "Balanced";
+      } else if (useRace) {
         raceIntent = await classifyIntent(
           encryptedApiKey,
           outgoingHistory.map(h => `${h.role.toUpperCase()}: ${h.content}`).join("\n\n")
@@ -1076,8 +1097,8 @@ const App: React.FC = () => {
     }
   }, [pendingExplanation, currentView]);
 
-  const handleAddToMemory = (summary: string) => {
-    setOracleMemory((prev) => recordQuizResultInMemory(prev, summary, chatHistory));
+  const handleAddToMemory = (summary: string, topicTag: string | null) => {
+    setOracleMemory((prev) => recordQuizResultInMemory(prev, summary, topicTag, chatHistory));
     alert(LANGUAGE_DATA[language].ui.memoryAdded);
   };
 
@@ -1166,11 +1187,16 @@ const App: React.FC = () => {
                 <SquarePen size={18} />
               </button>
 
-              <button className="p-2 rounded-lg hover:bg-black/5 dark:hover:bg-white/10 text-slate-700 dark:text-slate-200" onClick={handleGenerateSummary} disabled={isGeneratingSummary} title={LANGUAGE_DATA[language].tooltips.summary}> {/* Summary btn*/}
-                <ScrollText
-                  size={18}
-                  className={`transition-all duration-200 ${isGeneratingSummary ? "animate-spin text-indigo-500" : ""}`}
-                />
+              <button
+                className={`p-2 rounded-lg transition-colors ${
+                  currentView === 'dashboard'
+                    ? 'bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400'
+                    : 'hover:bg-black/5 dark:hover:bg-white/10 text-slate-700 dark:text-slate-200'
+                }`}
+                onClick={() => navigate("/dashboard")}
+                title="Dashboard"
+              >
+                <LayoutDashboard size={18} />
               </button>
 
               {/* QUIZ BUTTON */}
@@ -1297,7 +1323,7 @@ const App: React.FC = () => {
           </header>
 
           {/* MAIN VIEW SWITCHER */}
-          <main className="flex-1 overflow-y-auto scroll-smooth custom-scrollbar relative">
+          <main ref={mainScrollRef} className="flex-1 overflow-y-auto scroll-smooth custom-scrollbar relative">
             {currentView === 'chat' ? (
               <div className="max-w-4xl mx-auto px-4 pt-8 pb-32">
                 {messages.map((msg, index) => {
@@ -1380,6 +1406,15 @@ const App: React.FC = () => {
                   )
                 }
               </div>
+            ) : currentView === 'dashboard' ? (
+              <DashboardView
+                language={language}
+                memory={oracleMemory}
+                history={chatHistory}
+                isGeneratingSummary={isGeneratingSummary}
+                onDownloadSummary={handleGenerateSummary}
+                onBack={() => navigate("/")}
+              />
             ) : (
               // QUIZ VIEW
               <QuizView 

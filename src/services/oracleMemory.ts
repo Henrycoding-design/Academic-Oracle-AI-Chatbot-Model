@@ -388,10 +388,11 @@ const inferAccuracyFromSummary = (summary: string): number | null => {
 export const recordQuizResultInMemory = (
   raw: string | null | undefined,
   summary: string,
+  explicitTopicTag?: string | null,
   history: ChatHistoryItem[] = []
 ): string => {
   const memory = parseOracleMemory(raw);
-  const topicTag = getCurrentTopicTag(memory, history) || "general";
+  const topicTag = explicitTopicTag?.trim() || getCurrentTopicTag(memory, history) || "general";
   const topic = ensureTopic(memory, topicTag);
 
   topic.quiz_results = Array.from(new Set([...topic.quiz_results, summary]));
