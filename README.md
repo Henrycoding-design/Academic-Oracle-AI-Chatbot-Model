@@ -7,11 +7,17 @@
   <p>
     <a href="#features">Features</a> •
     <a href="#tech-stack">Tech Stack</a> •
+    <a href="#licensing-and-project-identity">Licensing</a> •
     <a href="#support">Support</a>
   </p>
 
   <p>
-    <img src="https://img.shields.io/badge/license-Apache--2.0-blue.svg" />
+    <a href="#licensing-and-project-identity">
+      <img src="https://img.shields.io/badge/license-Mixed%20License-orange.svg" alt="License: Mixed License" />
+    </a>
+    <a href="#licensing-and-project-identity">
+      <img src="https://img.shields.io/badge/code-Apache--2.0%20with%20exceptions-blue.svg" alt="Code: Apache-2.0 with exceptions" />
+    </a>
     <img src="https://img.shields.io/badge/status-deployed-brightgreen.svg" />
     <img src="https://img.shields.io/github/stars/Henrycoding-design/Academic-Oracle-AI-Chatbot-Model" />
     <img src="https://img.shields.io/github/last-commit/Henrycoding-design/Academic-Oracle-AI-Chatbot-Model" />
