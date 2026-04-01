@@ -1,13 +1,32 @@
 Universal Academic Oracle
 Copyright (c) 2026 Vo Tan Binh / Universal Academic Oracle
 
-This project is licensed under the Apache License, Version 2.0,
-except for files and directories explicitly excluded under the repository's
-license scope and proprietary file notices.
+Licensed under the Apache License, Version 2.0, except where otherwise stated.
 
-The official upstream repository for this project is the original
-Universal Academic Oracle repository maintained by the copyright holder.
+This repository uses a mixed-license structure.
 
-Project name, branding, visual identity, logos, icons, release identity,
-and other non-code brand assets are not granted under the Apache License 2.0
-unless explicitly stated otherwise.
+Unless otherwise stated, the public code in this repository is licensed under
+the Apache License, Version 2.0.
+
+However, selected files containing core product logic, orchestration behavior,
+service intelligence, protected UX flow implementation, and project-defining
+internal logic are excluded from Apache-2.0 and remain All Rights Reserved.
+
+Excluded files include:
+
+- src/services/geminiService.ts
+- src/services/oracleMemory.ts
+- src/services/chatIntentClassifier.ts
+- src/services/createSummaryDoc.ts
+- src/App.tsx
+- src/components/DashboardView.tsx
+- src/components/QuizView.tsx
+
+Public visibility of excluded files does not grant permission to copy,
+redistribute, modify, reuse, republish, or sublicense them outside the official
+upstream repository without prior written permission.
+
+The project name, branding, visual identity, screenshots, release identity,
+logos, icons, and related non-code brand elements are not licensed under Apache-2.0.
+
+See TRADEMARK_POLICY.md for branding and identity restrictions.

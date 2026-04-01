@@ -9,7 +9,7 @@
  * republish, or sublicense this file outside the official upstream
  * Universal Academic Oracle repository without prior written permission.
  *
- * See LICENSE_SCOPE.md and TRADEMARK_POLICY.md for additional terms.
+ * See NOTICE and TRADEMARK_POLICY.md for additional terms.
  */
 
 import { supabase } from "./supabaseClient";

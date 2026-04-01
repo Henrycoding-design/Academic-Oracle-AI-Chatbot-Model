@@ -123,7 +123,6 @@ Please review:
 
 - [LICENSE](LICENSE)
 - [NOTICE](NOTICE)
-- [LICENSE_SCOPE](./REPOSITORY_LICENSING_SCOPE.md)
 - [TRADEMARK_POLICY.md](TRADEMARK_POLICY.md)
 
 ### Contributor Expectation
