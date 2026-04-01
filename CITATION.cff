@@ -9,7 +9,7 @@ authors:
   - family-names: "Vo"
     given-names: "Tan Binh"
 repository-code: "https://github.com/Henrycoding-design/Academic-Oracle-AI-Chatbot-Model"
-license: "MIT"
+license: "Apache-2.0"
 keywords:
   - artificial intelligence
   - education
