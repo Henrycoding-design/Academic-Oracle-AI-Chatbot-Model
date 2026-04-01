@@ -234,7 +234,7 @@ Public visibility of excluded files does **not** grant permission to copy,
 redistribute, or reuse them outside the official upstream repository.
 
 See:
-- [`LICENSE`](./LICENSE.md)
+- [`LICENSE`](./LICENSE)
 - [`NOTICE`](./NOTICE)
 - [`LICENSE_SCOPE`](./REPOSITORY_LICENSE_SCOPE.md)
 
