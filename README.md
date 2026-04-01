@@ -66,7 +66,9 @@ You don’t just learn faster — you learn *properly*.
 ### 🧠 Learning Engine
 
 - Hint-based reasoning flow (Ask first, reveal progressively)
-- Structured thinking prompts
+- Structured thinking prompts with richer Oracle Memory JSON returns
+- Feynman-technique reinforcement when understanding needs to be rebuilt from first principles
+- Exam-style adaptation and wider mastery branching for more context-aware coaching
 - Pattern extraction instead of answer dumping
 - **Follow-up suggestion system (NEW v2.3.0)**
   - Context-aware follow-up buttons appear on text selection
@@ -82,6 +84,17 @@ You don’t just learn faster — you learn *properly*.
 - Reinforcement-based correction
 - Mid-session language switching
 - Unified Chat + Quiz UI system
+- Short-query routing can jump directly into Balanced race mode for fast lightweight prompts
+
+
+### 📊 Learning Dashboard (NEW v2.3.5)
+
+- Dedicated dashboard tab for learner overview and progress reflection
+- Displays user profile, academic level, current topic, and learning level
+- Circular learning-efficiency indicator based on tracked performance
+- Expandable topic panels with key notes, formulas/cues, quiz attempts, and recommended next focus
+- Surfaces strengths, weaknesses, and overall session summary in one place
+- Integrated **Download Session Summary** action from the dashboard
 
 
 ### ⚙️ Intelligent Request Routing (UPDATED v2.3.0)
@@ -120,6 +133,7 @@ Academic Oracle doesn’t just respond — it **decides how to think first**.
   - No direct client exposure of sensitive keys
   - Production-grade architecture
 - Secure Edge Function orchestration
+- Core prompt logic migrated into Supabase Edge Functions for tighter backend control
 - Encrypted handling of sensitive internal data
 - Supabase-backed session continuity
 
@@ -141,6 +155,7 @@ it is a **secured distributed AI system**.
 - Code blocks
 - Dark / Light mode
 - Responsive design (desktop & mobile)
+- Structured session summary generation backed by Oracle Memory data
 - **Non-blocking UI architecture**
   - Failures never crash the interface
   - Graceful degradation on errors

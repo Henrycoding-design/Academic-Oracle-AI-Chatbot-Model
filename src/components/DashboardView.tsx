@@ -23,7 +23,7 @@ import {
   Trophy,
 } from "lucide-react";
 import type { ChatHistoryItem } from "../types";
-import { parseOracleMemory } from "../services/oracleMemory";
+import { formatTopicTagForDisplay, parseOracleMemory } from "../services/oracleMemory";
 import { AppLanguage, LANGUAGE_DATA } from '../lang/Language';
 
 interface DashboardViewProps {
@@ -193,7 +193,7 @@ const DashboardView: React.FC<DashboardViewProps> = ({
               <div className="rounded-2xl bg-slate-100/80 dark:bg-slate-800 p-4 shadow-inner shadow-white/60 dark:shadow-none">
                 <p className="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">{DD.currentTopic}</p>
                 <p className="mt-2 text-lg font-semibold text-slate-900 dark:text-slate-100">
-                  {currentTopic?.topic_tag || DD.currentTopicFallback}
+                  {formatTopicTagForDisplay(currentTopic?.topic_tag) || DD.currentTopicFallback}
                 </p>
               </div>
               <div className="rounded-2xl bg-slate-100/80 dark:bg-slate-800 p-4 shadow-inner shadow-white/60 dark:shadow-none">
@@ -320,7 +320,9 @@ const DashboardView: React.FC<DashboardViewProps> = ({
                 >
                   <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-4 py-4">
                     <div>
-                      <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">{topic.topic_tag}</p>
+                      <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">
+                        {formatTopicTagForDisplay(topic.topic_tag)}
+                      </p>
                       <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
                         {DD.topicMeta
                           .replace("{status}", topic.mastered ? DD.topicMastered : DD.topicInProgress)

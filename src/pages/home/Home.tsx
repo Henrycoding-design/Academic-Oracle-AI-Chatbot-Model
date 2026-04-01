@@ -31,6 +31,16 @@ export default function Home() {
       <HeroSection />
       <InfiniteRail />
       <div className="h-20" />
+      <section className="px-6 pb-8 text-center">
+        <div className="mx-auto max-w-3xl">
+          <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">
+            Track how learning evolves
+          </h2>
+          <p className="mt-3 text-white/60">
+            The new dashboard, structured Oracle Memory, adaptive quiz loop, and session summary flow now work together as one guided learning system.
+          </p>
+        </div>
+      </section>
       <FeatureGrid />
       {/* <section className="mt-16 px-4 sm:px-6 md:px-8 pb-3 sm:pb-5"> */}
       <motion.section

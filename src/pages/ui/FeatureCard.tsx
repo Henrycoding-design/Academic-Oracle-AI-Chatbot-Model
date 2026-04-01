@@ -1,14 +1,15 @@
 import React, { useRef } from "react";
 import { motion, useMotionValue , useMotionTemplate , useSpring } from "framer-motion";
-import { Brain, Globe, Shield, Sparkles, Database , FileText} from "lucide-react";
+import { Brain, Globe, Shield, Sparkles, Database, FileText, LayoutDashboard } from "lucide-react";
 
 const FEATURES = [
-  { id: 1, icon: Brain, title: "Learning Engine", span: "md:col-span-2" },
-  { id: 2, icon: Database, title: "Oracle Memory" },
-  { id: 3, icon: FileText, title: "Session Summary" }, // Replaced "Platform"
+  { id: 1, icon: Database, title: "Structured Memory" },
+  { id: 2, icon: Brain, title: "Learning Engine", span: "md:col-span-2" },
+  { id: 3, icon: LayoutDashboard, title: "Learning Dashboard" },
   { id: 4, icon: Shield, title: "Security" },
-  { id: 5, icon: Sparkles, title: "Adaptive Quiz", span: "md:col-span-2" },
+  { id: 5, icon: Sparkles, title: "Adaptive Quiz"},
   { id: 6, icon: Globe, title: "Universal Access" }, // Renamed to feel more expansive
+  { id: 7, icon: FileText, title: "Session Summary" },
 ];
 
 export default function FeatureGrid() {

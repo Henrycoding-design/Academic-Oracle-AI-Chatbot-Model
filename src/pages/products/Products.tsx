@@ -1,7 +1,7 @@
 import PageLayout from "@/src/layout/PageLayout";
 import PageHeader from "../ui/PageHeader";
 import ArcadeEmbedv2_0 from "@/src/components/ArcadeProductDemov2.0";
-import { AppWindow, Brain, Shield, Layout, X, BookOpen, Github, Zap , MessageCircleIcon , PackageCheckIcon, ClipboardCheck, RefreshCw, MessageSquare, ArrowRight, Database, TrendingUp} from "lucide-react";
+import { AppWindow, Brain, Shield, Layout, X, BookOpen, Github, Zap , MessageCircleIcon , PackageCheckIcon, ClipboardCheck, RefreshCw, MessageSquare, ArrowRight, Database, TrendingUp, LayoutDashboard, FileText } from "lucide-react";
 
 export default function Products() {
   return (
@@ -89,7 +89,7 @@ export default function Products() {
         </div>
         <hr className="border-white/5 my-12" />
         {/* Second Row: Quiz Integration */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
           {/* Feature 4: Dynamic Quiz Loop */}
           <div className="space-y-4 group p-6 rounded-2xl bg-white/[0.02] border border-white/5 hover:border-orange-500/30 transition-all duration-300">
             <div className="flex items-center gap-3 text-white/80">
@@ -124,7 +124,26 @@ export default function Products() {
             </h4>
 
             <p className="text-sm text-white/70 leading-relaxed">
-              The Oracle learns how you learn. By updating your persistent "Oracle Memory" with quiz performance, the AI automatically adapts its curriculum and difficulty in real-time.
+              The Oracle learns how you learn. Structured memory now tracks topic progress, Feynman support needs, quiz history, and adaptive practice signals in real-time.
+            </p>
+          </div>
+
+          {/* Feature 6: Dashboard + Summary */}
+          <div className="space-y-4 group p-6 rounded-2xl bg-white/[0.02] border border-white/5 hover:border-emerald-500/30 transition-all duration-300">
+            <div className="flex items-center gap-3 text-white/80">
+              <LayoutDashboard className="w-6 h-6 text-emerald-400" />
+              <ArrowRight className="w-4 h-4 opacity-50" />
+              <FileText className="w-6 h-6 text-blue-400" />
+            </div>
+
+            <h3 className="text-xl font-semibold text-white">Dashboard Insight Loop</h3>
+
+            <h4 className="text-sm text-white/60">
+              Progress visualization · Topic drilldowns · Summary export
+            </h4>
+
+            <p className="text-sm text-white/70 leading-relaxed">
+              Review learner identity, efficiency, strengths, weaknesses, current topics, and downloadable session summaries from one focused dashboard built for reflection and next-step planning.
             </p>
           </div>
         </div>

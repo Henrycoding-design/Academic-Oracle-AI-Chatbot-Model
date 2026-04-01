@@ -27,6 +27,19 @@ const clampAccuracy = (value: unknown): number | null => {
   return Math.max(0, Math.min(100, Math.round(value)));
 };
 
+export const formatTopicTagForDisplay = (topicTag: string | null | undefined): string => {
+  if (typeof topicTag !== "string") return "";
+
+  const normalized = topicTag
+    .trim()
+    .replace(/[_-]+/g, " ")
+    .replace(/\s+/g, " ");
+
+  if (!normalized) return "";
+
+  return normalized.replace(/\b([a-z])/gi, (match) => match.toUpperCase());
+};
+
 const normalizeTopic = (topic: Partial<OracleTopicMemory> | null | undefined): OracleTopicMemory | null => {
   const topicTag = typeof topic?.topic_tag === "string" ? topic.topic_tag.trim() : "";
   if (!topicTag) return null;

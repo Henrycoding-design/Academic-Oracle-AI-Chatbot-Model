@@ -1,5 +1,17 @@
 [
   {
+    "version": "2.3.5",
+    "date": "2026-04-01",
+    "changes": [
+      { "type": "improve", "text": "Expanded the learning engine with Feynman reinforcement, exam-style adaptation, wider mastery branching, and structured Oracle Memory JSON returns." },
+      { "type": "improve", "text": "Added short-query fast branching to Balanced race mode for low-friction learning prompts under 6 words." },
+      { "type": "feature", "text": "Introduced the learner dashboard with profile insights, learning-efficiency tracking, topic drilldowns, strengths, weaknesses, and integrated session summary download." },
+      { "type": "improve", "text": "Upgraded session summary DOCX generation to consume richer structured Oracle Memory data." },
+      { "type": "security", "text": "Migrated key prompt logic to Supabase Edge Functions for tighter backend-controlled orchestration." },
+      { "type": "internal", "text": "Updated repository licensing, README, and UI content to reflect the new mixed-license project framework." }
+    ]
+  },
+  {
     "version": "2.3.1",
     "date": "2026-03-28",
     "changes": [
