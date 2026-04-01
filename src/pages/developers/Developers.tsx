@@ -1,7 +1,11 @@
 import PageLayout from "@/src/layout/PageLayout";
 import PageHeader from "../ui/PageHeader";
 import ArcadeEmbed from "@/src/components/ArcadeProductDemo";
-import { Laptop, Shield, BookOpen, Github, CodeXml, FileText } from "lucide-react";
+import { 
+  AppWindow, Brain, Shield, Laptop, 
+  Database, BookOpen, Github, Cpu, 
+  CodeXml, Scale, Lock 
+} from "lucide-react";
 
 export default function Developers() {
   return (
@@ -11,7 +15,7 @@ export default function Developers() {
         title="Developer Hub"
         tag="Developers"
         icon={CodeXml}
-        subtitle="Contributor-facing guidance for working with the public repository while respecting licensing boundaries, reserved-rights materials, and project identity."
+        subtitle="The high-performance stack powering Academic Oracle's Socratic Engine."
         button="View Docs"
         btnLink="/docs"
         imgLink="./Developer.png"
@@ -28,30 +32,73 @@ export default function Developers() {
             <div className="flex items-center gap-3 text-white/80">
               <Laptop className="w-6 h-6 text-blue-400" />
               <div className="h-4 w-[1px] bg-white/10" />
-              <BookOpen className="w-6 h-6 text-indigo-400" />
+              <Cpu className="w-6 h-6 text-indigo-400" />
             </div>
 
             <h3 className="text-xl font-semibold text-white">
-              Public Contribution Surface
+              React + Vite + TS
             </h3>
 
             <h4 className="text-sm text-white/60">
-              Frontend docs · UI work · focused improvements
+              Type-safe · HMR · Optimized Build
             </h4>
 
             <p className="text-sm text-white/70 leading-relaxed">
-              Contributors are encouraged to improve the public app, docs, and
-              user experience through clear, maintainable changes that align with
-              the product's guided-learning goals.
+              Our frontend is built for speed. Using Vite's lightning-fast bundling and TypeScript's strict typing, we ensure a lag-free UI capable of handling complex LaTeX and code rendering in real-time.
             </p>
           </div>
 
           {/* Intelligence Stack */}
           <div className="space-y-4 group p-6 rounded-2xl bg-white/[0.02] border border-white/5 hover:border-indigo-500/30 transition-all">
             <div className="flex items-center gap-3 text-white/80">
-              <FileText className="w-6 h-6 text-indigo-400" />
+              <Brain className="w-6 h-6 text-indigo-400" />
               <div className="h-4 w-[1px] bg-white/10" />
-              <Shield className="w-6 h-6 text-white/50" />
+              <span className="text-[10px] font-bold border border-white/20 px-1 rounded text-white/40 uppercase">V.1.22.0</span>
+            </div>
+
+            <h3 className="text-xl font-semibold text-white">
+              Google AI Studio
+            </h3>
+
+            <h4 className="text-sm text-white/60">
+              Gemini Flash · Custom Heuristics · Fallback
+            </h4>
+
+            <p className="text-sm text-white/70 leading-relaxed">
+              Leveraging the <strong>Gemini-3-Flask</strong> series, we implement a resilient intelligence layer. Our routing logic manages fallbacks and selective model usage to maintain a continuous Socratic flow.
+            </p>
+          </div>
+
+          {/* Infrastructure Stack */}
+          <div className="space-y-4 group p-6 rounded-2xl bg-white/[0.02] border border-white/5 hover:border-emerald-500/30 transition-all">
+            <div className="flex items-center gap-3 text-white/80">
+              <Database className="w-6 h-6 text-emerald-400" />
+              <div className="h-4 w-[1px] bg-white/10" />
+              <Shield className="w-6 h-6 text-blue-400" />
+            </div>
+
+            <h3 className="text-xl font-semibold text-white">
+              Supabase + OAuth
+            </h3>
+
+            <h4 className="text-sm text-white/60">
+              AES-GCM 256 · Postgres · Secure Auth
+            </h4>
+
+            <p className="text-sm text-white/70 leading-relaxed">
+              Security is non-negotiable. We use Google OAuth for identity and encrypt all sensitive API credentials using AES-GCM 256 before they ever reach our Supabase database.
+            </p>
+          </div>
+        </div>
+
+        {/* New Compliance & Policy Section */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-10 mt-10">
+          {/* License Awareness */}
+          <div className="space-y-4 group p-6 rounded-2xl bg-white/[0.02] border border-white/5 hover:border-amber-500/30 transition-all">
+            <div className="flex items-center gap-3 text-white/80">
+              <Scale className="w-6 h-6 text-amber-400" />
+              <div className="h-4 w-[1px] bg-white/10" />
+              <span className="text-[10px] font-bold border border-amber-500/20 px-1 rounded text-amber-400/60 uppercase">OSS Governance</span>
             </div>
 
             <h3 className="text-xl font-semibold text-white">
@@ -63,18 +110,16 @@ export default function Developers() {
             </h4>
 
             <p className="text-sm text-white/70 leading-relaxed">
-              Not every file in the repository is available under the same terms.
-              Contributors should review the license, notice files, and excluded
-              materials before reusing or redistributing project content.
+              Not every file in the repository is available under the same terms. Contributors should review the license, notice files, and excluded materials before reusing or redistributing project content.
             </p>
           </div>
 
-          {/* Infrastructure Stack */}
-          <div className="space-y-4 group p-6 rounded-2xl bg-white/[0.02] border border-white/5 hover:border-emerald-500/30 transition-all">
+          {/* Protected Implementation */}
+          <div className="space-y-4 group p-6 rounded-2xl bg-white/[0.02] border border-white/5 hover:border-purple-500/30 transition-all">
             <div className="flex items-center gap-3 text-white/80">
-              <Shield className="w-6 h-6 text-emerald-400" />
+              <Lock className="w-6 h-6 text-purple-400" />
               <div className="h-4 w-[1px] bg-white/10" />
-              <Shield className="w-6 h-6 text-blue-400" />
+              <span className="text-[10px] font-bold border border-purple-500/20 px-1 rounded text-purple-400/60 uppercase">Internal Tech</span>
             </div>
 
             <h3 className="text-xl font-semibold text-white">
@@ -86,9 +131,7 @@ export default function Developers() {
             </h4>
 
             <p className="text-sm text-white/70 leading-relaxed">
-              Some product-defining logic, security-sensitive behavior, and
-              implementation details are intentionally described only at a high
-              level in the public repository.
+              Some product-defining logic, security-sensitive behavior, and implementation details are intentionally described only at a high level in the public repository to maintain system integrity.
             </p>
           </div>
         </div>
@@ -103,11 +146,11 @@ export default function Developers() {
       >
         <div className="text-center mb-12">
             <h2 className="text-3xl sm:text-4xl font-bold tracking-tight mb-4">
-              Public Experience Demo
+              Pedagogical Interaction Demo
             </h2>
             <p className="text-white/60 max-w-2xl mx-auto">
-              Explore the learner-facing experience and the tone of guided
-              interaction without exposing internal operational details.
+              Test the integration between our Socratic Engine and the frontend rendering. <br></br>
+              Observe how the Oracle guides without giving away the solution.
             </p>
         </div>
 
@@ -124,12 +167,11 @@ export default function Developers() {
         className="px-4 sm:px-6 md:px-8 text-center my-15 sm:my-24"
       >
         <h2 className="text-2xl sm:text-4xl font-bold tracking-tight">
-          Build responsibly with the public repo
+          Ready to Build with the Oracle?
         </h2>
 
         <p className="mt-4 text-white/60 max-w-xl mx-auto">
-          Use the documentation to understand contribution expectations, public
-          setup, and repository boundaries before making changes or derivatives.
+          Access our comprehensive documentation for API endpoints, encryption standards, and pedagogical guidelines.
         </p>
 
         <div className="mt-10 flex justify-center gap-4 flex-wrap">
@@ -147,7 +189,7 @@ export default function Developers() {
             className="inline-flex items-center gap-2 px-8 py-4 rounded-2xl text-sm font-bold border border-white/10 text-white hover:bg-white/5 transition-all"
           >
             <Github size={18} />
-            Star on GitHub
+            View on GitHub
           </a>
         </div>
       </section>

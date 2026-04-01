@@ -11,7 +11,7 @@ export default function Policy() {
         tag="Privacy"
         icon={ShieldCheck}
         subtitle="How Universal Academic Oracle approaches privacy, account protection, and responsible handling of public-facing data."
-        button="See account guidance"
+        button="See Account Docs"
         btnLink="/docs/auth"
         imgLink="./privacy.png"
       />

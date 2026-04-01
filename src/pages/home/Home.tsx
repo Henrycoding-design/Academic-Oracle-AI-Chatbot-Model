@@ -73,7 +73,7 @@ export default function Home() {
         initial="hidden"
         whileInView="visible"
         viewport={{ once: true }}
-        transition={{delay: 1}}
+        transition={{ delay: 1 }}
         className="mt-24 px-4 sm:px-6 md:px-8 text-center py-18 sm:py-24"
       >
         <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">
@@ -81,44 +81,47 @@ export default function Home() {
         </h2>
 
         <p className="mt-3 text-white/60 max-w-xl mx-auto">
-          Universal Academic Oracle includes Apache-2.0 licensed materials, while
-          selected files, branding, and product identity remain protected under the
-          repository's custom restrictions and reserved-rights notices.
+          Core components are licensed under <strong>Apache-2.0</strong>. 
+          Specific files, branding, and core identity remain protected under 
+          reserved-rights notices.
         </p>
 
-        <div className="mt-6 flex justify-center gap-3 flex-wrap">
+        <div className="mt-10 flex justify-center gap-4 flex-wrap">
           <a
             href="https://github.com/Henrycoding-design/Academic-Oracle-AI-Chatbot-Model"
             target="_blank"
             rel="noopener noreferrer"
             className="
               inline-flex items-center gap-2
-              px-5 py-2.5 rounded-xl
-              text-sm font-medium
+              px-8 py-4 rounded-2xl
+              text-sm font-bold
               bg-[#0b1225]/80
               border border-blue-400/20
               text-white
               hover:bg-[#0b1225]
               hover:border-blue-400/40
               hover:text-blue-300
-              transition
+              hover:-translate-y-1
+              shadow-lg shadow-blue-500/10
+              transition-all duration-300
             "
           >
-            <Github size={18} />
+            <Github size={20} />
             View on GitHub
           </a>
           <a
             href="/terms"
             className="
               inline-flex items-center gap-2
-              px-5 py-2.5 rounded-xl
-              text-sm font-medium
+              px-8 py-4 rounded-2xl
+              text-sm font-bold
               bg-white/5
               border border-white/10
               text-white
               hover:bg-white/10
               hover:border-white/20
-              transition
+              hover:-translate-y-1
+              transition-all duration-300
             "
           >
             View license terms
@@ -152,24 +155,24 @@ export default function Home() {
         <motion.div
           variants={reveal}
           transition={{ delay: 0.2 }}
-          className="mt-8 flex justify-center gap-4 flex-wrap"
+          className="mt-10 flex justify-center gap-4 flex-wrap"
         >
-          {/* buttons */}
           {/* Chat Button */}
           <a
             href="/"
             className="
               inline-flex items-center gap-2
-              px-6 py-3 rounded-xl
-              text-sm font-medium
-              bg-blue-500
+              px-8 py-4 rounded-2xl
+              text-sm font-bold
+              bg-blue-600
               text-white
-              hover:bg-blue-400
-              shadow-[0_0_20px_rgba(59,130,246,0.25)]
-              transition
+              hover:bg-blue-500
+              hover:-translate-y-1
+              shadow-lg shadow-blue-500/25
+              transition-all duration-300
             "
           >
-            <MessageSquare size={18} />
+            <MessageSquare size={20} />
             Start Chatting
           </a>
 
@@ -178,17 +181,18 @@ export default function Home() {
             href="mailto:tanbinvo.hcm@gmail.com"
             className="
               inline-flex items-center gap-2
-              px-6 py-3 rounded-xl
-              text-sm font-medium
-              border border-blue-500/60
-              text-blue-400
-              hover:border-blue-400
-              hover:text-blue-300
-              hover:shadow-[0_0_15px_rgba(59,130,246,0.25)]
-              transition
+              px-8 py-4 rounded-2xl
+              text-sm font-bold
+              bg-white/5
+              border border-white/10
+              text-white
+              hover:bg-white/10
+              hover:border-white/20
+              hover:-translate-y-1
+              transition-all duration-300
             "
           >
-            <Mail size={18} />
+            <Mail size={20} />
             Contact
           </a>
         </motion.div>

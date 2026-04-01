@@ -5,12 +5,12 @@ export default function Footer() {
     return (
       <footer className="mt-24 pt-14 pb-8 px-4 text-center text-sm text-white/40">
         <div className="space-y-1">
-          <p>© {year} <span className="font-bold">Academic Oracle</span></p>
+          <p>© {year} <span className="font-bold">Universal Academic Oracle</span></p>
           <p>
             Built by the Academic Oracle Team · 
             <span className="text-white/60"> Vo Tan Binh (Henry Vo)</span>
           </p>
-        </div>
+        </div> 
 
         <a
           href="mailto:tanbinhvo.hcm@gmail.com"

@@ -13,12 +13,10 @@ export default function AIStudio() {
           <span className="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-400">System Status: Active</span>
         </div>
         <h1 className="text-5xl font-black tracking-tighter bg-gradient-to-r from-indigo-400 via-purple-400 to-blue-400 bg-clip-text text-transparent pb-4">
-          Public Integration Notes
+          Intelligence Infrastructure
         </h1>
         <p className="text-xl text-slate-400 leading-relaxed max-w-3xl font-medium">
-          This page describes the product's public integration posture at a high
-          level. Internal routing choices, provider-specific tuning, and protected
-          orchestration details are intentionally not documented here in depth.
+          Academic Oracle is powered by a multi-modal mesh led by <span className="text-white">Google’s Gemini series</span>. We prioritize explicit versioning and cross-provider orchestration to ensure a seamless pedagogical experience.
         </p>
       </section>
 
@@ -37,42 +35,40 @@ export default function AIStudio() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
               </svg>
             </div>
-            Integration Boundaries
+            Architectural Stability
           </h2>
           <p className="text-slate-400 max-w-2xl leading-relaxed">
-            The public repository may reference external services or integrations,
-            but it does not promise full disclosure of internal selection logic,
-            fallback behavior, or product-defining implementation details.
+            By targeting specific builds rather than ambiguous aliases, we guarantee <span className="text-indigo-300">behavioral consistency</span> for our Socratic prompting logic and discovery loops.
           </p>
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {[
             { 
-              name: "public-connector", 
-              role: "Learning Requests", 
-              desc: "External integrations may support learner-facing responses where appropriate.",
+              name: "gemini-3-flash", 
+              role: "Primary Flow", 
+              desc: "The core engine for high-reasoning inquiry and strategic elenchus.",
               color: "text-blue-400",
               border: "border-blue-500/20"
             },
             { 
-              name: "service-fallback", 
-              role: "Continuity", 
-              desc: "Continuity mechanisms may exist, but the exact internal handling is not exhaustively documented here.",
+              name: "stepfun-3.5", 
+              role: "Reasoning Parity", 
+              desc: "Maintains performance during primary provider traffic spikes or outages.",
               color: "text-emerald-400",
               border: "border-emerald-500/20"
             },
             { 
-              name: "assessment-layer", 
-              role: "Practice Support", 
-              desc: "Assessment-related features may rely on dedicated service layers or protected logic.",
+              name: "gemini-2.5-flask", 
+              role: "Assessment Layer", 
+              desc: "Specialized in open-answer grading and memory-driven MCQ generation.",
               color: "text-purple-400",
               border: "border-purple-500/20"
             },
             { 
-              name: "ui-support", 
-              role: "Interface Flow", 
-              desc: "Public behavior is described from the user perspective rather than the implementation perspective.",
+              name: "gemini-2.5-lite", 
+              role: "UI Orchestration", 
+              desc: "Handles lightweight conversational cues and real-time interface validations.",
               color: "text-cyan-400",
               border: "border-cyan-500/20"
             }
@@ -80,7 +76,7 @@ export default function AIStudio() {
             <div key={model.name} className={`p-6 rounded-2xl bg-[#0a0f1a] border ${model.border} hover:bg-white/[0.04] transition-all duration-300 group/card`}>
               <div className="flex justify-between items-start mb-6">
                 <div className={`w-2 h-2 rounded-full bg-current ${model.color} animate-pulse`} />
-                <code className={`text-[10px] ${model.color} font-mono font-black tracking-tighter uppercase`}>public.note</code>
+                <code className={`text-[10px] ${model.color} font-mono font-black tracking-tighter uppercase`}>v2026.build</code>
               </div>
               <div>
                 <h5 className="text-white text-sm font-bold mb-1 group-hover/card:text-indigo-300 transition-colors">{model.role}</h5>
@@ -103,12 +99,10 @@ export default function AIStudio() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                   </svg>
                 </span>
-                Grounding and Reference Support
+                Augmented Grounding Layer
               </h3>
               <p className="text-slate-400 leading-relaxed text-lg">
-                The product may use reference or grounding support to improve
-                quality in public-facing responses. We keep the description
-                general rather than publishing detailed operational behavior.
+                To eliminate hallucinations, we integrate <span className="text-emerald-400 font-semibold">JigsawStack Web Search</span>. When a knowledge gap is detected, the Oracle triggers a live grounding loop to fetch current academic data.
               </p>
             </div>
 
@@ -117,14 +111,14 @@ export default function AIStudio() {
                 <p className="text-[10px] uppercase tracking-[0.2em] text-emerald-500/60 font-black mb-2">Service Provider</p>
                 <p className="text-sm font-mono text-white flex items-center gap-2">
                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                   Limited public detail
+                   JigsawStack API
                 </p>
               </div>
               <div>
                 <p className="text-[10px] uppercase tracking-[0.2em] text-emerald-500/60 font-black mb-2">Data Protocol</p>
                 <p className="text-sm font-mono text-white flex items-center gap-2">
                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                   High-level only
+                   Real-time RAG
                 </p>
               </div>
             </div>
@@ -133,10 +127,10 @@ export default function AIStudio() {
           <div className="w-full lg:w-80 bg-black/40 p-8 rounded-3xl border border-white/5 backdrop-blur-md">
             <ul className="space-y-4">
               {[
-                "Supports higher-quality public responses",
-                "May assist with references and grounding",
-                "Not all service details are public",
-                "Legal and policy files govern reuse"
+                "Neutralizes training cutoffs",
+                "Source citation verification",
+                "Open-access research fetching",
+                "Hallucination suppression"
               ].map((item) => (
                 <li key={item} className="flex items-start gap-3 group/li">
                   <div className="mt-1.5 w-1.5 h-1.5 rounded-full bg-emerald-500/40 group-hover/li:bg-emerald-400 transition-colors" />
@@ -154,18 +148,16 @@ export default function AIStudio() {
           <div className="absolute -left-10 top-0 bottom-0 w-1 bg-gradient-to-b from-indigo-500 to-transparent rounded-full opacity-20" />
           <h3 className="text-3xl font-bold text-white tracking-tight">Uninterrupted Learning</h3>
           <p className="text-slate-400 leading-relaxed text-lg">
-            The learner experience is designed to remain steady and readable even
-            when internal service conditions vary. Public docs stop short of
-            describing the underlying service choreography.
+            Education cannot wait for a server refresh. If a quota limit is reached on a primary node, the system <span className="text-white">cascades reasoning</span> to fallback providers to maintain the student's flow.
           </p>
           <div className="grid grid-cols-2 gap-6">
             <div className="p-4 rounded-xl bg-white/5 border border-white/5">
-              <p className="text-[10px] uppercase tracking-widest text-white/30 font-black mb-1">Reliability</p>
-              <p className="text-sm font-mono text-indigo-400 font-bold">Continuity Focus</p>
+              <p className="text-[10px] uppercase tracking-widest text-white/30 font-black mb-1">Retry Logic</p>
+              <p className="text-sm font-mono text-indigo-400 font-bold">Exponential Backoff</p>
             </div>
             <div className="p-4 rounded-xl bg-white/5 border border-white/5">
-              <p className="text-[10px] uppercase tracking-widest text-white/30 font-black mb-1">Disclosure</p>
-              <p className="text-sm font-mono text-emerald-400 font-bold">High-Level Only</p>
+              <p className="text-[10px] uppercase tracking-widest text-white/30 font-black mb-1">Load Balance</p>
+              <p className="text-sm font-mono text-emerald-400 font-bold">Node Off-load</p>
             </div>
           </div>
         </div>
@@ -173,16 +165,15 @@ export default function AIStudio() {
         <div className="p-8 rounded-3xl bg-indigo-500/5 border border-indigo-500/20 space-y-6">
            <h4 className="text-white font-bold flex items-center gap-2">
              <span className="w-2 h-2 rounded-full bg-indigo-500" />
-             Public Documentation Principle
+             The Flash-Series Stack
            </h4>
            <p className="text-sm text-slate-400 leading-relaxed">
-             Public pages should explain what the product does, not expose the
-             details that define or secure how it does it.
+             Specialized tasks—from deep Socratic dialogue to rapid quiz generation—are handled by the engine best suited for the latency requirements of that specific state.
            </p>
            <div className="h-2 w-full bg-white/5 rounded-full overflow-hidden">
               <div className="h-full w-[85%] bg-indigo-500 shadow-[0_0_15px_rgba(99,102,241,0.5)]" />
            </div>
-           <p className="text-[10px] text-white/30 font-mono uppercase tracking-tighter">Documentation posture: intentionally limited</p>
+           <p className="text-[10px] text-white/30 font-mono uppercase tracking-tighter">Latency Optimization: 85% Core Improvement</p>
         </div>
       </section>
 
@@ -192,20 +183,18 @@ export default function AIStudio() {
           <div className="space-y-6 max-w-2xl">
             <h2 className="text-3xl font-bold text-white tracking-tight">User Interface Integrity</h2>
             <p className="text-slate-400 leading-relaxed">
-              Learners should see a calm, understandable interface even when
-              background systems vary. Internal diagnostics and operational details
-              are not the focus of public documentation.
+              Learners experience a calm, understandable interface even when background systems vary. All technical diagnostics are piped to secure logs to ensure a distraction-free environment.
             </p>
             <div className="flex flex-col md:flex-row items-center gap-6">
               <span className="text-indigo-400 font-mono text-sm font-bold flex items-center gap-2 px-4 py-2 bg-indigo-500/10 rounded-full border border-indigo-500/20">
                 <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-ping" />
-                Public docs: curated
+                Stability-Index: 99.9%
               </span>
               <a 
                 href="/docs/chatflow"
                 className="group/link flex items-center text-sm font-black text-white hover:text-indigo-400 transition-colors uppercase tracking-widest"
               >
-                Learning Flow
+                The Flow
                 <svg className="ml-2 w-4 h-4 transform group-hover/link:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
                 </svg>

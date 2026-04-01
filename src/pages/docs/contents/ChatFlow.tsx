@@ -9,9 +9,7 @@ export default function ChatFlow() {
           The Learning Lifecycle
         </h1>
         <p className="text-xl text-slate-400 leading-relaxed max-w-3xl text-balance font-medium">
-          Universal Academic Oracle is more than a chat surface. The public
-          experience is designed as a <span className="text-white">guided learning loop</span>
-          that supports reasoning without overexposing internal mechanics.
+          Academic Oracle isn't just a chat interface; it is a <span className="text-white">seamless cognitive loop</span>. We combine Socratic inquiry with high-performance engineering to keep learners in the "Zone of Proximal Development."
         </p>
       </section>
 
@@ -25,7 +23,7 @@ export default function ChatFlow() {
           </svg>
         </div>
 
-        <h2 className="text-3xl font-bold text-white mb-10 tracking-tight">Guided Learning Flow</h2>
+        <h2 className="text-3xl font-bold text-white mb-10 tracking-tight">Uninterrupted Intelligence</h2>
         
         <div className="grid md:grid-cols-2 gap-16">
           <div className="space-y-4 relative">
@@ -34,9 +32,7 @@ export default function ChatFlow() {
               Guided Interaction
             </h4>
             <p className="text-sm text-slate-400 leading-relaxed">
-              Each interaction is meant to move the learner forward with hints,
-              pacing, and follow-up that support understanding rather than answer
-              dumping.
+              Every interaction triggers a selective evaluation to ensure session latency never interrupts the train of thought. We move the learner forward with hints and pacing that support <span className="text-white">deep understanding</span> rather than answer dumping.
             </p>
           </div>
 
@@ -46,15 +42,13 @@ export default function ChatFlow() {
               Learning Continuity
             </h4>
             <p className="text-sm text-slate-400 leading-relaxed">
-              The public product may preserve continuity across interactions to
-              keep learning coherent, but internal adaptation logic is not fully
-              described here.
+              The Oracle maintains an evolving context of your session. This <span className="text-white">internal adaptation logic</span> tracks conceptual gaps and sentiment, silently adjusting the complexity of feedback in real-time.
             </p>
           </div>
         </div>
       </section>
 
-      {/* NEW: Contextual Clarification (Explain on Select) */}
+      {/* Contextual Clarification (Explain on Select) */}
       <section className="grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
         <div className="order-2 md:order-1 relative group">
           <div className="absolute -inset-4 bg-gradient-to-r from-blue-500/20 to-cyan-500/20 rounded-[2rem] blur-2xl opacity-0 group-hover:opacity-100 transition duration-700"></div>
@@ -64,7 +58,6 @@ export default function ChatFlow() {
                 <p className="text-sm text-slate-300 italic leading-relaxed">
                   "Quantum entanglement is a physical phenomenon..."
                 </p>
-                {/* Floating Tooltip Mockup */}
                 <div className="absolute -bottom-4 right-10 flex gap-2">
                   <span className="px-3 py-1.5 bg-blue-600 text-xs font-bold text-white rounded-lg shadow-[0_10px_20px_rgba(37,99,235,0.4)] flex items-center gap-2 animate-bounce">
                     <span className="text-[10px]">✨</span> Explain this
@@ -85,14 +78,12 @@ export default function ChatFlow() {
         <div className="order-1 md:order-2 space-y-6">
           <h3 className="text-3xl font-bold text-white tracking-tight">Frictionless <br/><span className="text-blue-400">Deep-Dives</span></h3>
           <p className="text-slate-400 leading-relaxed">
-            Learners should be able to ask for clarification without losing the
-            thread of study. The emphasis is on reducing friction while preserving
-            focus and rigor.
+            Never leave the flow to search for a definition. Our <strong>"Explain on Select"</strong> feature allows you to highlight any term to trigger an immediate, Socratic follow-up without losing your place in the conversation.
           </p>
         </div>
       </section>
 
-      {/* NEW: Augmented Search & Guardrails */}
+      {/* Augmented Search & Guardrails */}
       <section className="p-10 rounded-[2.5rem] bg-gradient-to-br from-white/[0.05] to-transparent border border-white/10">
         <div className="flex items-center gap-4 mb-10">
           <div className="p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-xl">
@@ -104,19 +95,15 @@ export default function ChatFlow() {
         </div>
         <div className="grid md:grid-cols-2 gap-12">
           <div className="space-y-3">
-            <h5 className="text-emerald-400 text-sm font-bold uppercase tracking-widest">Real-time Web Search</h5>
+            <h5 className="text-emerald-400 text-sm font-bold uppercase tracking-widest">Real-time Grounding</h5>
             <p className="text-sm text-slate-400 leading-relaxed">
-              Public-facing responses may be supported by grounding or reference
-              tools where appropriate, without exposing detailed internal service
-              design.
+              When current events or niche academic papers are required, the Oracle leverages advanced search tools to pull verified data, ensuring every response is grounded in reality.
             </p>
           </div>
           <div className="space-y-3 border-l border-white/5 pl-8">
-            <h5 className="text-rose-400 text-sm font-bold uppercase tracking-widest">Jailbreak Prevention</h5>
+            <h5 className="text-rose-400 text-sm font-bold uppercase tracking-widest">Integrity Guardrails</h5>
             <p className="text-sm text-slate-400 leading-relaxed">
-              Safety-related protections exist to preserve an appropriate learning
-              environment, but implementation specifics are intentionally limited
-              in public documentation.
+              Proprietary shields analyze prompts to block malicious injections, ensuring the Oracle remains a safe, strictly academic environment for rigorous study.
             </p>
           </div>
         </div>
@@ -128,9 +115,7 @@ export default function ChatFlow() {
           <div className="max-w-xl">
             <h3 className="text-3xl font-bold text-white mb-4 tracking-tight">The Validation Loop</h3>
             <p className="text-slate-400 leading-relaxed text-sm md:text-base">
-              Practice checkpoints help learners test understanding and revisit
-              weak areas. Public descriptions focus on the learner outcome rather
-              than underlying implementation details.
+              Once mastery is detected, the Oracle triggers a <strong>synchronized checkpoint</strong>. These practice cycles help test understanding and revisit weak areas before concluding a session.
             </p>
           </div>
           <div className="flex gap-1.5 pb-2">
@@ -142,9 +127,9 @@ export default function ChatFlow() {
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {[
-            { id: "01", label: "Targeted Practice", color: "blue", text: "Checks can be tuned to the learner's current level and goals." },
-            { id: "02", label: "Follow-Up Support", color: "purple", text: "Missed concepts can lead back into guided explanation and review." },
-            { id: "03", label: "Learning Continuity", color: "cyan", text: "Progress can inform later study steps without exposing internal logic publicly." }
+            { id: "01", label: "Targeted Practice", color: "blue", text: "Checks are dynamically tuned to your session's specific level and learning goals." },
+            { id: "02", label: "Direct Remediation", color: "purple", text: "Missed concepts lead back into guided explanation and contextual review." },
+            { id: "03", label: "Memory Sync", color: "cyan", text: "Performance data is cached and automatically woven into your final summary guide." }
           ].map((item) => (
             <div key={item.id} className="p-8 rounded-3xl bg-white/[0.02] border border-white/5 hover:bg-white/[0.05] hover:border-blue-500/20 transition-all duration-300 group">
               <div className={`text-xs font-black mb-6 text-${item.color}-400 flex items-center gap-2`}>
@@ -165,9 +150,7 @@ export default function ChatFlow() {
         </div>
         <h3 className="text-3xl font-bold text-white italic tracking-tight">Premium Academic Rendering</h3>
         <p className="text-slate-400 max-w-2xl leading-relaxed">
-          Communication is clearer when the interface is readable and calm. The
-          product supports rich academic content without making the system details
-          the center of attention:
+          Communication is clearer when it's beautiful. Our UI supports high-fidelity rendering for complex subjects:
         </p>
         <div className="flex flex-wrap gap-3">
           {["LaTeX & KaTeX", "Syntactic Code Blocks", "Interactive Tables", "Markdown Prose", "Adaptive Diagrams"].map((tag) => (
@@ -186,15 +169,13 @@ export default function ChatFlow() {
             <span className="text-[10px] bg-blue-500/20 px-2 py-0.5 rounded text-blue-300 border border-blue-500/20 font-bold uppercase">Learner Focused</span>
           </div>
           <p className="text-slate-400 leading-relaxed text-lg">
-            Learners may have ways to carry forward their study results and review
-            materials. Public docs describe the outcome without unpacking all of
-            the underlying generation flow.
+            At the end of a session, the "Summary" button generates a structured <span className="text-white font-semibold">.docx revision guide</span>. Your results and focus fields are automatically woven into the document.
           </p>
           <ul className="grid grid-cols-2 gap-4 text-sm text-white/70">
-            <li className="flex items-center gap-2 font-medium"><span className="text-blue-400">✦</span> Revision support</li>
-            <li className="flex items-center gap-2 font-medium"><span className="text-blue-400">✦</span> Learning summaries</li>
-            <li className="flex items-center gap-2 font-medium"><span className="text-blue-400">✦</span> Focused review areas</li>
-            <li className="flex items-center gap-2 font-medium"><span className="text-blue-400">✦</span> Guided follow-up</li>
+            <li className="flex items-center gap-2 font-medium"><span className="text-blue-400">✦</span> Real-world Case Studies</li>
+            <li className="flex items-center gap-2 font-medium"><span className="text-blue-400">✦</span> Mastery Scorecards</li>
+            <li className="flex items-center gap-2 font-medium"><span className="text-blue-400">✦</span> Focused Revision Fields</li>
+            <li className="flex items-center gap-2 font-medium"><span className="text-blue-400">✦</span> AI-Graded Answers</li>
           </ul>
         </div>
         
@@ -205,7 +186,7 @@ export default function ChatFlow() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
             </div>
-            <p className="text-[10px] text-blue-400 uppercase tracking-[0.2em] mb-2 font-black">Study Summary</p>
+            <p className="text-[10px] text-blue-400 uppercase tracking-[0.2em] mb-2 font-black">Ready for Export</p>
             <div className="text-xs font-mono text-white/60 truncate bg-white/5 p-2 rounded-lg">session-summary.docx</div>
             <button className="mt-6 w-full py-4 bg-blue-600 hover:bg-blue-500 text-white text-sm font-black rounded-xl transition-all shadow-lg shadow-blue-900/40 uppercase tracking-widest">
               Download
@@ -218,7 +199,7 @@ export default function ChatFlow() {
       <section className="text-center py-10 relative">
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-blue-500/5 blur-[120px] -z-10" />
         <h4 className="text-3xl font-bold text-white mb-4 tracking-tight">The future of pedagogy is flow.</h4>
-        <p className="text-slate-500 text-lg mb-10 max-w-xl mx-auto">Ready to explore a guided learning experience with clearer public boundaries?</p>
+        <p className="text-slate-500 text-lg mb-10 max-w-xl mx-auto">Ready to experience uninterrupted intelligence?</p>
         <a 
           href="/" 
           className="inline-flex items-center px-12 py-4 bg-white text-black font-black rounded-2xl hover:bg-blue-50 transition-all hover:scale-105 active:scale-95 shadow-[0_20px_40px_rgba(255,255,255,0.1)]"
