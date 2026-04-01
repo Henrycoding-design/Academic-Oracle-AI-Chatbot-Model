@@ -77,15 +77,16 @@ export default function Home() {
         className="mt-24 px-4 sm:px-6 md:px-8 text-center py-18 sm:py-24"
       >
         <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">
-          Open source from day one
+          Open core, protected identity
         </h2>
 
         <p className="mt-3 text-white/60 max-w-xl mx-auto">
-          Academic Oracle is built in the open — transparent, community-driven, and
-          evolving with contributors worldwide.
+          Universal Academic Oracle includes Apache-2.0 licensed materials, while
+          selected files, branding, and product identity remain protected under the
+          repository's custom restrictions and reserved-rights notices.
         </p>
 
-        <div className="mt-6 flex justify-center">
+        <div className="mt-6 flex justify-center gap-3 flex-wrap">
           <a
             href="https://github.com/Henrycoding-design/Academic-Oracle-AI-Chatbot-Model"
             target="_blank"
@@ -105,6 +106,22 @@ export default function Home() {
           >
             <Github size={18} />
             View on GitHub
+          </a>
+          <a
+            href="/terms"
+            className="
+              inline-flex items-center gap-2
+              px-5 py-2.5 rounded-xl
+              text-sm font-medium
+              bg-white/5
+              border border-white/10
+              text-white
+              hover:bg-white/10
+              hover:border-white/20
+              transition
+            "
+          >
+            View license terms
           </a>
         </div>
       </motion.section>

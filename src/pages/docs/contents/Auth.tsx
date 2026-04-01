@@ -21,7 +21,9 @@ export default function Auth() {
           Security & Authentication
         </h1>
         <p className="text-xl text-slate-400 leading-relaxed max-w-3xl font-medium">
-          Academic Oracle employs a <span className="text-white">hardened security posture</span>. By isolating sensitive logic in encrypted edge environments, we ensure your credentials never touch the client-side.
+          This page explains public-facing account and access expectations at a
+          high level. It intentionally avoids disclosing sensitive operational
+          details or protected implementation patterns.
         </p>
       </section>
 
@@ -37,10 +39,12 @@ export default function Auth() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04a11.735 11.735 0 00-1.59 7.477c.282 1.499 1.05 2.872 2.103 3.93a11.954 11.954 0 0015.536 0c1.053-1.058 1.822-2.43 2.103-3.93a11.732 11.732 0 00-1.59-7.477z" />
               </svg>
             </div>
-            The Secure Core
+            Account Protection
           </h2>
           <p className="text-slate-400 max-w-2xl leading-relaxed text-lg">
-            Our infrastructure is designed around <span className="text-emerald-300 font-semibold italic text-balance">Zero-Exposure Architecture</span>. Cryptographic heavy lifting is moved away from the browser into protected server-side environments.
+            We aim to keep public guidance simple: protect accounts, avoid sharing
+            secrets, and rely on approved access flows rather than client-visible
+            workarounds.
           </p>
         </div>
         
@@ -48,19 +52,21 @@ export default function Auth() {
           <div className="space-y-4 group/item">
             <h4 className="text-white font-bold text-lg flex items-center gap-3">
               <span className="w-2 h-2 bg-emerald-500 rounded-full shadow-[0_0_8px_rgba(16,185,129,0.8)]" />
-              Isolated Edge Decryption
+              Limited Public Disclosure
             </h4>
             <p className="text-sm text-slate-400 leading-relaxed pl-5 border-l border-emerald-500/20 group-hover:border-emerald-500/50 transition-colors">
-              Decryption is confined to <strong>Supabase Edge Functions</strong>. Raw API keys are never processed by the client, neutralizing side-channel attacks and memory sniffing.
+              Public docs describe security commitments and user responsibilities
+              without publishing sensitive implementation specifics.
             </p>
           </div>
           <div className="space-y-4 group/item">
             <h4 className="text-white font-bold text-lg flex items-center gap-3">
               <span className="w-2 h-2 bg-blue-500 rounded-full shadow-[0_0_8px_rgba(59,130,246,0.8)]" />
-              Multi-Layer Auth Guard
+              Account Responsibility
             </h4>
             <p className="text-sm text-slate-400 leading-relaxed pl-5 border-l border-blue-500/20 group-hover:border-blue-500/50 transition-colors">
-              Every request passes a gauntlet: <strong>JWT Verification</strong>, <strong>RWA (Row-Level Access)</strong>, and custom service-role validation before decryption.
+              Users are responsible for protecting their own account access,
+              devices, and credentials when using the public product.
             </p>
           </div>
         </div>
@@ -71,24 +77,28 @@ export default function Auth() {
         <div className="relative">
             <div className="absolute -inset-4 bg-emerald-500/5 blur-3xl rounded-full" />
             <div className="relative space-y-6">
-                <h3 className="text-3xl font-bold text-white tracking-tight">Zero-Trust Protocol</h3>
+                <h3 className="text-3xl font-bold text-white tracking-tight">High-Level Security Approach</h3>
                 <p className="text-slate-400 leading-relaxed text-lg">
-                    We treat the client-side as a "public" space. By utilizing <span className="text-white font-mono bg-white/5 px-2 py-0.5 rounded">AES-256-GCM</span> within high-security vaults, we ensure keys never touch browser history.
+                    The client experience should not be treated as a safe place for
+                    exposing secrets. Sensitive behavior belongs behind protected
+                    boundaries rather than in public-facing code paths.
                 </p>
             </div>
         </div>
         <div className="p-8 rounded-3xl bg-white/[0.02] border border-white/5 space-y-6 group">
           <h3 className="text-xl font-bold text-white flex items-center gap-2">
             <span className="text-blue-400 text-xs font-mono">02 //</span> 
-            Authenticated Orchestration
+            Approved Access Paths
           </h3>
           <p className="text-sm text-slate-400 leading-relaxed">
-            Stateless gateway verification through Supabase. We inject temporary tokens that expire immediately after the Socratic session concludes.
+            Use the official sign-in and account flows provided by the product.
+            Avoid sharing keys, secrets, or private credentials in public or
+            client-visible contexts.
           </p>
           <div className="h-[1px] w-full bg-gradient-to-r from-emerald-500/50 to-transparent" />
           <div className="flex gap-4">
-             <div className="text-[10px] font-mono text-emerald-500/60 font-bold uppercase tracking-tighter">Handshake: Verified</div>
-             <div className="text-[10px] font-mono text-blue-500/60 font-bold uppercase tracking-tighter">Session: Ephemeral</div>
+             <div className="text-[10px] font-mono text-emerald-500/60 font-bold uppercase tracking-tighter">Guidance: Public</div>
+             <div className="text-[10px] font-mono text-blue-500/60 font-bold uppercase tracking-tighter">Details: Limited</div>
           </div>
         </div>
       </section>
@@ -98,7 +108,7 @@ export default function Auth() {
         <div className="space-y-2">
             <h2 className="text-3xl font-bold text-white tracking-tight">Credential Management</h2>
             <p className="text-slate-400 text-lg">
-                Manage your secure vault and encryption preferences via your protected dashboard.
+                Use official account surfaces to manage access-related settings.
             </p>
         </div>
 
@@ -113,16 +123,16 @@ export default function Auth() {
                 <h4 className="text-emerald-400 font-mono text-lg font-bold tracking-tighter">SECURE_EDGE_VAULT_ROOT</h4>
                 <div className="flex items-center justify-center md:justify-start gap-3 mt-2">
                     <span className="flex h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-                    <p className="text-[10px] text-white/40 uppercase tracking-[0.3em] font-black italic">Status: Encapsulated</p>
+                    <p className="text-[10px] text-white/40 uppercase tracking-[0.3em] font-black italic">Status: Protected</p>
                 </div>
               </div>
               
               <div className="flex flex-wrap justify-center md:justify-start gap-3">
                 <span className="text-[10px] bg-blue-500/10 text-blue-400 px-3 py-1.5 rounded-xl border border-blue-500/20 font-black tracking-widest uppercase">
-                  Supabase Edge
+                  Official Access
                 </span>
                 <span className="text-[10px] bg-emerald-500/10 text-emerald-400 px-3 py-1.5 rounded-xl border border-emerald-500/20 font-black tracking-widest uppercase">
-                  AES-256-GCM
+                  Limited Detail
                 </span>
               </div>
             </div>
@@ -131,7 +141,7 @@ export default function Auth() {
               onClick={goToAccount}
               className="px-8 py-4 bg-white text-black font-black text-xs uppercase tracking-[0.2em] rounded-2xl hover:bg-emerald-50 transition-all hover:scale-105 active:scale-95 shadow-[0_20px_40px_rgba(16,185,129,0.15)]"
             >
-              Access Vault Dashboard
+              Open Account Page
             </button>
           </div>
         </div>
@@ -140,8 +150,9 @@ export default function Auth() {
       {/* Security Disclaimer / Footnote */}
       <section className="text-center pt-10">
         <p className="text-[10px] font-mono text-slate-200 uppercase tracking-widest max-w-2xl mx-auto">
-            Encryption logic is audited against common injection vectors. <br/> 
-            Academic Oracle does not store plain-text credentials at any layer of the stack.
+            Public documentation is intentionally limited. <br/>
+            Refer to the repository's legal and policy files for usage boundaries
+            and protected materials.
         </p>
       </section>
     </div>

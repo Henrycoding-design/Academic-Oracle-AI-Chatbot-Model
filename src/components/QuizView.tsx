@@ -1,3 +1,15 @@
+/*
+ * Copyright (c) 2026 Vo Tan Binh / Universal Academic Oracle
+ * All Rights Reserved.
+ *
+ * This file is NOT licensed under Apache License 2.0.
+ * No permission is granted to copy, redistribute, modify, reuse,
+ * republish, or sublicense this file outside the official upstream
+ * Universal Academic Oracle repository without prior written permission.
+ *
+ * See LICENSE_SCOPE.md and TRADEMARK_POLICY.md for additional terms.
+ */
+
 import React, { useState, useEffect } from 'react';
 import { BrainCircuit, CheckCircle2, XCircle, ArrowRight, Settings, Play, RotateCcw, MessageSquarePlus, MessageCircle, MessageSquare } from 'lucide-react';
 import type { ChatHistoryItem, QuizConfig, QuizQuestion, QuizResult } from '../types';

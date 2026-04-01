@@ -5,7 +5,7 @@ export interface DocConfig {
 
 export const docsConfig: DocConfig[] = [
   { slug: "getting-started", title: "Getting Started" },
-  { slug: "auth", title: "Auth" },
-  { slug: "aistudio", title: "AI integration" },
-  { slug: "chatflow", title: "Academic Oracle Flow" },
+  { slug: "auth", title: "Account & Access" },
+  { slug: "aistudio", title: "Integration Notes" },
+  { slug: "chatflow", title: "Learning Flow" },
 ];

@@ -9,6 +9,7 @@ type SessionQuota = {
   chats: Record<string, number>;
 };
 
+// Legacy code for client-side quota tracking, now replaced by server-side checks in edge functions. Keeping for potential future reference.
 const getQuota = (): SessionQuota => {
   const raw = sessionStorage.getItem("oracle-quota");
   return raw ? JSON.parse(raw) : { used: 0, chats: {} };
@@ -25,6 +26,7 @@ const isOutOfQuota = (quota: SessionQuota): boolean => {
     }
     return false;
 }
+// ------------------
 
 const checkQuota = async (accessToken) => {
   const { data, error } = await supabase.functions.invoke(

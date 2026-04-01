@@ -1,3 +1,14 @@
+/*
+ * Copyright (c) 2026 Vo Tan Binh / Universal Academic Oracle
+ * All Rights Reserved.
+ *
+ * This file is NOT licensed under Apache License 2.0.
+ * No permission is granted to copy, redistribute, modify, reuse,
+ * republish, or sublicense this file outside the official upstream
+ * Universal Academic Oracle repository without prior written permission.
+ *
+ * See LICENSE_SCOPE.md and TRADEMARK_POLICY.md for additional terms.
+ */
 
 import React, { useState, useRef, useEffect } from 'react';
 import type { Message, ChatHistoryItem, ChatTailoringMode } from './types';

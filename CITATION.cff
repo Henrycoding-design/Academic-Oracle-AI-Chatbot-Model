@@ -1,8 +1,8 @@
 cff-version: 1.2.0
-message: "If you use Academic Oracle in research, projects, or publications, please cite it."
-title: "Academic Oracle"
+message: "If you use Universal Academic Oracle in research, projects, or publications, please cite it."
+title: "Universal Academic Oracle"
 abstract: >
-  Academic Oracle is a learning-focused AI platform designed to promote
+  Universal Academic Oracle is a learning-focused AI platform designed to promote
   deep understanding through active recall, progressive hinting, and
   pattern-based reasoning rather than passive answer consumption.
 authors:
@@ -16,5 +16,5 @@ keywords:
   - learning science
   - active recall
   - reasoning systems
-version: "2.3.0"
-date-released: 2026-03-25
+version: "2.3.2"
+date-released: 2026-04-04

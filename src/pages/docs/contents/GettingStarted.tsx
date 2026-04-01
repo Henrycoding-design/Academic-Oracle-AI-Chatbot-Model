@@ -17,7 +17,8 @@ export default function GettingStarted() {
           The <span className="bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text text-transparent">Academic Oracle</span>
         </h1>
         <p className="text-xl text-slate-400 max-w-2xl leading-relaxed font-medium">
-          An intelligent pedagogical layer designed to move beyond simple information retrieval toward <span className="text-white">true cognitive mastery</span>.
+          A public overview of the learning experience, contributor entry points,
+          and repository boundaries behind <span className="text-white">Universal Academic Oracle</span>.
         </p>
       </header>
 
@@ -36,13 +37,14 @@ export default function GettingStarted() {
                 <p className="text-white text-2xl font-bold leading-snug">Strategic Elenchus & <br/>Discovery Loops</p>
             </div>
             <p className="text-slate-400 leading-relaxed text-lg">
-              Instead of providing direct answers, Academic Oracle uses <strong>strategic elenchus</strong> (probing) to expose contradictions in a student's logic and guide them to self-correction.
+              Instead of centering instant answers, Universal Academic Oracle is
+              designed around guided reasoning, reflection, and progressive support.
             </p>
             <ul className="grid grid-cols-1 gap-4 pt-4">
               {[
-                "Inquiry-based discovery loops",
-                "Active recall stimulation",
-                "Adaptive difficulty scaling"
+                "Guided prompts before direct answers",
+                "Reflection and active recall",
+                "Learning flow that rewards understanding"
               ].map((item) => (
                 <li key={item} className="flex items-center gap-3 text-sm text-slate-300 group">
                   <div className="w-5 h-5 rounded-lg bg-blue-500/10 border border-blue-500/20 flex items-center justify-center group-hover:bg-blue-500/20 transition-colors">
@@ -57,13 +59,13 @@ export default function GettingStarted() {
           <div className="relative group">
             <div className="absolute -inset-1 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-3xl blur opacity-20 group-hover:opacity-40 transition duration-700" />
             <div className="relative bg-[#0a0f1d] border border-white/10 p-10 rounded-3xl text-center md:text-left shadow-2xl">
-              <h4 className="text-[10px] font-black uppercase text-slate-500 mb-6 tracking-[0.3em]">Effectiveness Metric</h4>
+              <h4 className="text-[10px] font-black uppercase text-slate-500 mb-6 tracking-[0.3em]">Product Focus</h4>
               <div className="flex items-baseline gap-2 mb-2 justify-center md:justify-start">
-                <span className="text-6xl font-black text-white">92</span>
-                <span className="text-3xl font-bold text-blue-400">%</span>
+                <span className="text-4xl font-black text-white">Guided</span>
               </div>
               <p className="text-sm text-slate-400 leading-relaxed font-medium">
-                Engagement increase in students compared to traditional "Ask-and-Answer" static models.
+                The public product is presented first as a learning tool, not as a
+                dump of internal system design.
               </p>
             </div>
           </div>
@@ -81,9 +83,9 @@ export default function GettingStarted() {
           </h4>
           <div className="space-y-8 relative">
             {[
-              { title: "Hybrid Questioning", desc: "Seamlessly mix MCQs with AI-graded open-ended responses for deeper testing." },
-              { title: "Contextual Persistence", desc: "Quiz states are cached in sessionStorage to prevent data loss during session context shifts." },
-              { title: "Feedback Loops", desc: "Instant explanations with direct deep-links back to the Oracle for immediate remediation." }
+              { title: "Practice Layers", desc: "Assessment can reinforce understanding through short checks and guided follow-up." },
+              { title: "Continuity", desc: "Learners can move between explanation and validation without breaking study flow." },
+              { title: "Feedback Loops", desc: "Follow-up support is meant to help learners revisit weak areas with clarity." }
             ].map((f) => (
               <div key={f.title} className="group/item">
                 <span className="text-white font-bold block mb-1 group-hover/item:text-purple-300 transition-colors">{f.title}</span>
@@ -98,7 +100,9 @@ export default function GettingStarted() {
             <h3 className="text-purple-400 text-sm font-black uppercase tracking-widest">Assessment Layer</h3>
             <h2 className="text-4xl font-bold text-white tracking-tight">Dynamic Mastery <br/><span className="italic font-serif">Assessment</span></h2>
             <p className="text-slate-400 leading-relaxed text-lg">
-              Transitioning from dialogue to validation, the <strong>Quiz Platform</strong> bridges the gap between conversation and retained knowledge. Triggered automatically after mastery checks or accessed via the sidebar.
+              The assessment experience is intended to bridge conversation and
+              retained knowledge without overwhelming learners with implementation
+              details.
             </p>
           </div>
 
@@ -120,10 +124,12 @@ export default function GettingStarted() {
         <div className="relative max-w-4xl mx-auto text-center space-y-10">
           <h2 className="text-xs font-black text-blue-400 uppercase tracking-[0.4em]">Our Philosophy</h2>
           <p className="text-3xl md:text-4xl font-medium text-white italic leading-tight text-balance">
-            "To build the world's most accessible mentor by codifying the art of teaching into <span className="text-blue-400 underline decoration-blue-500/30 underline-offset-8">scalable architecture</span>."
+            "To build an accessible guided-learning experience that keeps the
+            learner's progress at the center."
           </p>
           <p className="text-slate-500 text-lg leading-relaxed max-w-2xl mx-auto">
-            We believe learning shouldn't be passive. Our vision is to replace the "search engine" mentality with a "tutor" mentality—where the goal is not just the answer, but the journey.
+            We believe learning should not be passive. The goal is not just the
+            answer, but the understanding that comes from working toward it.
           </p>
         </div>
       </section>
@@ -132,30 +138,34 @@ export default function GettingStarted() {
       <section className="space-y-5">
         <div className="flex flex-col md:flex-row md:items-center gap-4 border-b border-white/5 pb-4">
           <div className="flex items-center gap-4">
-            <h2 className="text-3xl font-bold text-white tracking-tight">Anarchitecture & Integration</h2>
+            <h2 className="text-3xl font-bold text-white tracking-tight">Repository Boundaries</h2>
             <span className="px-3 py-1 text-[10px] font-black bg-emerald-500/10 text-emerald-400 rounded-full border border-emerald-500/20 uppercase tracking-[0.2em] whitespace-nowrap">
-              v2.3.x Stable
+              Public Guidance
             </span>
           </div>
         </div>
 
         <div className="grid md:grid-cols-[1fr_400px] gap-12 items-center">
             <p className="text-slate-400 text-lg leading-relaxed">
-              Academic Oracle is built on a modular <strong>Anarchitecture</strong> (Analytic Architecture) that cleanly separates learning logic from AI inference. We leverage <strong>Google AI Studio</strong> as an external intelligence layer, while the <strong>Oracle Core</strong> governs reasoning depth, pacing, and instructional intent.
+              This documentation explains the public-facing product and repository
+              at a high level. It does not disclose sensitive implementation
+              details, protected orchestration logic, or reserved-rights material
+              beyond what is necessary for contributors and users.
             </p>
             
             <div className="p-10 bg-[#060912] border border-white/10 rounded-3xl space-y-8 group hover:border-blue-500/40 transition-colors shadow-2xl">
               <div className="space-y-3">
-                <code className="text-xs text-blue-400 font-black tracking-tighter block uppercase">system.integration.flow</code>
+                <code className="text-xs text-blue-400 font-black tracking-tighter block uppercase">license.and.public.docs</code>
                 <p className="text-sm text-slate-500 leading-relaxed">
-                  Learn how Google AI Studio is orchestrated within Academic Oracle’s guided learning pipeline.
+                  Review the public usage boundaries and account guidance before
+                  working deeper in the repository.
                 </p>
               </div>
               <a 
-                href="/docs/aistudio" 
+                href="/docs/auth" 
                 className="block w-full text-center px-6 py-4 bg-white text-black text-xs font-black uppercase tracking-widest rounded-xl hover:bg-blue-50 transition-all shadow-lg"
               >
-                Integration Docs
+                Read the guidance
               </a>
             </div>
         </div>

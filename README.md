@@ -11,7 +11,7 @@
   </p>
 
   <p>
-    <img src="https://img.shields.io/badge/license-MIT-blue.svg" />
+    <img src="https://img.shields.io/badge/license-Apache--2.0-blue.svg" />
     <img src="https://img.shields.io/badge/status-deployed-brightgreen.svg" />
     <img src="https://img.shields.io/github/stars/Henrycoding-design/Academic-Oracle-AI-Chatbot-Model" />
     <img src="https://img.shields.io/github/last-commit/Henrycoding-design/Academic-Oracle-AI-Chatbot-Model" />
@@ -27,7 +27,7 @@
 
 </div>
 
-# Academic Oracle
+# Universal Academic Oracle
 
 **Academic Oracle** is a learning-focused AI platform designed to maximize understanding, not passive consumption.
 
@@ -114,7 +114,7 @@ Academic Oracle doesn’t just respond — it **decides how to think first**.
   - No direct client exposure of sensitive keys
   - Production-grade architecture
 - Secure Edge Function orchestration
-- AES-GCM-256 encryption for sensitive data
+- Encrypted handling of sensitive internal data
 - Supabase-backed session continuity
 
 
@@ -158,42 +158,29 @@ npm install
 * Configure auth
 * Deploy Edge Functions
 
-3. Configure environment variables:
-
-Local secrets:
-
+3. Configure public environment variables:
 ```bash
 VITE_SUPABASE_URL=YOUR_SUPABASE_URL
 VITE_SUPABASE_ANON_KEY=YOUR_SUPABASE_ANON_KEY
-
-# Only public key needed (web search)
 VITE_JIGSAWSTACK_KEY=YOUR_JIGSAWSTACK_API_KEY
 ```
-
-Supabase Edge Function secrets:
-
-```bash
-GEMINI_KEYS=GEMINI_KEY_1,GEMINI_KEY_2
-STEPFUN_KEYS=STEPFUN_KEY_1,STEPFUN_KEY_2
-API_KEY_ENCRYPTION_SECRET=YOUR_ENCRYPTION_SECRET
-```
-
-**⚠️ Important Changes (v2.3.0)**:
-
-❌ Removed:
-* VITE_GEMINI_KEYS
-* VITE_STEPFUN_KEY  
-
-✅ All AI provider keys are now handled securely in Supabase backend
 
 4. Start development server:
 ```bash
 npm run dev
 ```
 
+**Important Note**
+
+This public repository intentionally excludes certain backend infrastructure,
+deployment configuration, and protected service implementation details.
+
+As a result, some advanced production features may not be fully reproducible
+from the public repository alone.
+
 ---
 
-### Tech Stack
+## Tech Stack
 * Frontend: React 19 + TypeScript
 * Backend (AI Orchestration): Supabase Edge Functions
 * Models:
@@ -204,22 +191,6 @@ npm run dev
 * Build Tool: Vite 6
 * Styling: Tailwind CSS
 * Math Rendering: KaTeX
-
----
-
-### Architecture Evolution
-
-**v2.3.0 marks a major shift**:
-
-> From: Client-heavy AI calls  
-> **→ To: Backend-controlled AI orchestration**
-
-This enables:
-
-* Real production deployment
-* Key security
-* Scalable request routing
-* Advanced filtering & control layers
 
 ---
 
@@ -237,17 +208,52 @@ The long-term goal is to build *a universal academic cognition system* that scal
 
 ## Official Repository
 
-This is the **official source repository** for **Academic Oracle AI Chatbot**.
+This is the **official upstream source repository** for **Universal Academic Oracle**.
 
-Canonical source:
+**Canonical source:**  
 https://github.com/Henrycoding-design/Academic-Oracle-AI-Chatbot-Model
 
-Product link:
+**Live product:**  
 https://academicoracle.onrender.com
+
+---
+
+## Licensing and Project Identity
+
+This repository uses a **mixed-license structure**.
+
+### Code License
+Unless otherwise stated, the public code in this repository is licensed under the
+**Apache License 2.0**.
+
+However, selected files containing core product logic, orchestration behavior,
+service intelligence, and project-defining implementation details are **excluded**
+from Apache-2.0 and remain **All Rights Reserved**.
+
+Public visibility of excluded files does **not** grant permission to copy,
+redistribute, or reuse them outside the official upstream repository.
+
+See:
+- [`LICENSE`](./LICENSE)
+- [`NOTICE`](./NOTICE)
+- [`LICENSE_SCOPE`](./LICENSE_SCOPE)
+
+### Branding and Identity
+The project name, branding, visual identity, screenshots, release identity, and
+related non-code brand elements are **not** granted under Apache-2.0 unless
+explicitly stated otherwise.
+
+Forks, mirrors, and derivative versions may not present themselves as the
+official version of this project or imply endorsement by the original author.
+
+See:
+- [`TRADEMARK_POLICY.md`](./TRADEMARK_POLICY.md)
+
+---
 
 ## Credits
 
-**Academic Oracle** was designed and built by **Vo Tan Binh (Henrycoding-design)**.
+**Universal Academic Oracle** was designed and built by **Vo Tan Binh (Henrycoding-design)**.
 
 This project represents original work in:
 - Learning-science–driven AI interaction design
@@ -255,7 +261,11 @@ This project represents original work in:
 - Closed-feedback AI tutoring systems
 - Secure, minimal, and distraction-free educational UX
 
-If you build on this project, please **fork this repository** or provide clear attribution to the original source.
+If you build on Apache-licensed portions of this project, please preserve
+attribution and clearly reference the original source.
+
+For protected files, branding, and excluded components, refer to the repository's
+licensing and policy documents.
 
 ## Support
 
@@ -264,8 +274,3 @@ If Academic Oracle helps your learning:
 * ⭐ Star the repository
 
 * ☕ Support via [Buy Me a Coffee](https://buymeacoffee.com/votanbinh)
-
-* 🧠 Use it, break it, and learn from it
-
-Recognition matters.
-Impact matters more.

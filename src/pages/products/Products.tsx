@@ -11,7 +11,7 @@ export default function Products() {
         title="Academic Oracle"
         tag="Products"
         icon={PackageCheckIcon}
-        subtitle="The tools and interfaces driving the Academic Oracle ecosystem."
+        subtitle="The public-facing learning experience built around guided reasoning, calm interaction, and clearly defined usage boundaries."
         button="Start Learning"
         btnLink="/"
         imgLink="./products.jpg"
@@ -41,7 +41,9 @@ export default function Products() {
             </h4>
 
             <p className="text-sm text-white/70 leading-relaxed">
-              Unlock your potential through inquiry. Instead of simple answer dumping, the Oracle leads you through discovery loops to build true mental models.
+              The product is designed to guide learners toward understanding
+              through reflection, hints, and structured follow-up instead of
+              immediate answer dumping.
             </p>
           </div>
 
@@ -62,7 +64,9 @@ export default function Products() {
             </h4>
 
             <p className="text-sm text-white/70 leading-relaxed">
-              Designed for long-form thinking. A distraction-free environment that prioritizes content over noise, keeping you locked in the flow state.
+              The interface emphasizes readability, clarity, and continuity so
+              learners can stay focused without unnecessary visual or technical
+              distraction.
             </p>
           </div>
 
@@ -75,15 +79,17 @@ export default function Products() {
             </div>
 
             <h3 className="text-xl font-semibold text-white">
-              Academic Security
+              Protected Product Boundaries
             </h3>
 
             <h4 className="text-sm text-white/60">
-              Math rendering · Encrypted sessions
+              Public experience · Limited exposure
             </h4>
 
             <p className="text-sm text-white/70 leading-relaxed">
-              Strong fundamentals power the experience. We handle complex KaTeX and code blocks within a secure, AES-encrypted infrastructure.
+              Public pages and repository materials are intentionally presented at
+              a high level. Internal implementation details, protected logic, and
+              reserved-rights materials are not fully documented here.
             </p>
           </div>
         </div>
@@ -101,11 +107,13 @@ export default function Products() {
             <h3 className="text-xl font-semibold text-white">Closed-Feedback Quizzing</h3>
 
             <h4 className="text-sm text-white/60">
-              Real-time Sync · Dynamic UI Components
+              Reflection loop · Reinforcement
             </h4>
 
             <p className="text-sm text-white/70 leading-relaxed">
-              Experience a seamless bridge between assessment and dialogue. Quiz results pipe directly back into the chat UI, triggering immediate remedial explanations for missed concepts.
+              Practice and feedback are meant to reinforce learning rather than
+              simply score it, helping learners revisit weak areas with guided
+              support.
             </p>
           </div>
 
@@ -117,14 +125,15 @@ export default function Products() {
               <TrendingUp className="w-6 h-6 text-emerald-400" />
             </div>
 
-            <h3 className="text-xl font-semibold text-white">Oracle Memory Evolution</h3>
+            <h3 className="text-xl font-semibold text-white">Adaptive Learning Continuity</h3>
 
             <h4 className="text-sm text-white/60">
-              Neural updates · Performance-driven flow
+              Context-aware guidance · Learner support
             </h4>
 
             <p className="text-sm text-white/70 leading-relaxed">
-              The Oracle learns how you learn. By updating your persistent "Oracle Memory" with quiz performance, the AI automatically adapts its curriculum and difficulty in real-time.
+              The experience can adapt across sessions and checkpoints to keep the
+              learning path coherent, supportive, and appropriately paced.
             </p>
           </div>
         </div>
@@ -142,7 +151,8 @@ export default function Products() {
             Experience Guided Reasoning
           </h2>
           <p className="text-white/60 max-w-2xl mx-auto md:text-nowrap">
-            Try a real Socratic session below and see how understanding grows when the path is guided, not given.
+            Try a guided session and see how understanding grows when the path is
+            supported instead of simply handed over.
           </p>
         </div>
 
@@ -159,11 +169,13 @@ export default function Products() {
         className="px-4 sm:px-6 md:px-8 text-center my-15 sm:my-24"
       >
         <h2 className="text-2xl sm:text-4xl font-bold tracking-tight">
-          Master the Curriculum
+          Learn within clear boundaries
         </h2>
 
         <p className="mt-4 text-white/60 max-w-xl mx-auto">
-          From deep-dive research to quick concept checks, Academic Oracle adapts to your level.
+          Public materials are shared to help people understand and use the
+          product, while legal notices define what may be reused, modified, or
+          reserved.
         </p>
 
         <div className="mt-10 flex justify-center gap-4 flex-wrap">

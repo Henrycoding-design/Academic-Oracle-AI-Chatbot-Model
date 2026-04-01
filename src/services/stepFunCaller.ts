@@ -1,4 +1,6 @@
 // src/services/stepFunCaller.ts
+// This file is not being used as API calls are being made at the server-side
+
 import { InvalidAIResponseError } from "../types";
 import { getNextEnvKey } from "./envKeys";
 

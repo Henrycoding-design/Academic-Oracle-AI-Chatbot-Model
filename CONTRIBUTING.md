@@ -1,32 +1,49 @@
 # Contribution Guide
 
-Thank you for contributing to Academic Oracle.
+Thank you for your interest in contributing to **Universal Academic Oracle**.
 
-This project is built around a simple goal: help people learn through reasoning, feedback, and progressive guidance instead of answer dumping. Contributions that protect that experience are especially valuable.
+This project is built around a simple goal: help people learn through reasoning,
+feedback, and progressive guidance instead of answer dumping.
+
+Contributions that improve clarity, rigor, usability, and learning quality are
+especially valuable.
+
+---
 
 ## Before You Start
 
-- Read [README.md](README.md) for the product vision and local setup.
-- Read [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) before participating.
-- Check open issues or discussions before starting large changes.
-- If your change affects learning flow, prompting, routing, or security, describe the expected behavior clearly before opening a PR.
+Before contributing, please review:
+
+- [README.md](README.md) for the product vision and local setup
+- [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) before participating
+- Open issues or discussions before starting large or structural changes
+
+If your change affects **learning flow, prompting, orchestration, routing, security,
+or educational behavior**, please describe the expected impact clearly before opening
+a pull request.
+
+---
 
 ## Ways To Contribute
 
-- Fix bugs
-- Improve UI or accessibility
-- Improve documentation
-- Refine learning flow and educational UX
-- Improve Supabase Edge Function reliability
-- Add tests or verification steps
-- Report reproducible issues with clear steps
+Contributions are welcome in areas such as:
+
+- Bug fixes
+- UI and accessibility improvements
+- Documentation improvements
+- Learning flow and educational UX refinement
+- Reliability improvements in public-facing integration layers
+- Tests, verification steps, and reproducibility improvements
+- Clear and reproducible issue reports
+
+---
 
 ## Development Setup
 
 ### Prerequisites
 
 - Node.js 18 or newer
-- A Supabase project for backend functions and auth
+- A Supabase project for supported public-facing integrations and auth
 
 ### Install
 
@@ -36,27 +53,21 @@ npm install
 
 ### Environment Variables
 
-Create a local environment file with the values described in the README:
+Create a local environment file using the public values described in the README:
 
 ```bash
 VITE_SUPABASE_URL=YOUR_SUPABASE_URL
 VITE_SUPABASE_ANON_KEY=YOUR_SUPABASE_ANON_KEY
-VITE_JIGSAWSTACK_KEYS=YOUR_JIGSAWSTACK_API_KEY_1,YOUR_JIGSAWSTACK_API_KEY_2
+VITE_JIGSAWSTACK_KEY=YOUR_JIGSAWSTACK_API_KEY
 ```
 
-Important:
+### Important Notes
 
-- Do not commit secrets.
-- Do not reintroduce direct client-side AI provider keys.
-- AI provider keys should remain in the Supabase backend flow.
-
-Supabase Edge Function secrets:
-
-```bash
-GEMINI_KEYS=GEMINI_KEY_1,GEMINI_KEY_2
-STEPFUN_KEYS=STEPFUN_KEY_1,STEPFUN_KEY_2
-API_KEY_ENCRYPTION_SECRET=YOUR_ENCRYPTION_SECRET
-```
+- Do not commit secrets
+- Do not reintroduce direct client-side AI provider keys
+- Do not expose protected backend logic or deployment-sensitive configuration
+- Some production backend infrastructure and orchestration components are intentionally
+  excluded from this public repository
 
 ### Run Locally
 
@@ -76,34 +87,67 @@ npm run build
 npm run preview
 ```
 
-## Project Areas
+---
 
-Frontend app:
+## Repository Structure
+
+### Frontend App
 
 - `src/` contains the React + TypeScript application
-- `src/components/` contains reusable UI pieces
-- `src/pages/` contains route-level experiences and docs pages
-- `src/services/` contains orchestration, AI, security, and helper logic
+- `src/components/` contains reusable UI and view logic
+- `src/pages/` contains route-level or document-style experiences where applicable
+- `src/services/` contains service integrations, orchestration-related logic, and helpers
 
-Backend and infrastructure:
+### Backend and Infrastructure
 
-- `supabase/functions/` contains Edge Functions
-- `supabase/config.toml` contains Supabase local configuration
+Some backend and infrastructure components are intentionally not included in the
+public repository.
 
-Static assets:
+This includes selected production-sensitive configuration, orchestration internals,
+and protected implementation details.
+
+### Static Assets
 
 - `public/` contains public assets and metadata files
+
+---
+
+## Protected and Excluded Files
+
+This repository uses a mixed-license structure.
+
+Some files are intentionally excluded from the Apache-2.0 license and remain
+All Rights Reserved.
+
+Please review:
+
+- [LICENSE](LICENSE)
+- [NOTICE](NOTICE)
+- [LICENSE_SCOPE](LICENSE_SCOPE)
+- [TRADEMARK_POLICY.md](TRADEMARK_POLICY.md)
+
+### Contributor Expectation
+
+Please do not submit pull requests that:
+
+- copy excluded or protected files into other locations
+- repackage proprietary logic for easier extraction
+- remove ownership, attribution, or legal notices
+- attempt to bypass project licensing or branding boundaries
+
+---
 
 ## Contribution Standards
 
 ### Product Principles
 
-Please preserve the core behavior of Academic Oracle:
+Please preserve the core behavior of Universal Academic Oracle:
 
 - Prefer guided learning over instant answers
 - Reduce friction without reducing rigor
 - Keep the interface calm, readable, and responsive
 - Favor secure backend orchestration over exposed client logic
+- Support reasoning, retention, and educational integrity
 
 ### Code Style
 
@@ -124,20 +168,24 @@ For interface updates:
 
 ### Backend and Security Changes
 
-For Supabase and AI-related work:
+For backend-adjacent and security-related work:
 
 - Never expose secret keys in the client
 - Validate and sanitize inputs where appropriate
-- Keep rate-limiting and abuse-prevention logic intact
-- Document any new environment variables or deployment steps
+- Preserve abuse-prevention and safety-related behavior
+- Document any public-facing setup or environment changes when relevant
+
+---
 
 ## Suggested Workflow
 
-1. Fork the repository and create a branch.
-2. Make focused changes with clear commit messages.
-3. Run the app locally and verify the affected flows.
-4. Update documentation when behavior or setup changes.
-5. Open a pull request with a clear summary.
+1. Fork the repository and create a branch
+2. Make focused changes with clear commit messages
+3. Run the app locally and verify the affected flows
+4. Update documentation when behavior or setup changes
+5. Open a pull request with a clear summary
+
+---
 
 ## Pull Request Checklist
 
@@ -146,25 +194,34 @@ Before opening a PR, please confirm:
 - The change has a clear purpose
 - The app runs locally
 - `npm run build` completes successfully
-- Related docs were updated if needed
+- Related documentation was updated if needed
 - No secrets or local credentials were committed
 - UI changes were checked on more than one screen size
-- Supabase function changes include any required setup notes
+- Any public-facing setup changes were documented
 
-## Testing And Verification
+---
 
-This repository currently exposes basic app scripts and does not yet define a dedicated automated test script in `package.json`.
+## Testing and Verification
 
-Until a fuller test suite is added, please include manual verification notes in your PR, such as:
+This repository may not always include a complete automated test suite for every area.
+
+Until broader automated coverage is added, please include manual verification notes
+in your PR where relevant, such as:
 
 - What you changed
 - What pages or flows you tested
 - Any environment assumptions
 - Screenshots or short recordings for UI changes when useful
 
-If you add automated tests, keep them scoped, maintainable, and documented.
+If you add automated tests, keep them:
 
-## Commit And PR Guidance
+- scoped
+- maintainable
+- documented
+
+---
+
+## Commit and PR Guidance
 
 Good pull requests are:
 
@@ -180,6 +237,8 @@ A helpful PR description usually includes:
 - How it was verified
 - Any follow-up work
 
+---
+
 ## Documentation Contributions
 
 Documentation improvements are welcome, especially when they:
@@ -187,13 +246,33 @@ Documentation improvements are welcome, especially when they:
 - Clarify setup steps
 - Explain architecture decisions
 - Improve onboarding for new contributors
-- Reduce ambiguity around Edge Functions, routing, or environment configuration
+- Reduce ambiguity around public integration layers or repository boundaries
+
+---
+
+## Contribution Acceptance
+
+Submitting a pull request does not guarantee that it will be merged.
+
+Changes may be accepted, declined, or requested for revision based on:
+
+- product direction
+- educational quality
+- maintainability
+- security
+- licensing boundaries
+- architecture consistency
+
+---
 
 ## Recognition
 
-Substantial contributions may be recognized in [AUTHORS.md](AUTHORS.md) with contributor consent.
+Substantial contributions may be recognized in [AUTHORS.md](AUTHORS.md)
+with contributor consent.
 
-## Questions Or Concerns
+---
+
+## Questions or Concerns
 
 For conduct-related concerns, use the contact listed in [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md).
 
