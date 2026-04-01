@@ -236,7 +236,7 @@ redistribute, or reuse them outside the official upstream repository.
 See:
 - [`LICENSE`](./LICENSE)
 - [`NOTICE`](./NOTICE)
-- [`LICENSE_SCOPE`](./REPOSITORY_LICENSE_SCOPE.md)
+- [`LICENSE_SCOPE`](./REPOSITORY_LICENSING_SCOPE.md)
 
 ### Branding and Identity
 The project name, branding, visual identity, screenshots, release identity, and
