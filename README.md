@@ -234,9 +234,9 @@ Public visibility of excluded files does **not** grant permission to copy,
 redistribute, or reuse them outside the official upstream repository.
 
 See:
-- [`LICENSE`](./LICENSE)
+- [`LICENSE`](./LICENSE.md)
 - [`NOTICE`](./NOTICE)
-- [`LICENSE_SCOPE`](./LICENSE_SCOPE)
+- [`LICENSE_SCOPE`](./REPOSITORY_LICENSE_SCOPE.md)
 
 ### Branding and Identity
 The project name, branding, visual identity, screenshots, release identity, and

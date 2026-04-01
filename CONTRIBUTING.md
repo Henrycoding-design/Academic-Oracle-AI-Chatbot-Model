@@ -121,9 +121,9 @@ All Rights Reserved.
 
 Please review:
 
-- [LICENSE](LICENSE)
+- [LICENSE](LICENSE.md)
 - [NOTICE](NOTICE)
-- [LICENSE_SCOPE](LICENSE_SCOPE)
+- [LICENSE_SCOPE](./REPOSITORY_LICENSE_SCOPE.md)
 - [TRADEMARK_POLICY.md](TRADEMARK_POLICY.md)
 
 ### Contributor Expectation
