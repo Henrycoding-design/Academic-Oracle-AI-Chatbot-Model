@@ -2,7 +2,7 @@ import React from "react";
 
 export default function AIStudio() {
   return (
-    <div className="space-y-32">
+    <div className="space-y-20 sm:space-y-24 lg:space-y-32">
       {/* Header Section */}
       <section className="pt-10">
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 mb-6">
@@ -12,16 +12,16 @@ export default function AIStudio() {
           </span>
           <span className="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-400">System Status: Active</span>
         </div>
-        <h1 className="text-5xl font-black tracking-tighter bg-gradient-to-r from-indigo-400 via-purple-400 to-blue-400 bg-clip-text text-transparent pb-4">
+        <h1 className="bg-gradient-to-r from-indigo-400 via-purple-400 to-blue-400 bg-clip-text pb-4 text-4xl font-black tracking-tighter text-transparent sm:text-5xl">
           Intelligence Infrastructure
         </h1>
-        <p className="text-xl text-slate-400 leading-relaxed max-w-3xl font-medium">
+        <p className="max-w-3xl text-lg font-medium leading-relaxed text-slate-400 sm:text-xl">
           Academic Oracle is powered by a multi-modal mesh led by <span className="text-white">Google’s Gemini series</span>. We prioritize explicit versioning and cross-provider orchestration to ensure a seamless pedagogical experience.
         </p>
       </section>
 
       {/* Model Strategy Card - "The Server Rack" */}
-      <section className="p-10 rounded-[2.5rem] bg-white/[0.02] border border-white/10 backdrop-blur-xl relative overflow-hidden group">
+      <section className="group relative overflow-hidden rounded-[2.5rem] border border-white/10 bg-white/[0.02] p-6 backdrop-blur-xl sm:p-10">
         <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity">
            <svg className="w-40 h-40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.641.32a4 4 0 01-2.574.345l-2.012-.402a2 2 0 01-1.428-1.428l-.402-2.012a4 4 0 01.345-2.574l.32-.641a6 6 0 00.517-3.86l-.477-2.387a2 2 0 00-.547-1.022L6 3" />
@@ -89,8 +89,8 @@ export default function AIStudio() {
       </section>
 
       {/* Grounding and Reference Support */}
-      <section className="relative group p-12 rounded-[2.5rem] bg-gradient-to-br from-emerald-500/10 via-transparent to-transparent border border-emerald-500/20">
-        <div className="flex flex-col lg:flex-row gap-16 items-start">
+      <section className="group relative rounded-[2.5rem] border border-emerald-500/20 bg-gradient-to-br from-emerald-500/10 via-transparent to-transparent p-6 sm:p-8 lg:p-12">
+        <div className="flex flex-col items-start gap-10 lg:flex-row lg:gap-16">
           <div className="flex-1 space-y-8">
             <div className="space-y-4">
               <h3 className="text-3xl font-bold text-white flex items-center gap-4 tracking-tight">
@@ -106,7 +106,7 @@ export default function AIStudio() {
               </p>
             </div>
 
-            <div className="flex gap-12 pt-4 border-t border-white/5">
+            <div className="flex flex-col gap-6 border-t border-white/5 pt-4 sm:flex-row sm:gap-12">
               <div>
                 <p className="text-[10px] uppercase tracking-[0.2em] text-emerald-500/60 font-black mb-2">Service Provider</p>
                 <p className="text-sm font-mono text-white flex items-center gap-2">
@@ -143,14 +143,14 @@ export default function AIStudio() {
       </section>
 
       {/* Resiliency Section - "The Logic Cascade" */}
-      <section className="grid md:grid-cols-2 gap-20 items-center">
+      <section className="grid items-center gap-10 md:grid-cols-2 md:gap-20">
         <div className="space-y-8 relative">
           <div className="absolute -left-10 top-0 bottom-0 w-1 bg-gradient-to-b from-indigo-500 to-transparent rounded-full opacity-20" />
           <h3 className="text-3xl font-bold text-white tracking-tight">Uninterrupted Learning</h3>
           <p className="text-slate-400 leading-relaxed text-lg">
             Education cannot wait for a server refresh. If a quota limit is reached on a primary node, the system <span className="text-white">cascades reasoning</span> to fallback providers to maintain the student's flow.
           </p>
-          <div className="grid grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
             <div className="p-4 rounded-xl bg-white/5 border border-white/5">
               <p className="text-[10px] uppercase tracking-widest text-white/30 font-black mb-1">Retry Logic</p>
               <p className="text-sm font-mono text-indigo-400 font-bold">Exponential Backoff</p>
@@ -178,7 +178,7 @@ export default function AIStudio() {
       </section>
 
       {/* UI Integrity Section */}
-      <section className="p-12 rounded-[2.5rem] bg-gradient-to-br from-indigo-600/10 to-transparent border border-indigo-500/20 group relative overflow-hidden text-center md:text-left">
+      <section className="group relative overflow-hidden rounded-[2.5rem] border border-indigo-500/20 bg-gradient-to-br from-indigo-600/10 to-transparent p-6 text-center sm:p-8 md:text-left lg:p-12">
         <div className="flex flex-col md:flex-row justify-between items-center gap-12">
           <div className="space-y-6 max-w-2xl">
             <h2 className="text-3xl font-bold text-white tracking-tight">User Interface Integrity</h2>

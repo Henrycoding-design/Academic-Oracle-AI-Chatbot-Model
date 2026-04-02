@@ -190,23 +190,24 @@ export const QuizView: React.FC<QuizViewProps> = ({
 
   if (viewState === 'config') {
     return (
-      <div className="relative flex flex-col items-center justify-center h-full p-6 animate-in fade-in zoom-in duration-300">
+      <div className="relative flex h-full flex-col items-center justify-center p-4 pt-24 sm:p-6 sm:pt-24 animate-in fade-in zoom-in duration-300">
         <button
           onClick={onBack}
-          className="absolute top-6 left-6 flex items-center gap-2 px-3 py-1.5
+          className="absolute left-4 top-4 z-30 flex items-center gap-2 px-3 py-1.5 sm:left-6 sm:top-6
                     rounded-full
+                    bg-white/75 dark:bg-slate-900/70
                     backdrop-blur-md
                     text-sm text-slate-600 dark:text-slate-300
                    hover:text-indigo-600 dark:hover:text-indigo-400
-                    transition-all shadow-sm"
+                    transition-all shadow-sm border border-black/5 dark:border-white/10"
         >
           ← <MessageSquare className="w-4 h-4" />
           {LD.ui.chat}
         </button>
-        <div className="w-full max-w-md bg-white dark:bg-slate-900 rounded-2xl p-8 shadow-xl border border-indigo-100 dark:border-indigo-900/30 bg-gradient-to-br from-white via-indigo-50/20 to-white dark:from-slate-900 dark:via-indigo-950/10 dark:to-slate-900">
+        <div className="w-full max-w-md rounded-2xl border border-indigo-100 bg-white p-5 shadow-xl dark:border-indigo-900/30 dark:bg-slate-900 sm:p-8 bg-gradient-to-br from-white via-indigo-50/20 to-white dark:from-slate-900 dark:via-indigo-950/10 dark:to-slate-900">
           <div className="flex items-center gap-3 mb-6 text-indigo-600 dark:text-indigo-400">
             <Settings className="w-6 h-6" />
-            <h2 className="text-2xl font-bold">{LD.ui.quizConfigTitle}</h2>
+            <h2 className="text-xl font-bold sm:text-2xl">{LD.ui.quizConfigTitle}</h2>
           </div>
 
           <div className="space-y-6">
@@ -265,7 +266,7 @@ export const QuizView: React.FC<QuizViewProps> = ({
 
   if (viewState === 'loading') {
     return (
-      <div className="flex flex-col items-center justify-center h-full">
+      <div className="flex h-full flex-col items-center justify-center px-4 text-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mb-4"></div>
         <p className="text-slate-500 animate-pulse">{LD.ui.generatingAssessment}</p>
       </div>
@@ -281,24 +282,25 @@ export const QuizView: React.FC<QuizViewProps> = ({
       <div className="relative h-full">
         <button
           onClick={onBack}
-          className="absolute top-6 left-6 flex items-center gap-2 px-3 py-1.5
+          className="sticky left-0 top-4 z-30 ml-4 inline-flex items-center gap-2 px-3 py-1.5 sm:ml-6
                     rounded-full
+                    bg-white/85 dark:bg-slate-900/80
                     backdrop-blur-md
                     text-sm text-slate-600 dark:text-slate-300
                    hover:text-indigo-400 dark:hover:text-indigo-400
-                    transition-all shadow-sm"
+                    transition-all shadow-sm border border-black/5 dark:border-white/10"
         >
           ← <MessageSquare className="w-4 h-4" />
           {LD.ui.chat}
         </button>
-        <div className="relative max-w-3xl mx-auto p-6 flex flex-col h-full overflow-y-auto">
+        <div className="relative mx-auto flex h-full max-w-3xl flex-col overflow-y-auto px-4 pb-6 pt-6 sm:px-6 sm:pb-8">
           <div className="flex-1">
-            <div className="flex justify-between items-center mb-6">
+            <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <span className="text-xs font-bold tracking-wider text-slate-400 uppercase">{LD.ui.questionOf.replace('{current}', String(currentQIndex + 1)).replace('{total}', String(questions.length))}</span>
-              <span className="px-2 py-1 rounded bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-300 text-xs font-medium uppercase">{currentQ.type}</span>
+              <span className="w-fit px-2 py-1 rounded bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-300 text-xs font-medium uppercase">{currentQ.type}</span>
             </div>
 
-            <h3 className="text-xl md:text-2xl font-medium text-slate-800 dark:text-slate-100 mb-8 leading-relaxed">
+            <h3 className="mb-6 text-lg font-medium leading-relaxed text-slate-800 dark:text-slate-100 sm:mb-8 sm:text-xl md:text-2xl">
               <MarkdownContent content={currentQ.question} />
             </h3>
 
@@ -333,7 +335,7 @@ export const QuizView: React.FC<QuizViewProps> = ({
                         [currentQ.id]: e.target.value
                       }))
                     }
-                    className="w-full p-4 rounded-xl text-slate-900 dark:text-white bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-indigo-500 outline-none resize-none h-32"
+                    className="h-32 w-full resize-none rounded-xl border border-slate-200 bg-white p-4 text-slate-900 outline-none focus:ring-2 focus:ring-indigo-500 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
                     placeholder={LD.ui.answerPlaceholder}
                     onKeyDown={(e) => {
                       if (e.key === 'Enter' && !e.shiftKey) {
@@ -351,7 +353,7 @@ export const QuizView: React.FC<QuizViewProps> = ({
             {isValidating && <div className="mt-6 text-indigo-600 animate-pulse">{LD.ui.aiGrading}</div>}
             
             {isAnswered && !isValidating && (
-              <div className={`mt-8 p-6 rounded-2xl animate-in slide-in-from-bottom-4 ${
+              <div className={`mt-8 rounded-2xl p-5 sm:p-6 animate-in slide-in-from-bottom-4 ${
                 currentResult.isCorrect ? 'bg-emerald-50 dark:bg-emerald-950/30' : 'bg-rose-50 dark:bg-rose-950/30'
               }`}>
                 <div className="flex items-start gap-3">
@@ -383,7 +385,7 @@ export const QuizView: React.FC<QuizViewProps> = ({
             <div className="mt-8 flex justify-end">
               <button 
                 onClick={handleNext}
-                className="flex items-center gap-2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 px-6 py-3 rounded-full font-semibold shadow-lg hover:scale-105 transition-transform"
+                className="flex w-full items-center justify-center gap-2 rounded-full bg-slate-900 px-6 py-3 font-semibold text-white shadow-lg transition-transform hover:scale-105 dark:bg-white dark:text-slate-900 sm:w-auto"
               >
                 {currentQIndex === questions.length - 1 ? LD.ui.seeResults : LD.ui.nextQuestion} <ArrowRight className="w-4 h-4" />
               </button>
@@ -396,23 +398,24 @@ export const QuizView: React.FC<QuizViewProps> = ({
 
   // Review View
   return (
-    <div className="relative flex flex-col items-center justify-center h-full p-6 animate-in fade-in">
+    <div className="relative flex h-full flex-col items-center justify-center p-4 pt-24 sm:p-6 sm:pt-24 animate-in fade-in">
       <button
         onClick={onBack}
-        className="absolute top-6 left-6 flex items-center gap-2 px-3 py-1.5
+        className="absolute left-4 top-4 z-30 flex items-center gap-2 px-3 py-1.5 sm:left-6 sm:top-6
                   rounded-full
+                  bg-white/75 dark:bg-slate-900/70
                   backdrop-blur-md
                   text-sm text-slate-600 dark:text-slate-300
                   hover:text-indigo-400 dark:hover:text-indigo-400
-                  transition-all shadow-sm"
+                  transition-all shadow-sm border border-black/5 dark:border-white/10"
       >
         ← <MessageSquare className="w-4 h-4" />
         Chat
       </button>
-      <div className="w-full max-w-2xl bg-white dark:bg-slate-900 rounded-3xl p-8 shadow-2xl border border-indigo-100 dark:border-indigo-900/30 text-center">
-        <h2 className="text-3xl font-bold mb-6 text-slate-800 dark:text-slate-100">{LD.ui.assessmentComplete}</h2>
+      <div className="w-full max-w-2xl rounded-3xl border border-indigo-100 bg-white p-5 text-center shadow-2xl dark:border-indigo-900/30 dark:bg-slate-900 sm:p-8">
+        <h2 className="mb-6 text-2xl font-bold text-slate-800 dark:text-slate-100 sm:text-3xl">{LD.ui.assessmentComplete}</h2>
         
-        <div className="grid grid-cols-2 gap-4 mb-8">
+        <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div className="p-4 bg-emerald-50 dark:bg-emerald-900/20 rounded-2xl">
                 <div className="text-4xl font-bold text-emerald-600 mb-1">
                     {(Object.values(results) as QuizResult[])

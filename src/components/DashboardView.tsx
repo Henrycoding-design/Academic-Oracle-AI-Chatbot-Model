@@ -113,18 +113,18 @@ const DashboardView: React.FC<DashboardViewProps> = ({
   }, [isGeneratingSummary]);
 
   return (
-    <div className="relative max-w-6xl mx-auto px-4 py-8">
+    <div className="relative mx-auto max-w-6xl px-3 py-6 sm:px-4 sm:py-8">
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
         <div className="absolute -top-10 left-8 h-40 w-40 rounded-full bg-indigo-200/20 blur-3xl animate-pulse dark:bg-indigo-500/10" />
         <div className="absolute right-10 top-28 h-32 w-32 rounded-full bg-emerald-200/20 blur-3xl animate-pulse dark:bg-emerald-500/10" style={{ animationDelay: "1.2s" }} />
         <div className="absolute bottom-12 left-1/3 h-28 w-28 rounded-full bg-amber-200/15 blur-3xl animate-pulse dark:bg-amber-500/10" style={{ animationDelay: "2.2s" }} />
       </div>
 
-      <div className="sticky top-4 z-50 mb-4 w-fit">
+      <div className="sticky top-3 z-30 mb-4 w-fit sm:top-4">
         <button
           onClick={onBack}
           className="flex items-center gap-2 px-3 py-1.5 
-                    rounded-full bg-white/70 dark:bg-slate-800/60 
+                    rounded-full bg-white/85 dark:bg-slate-800/80 
                     backdrop-blur-md border border-black/5 dark:border-white/10
                     text-sm text-slate-600 dark:text-slate-300 
                     hover:text-indigo-600 hover:dark:text-indigo-400 transition-all shadow-[0_8px_30px_-18px_rgba(15,23,42,0.45)]"
@@ -135,7 +135,7 @@ const DashboardView: React.FC<DashboardViewProps> = ({
         </button>
       </div>
       <div className="flex flex-col gap-6">
-        <section className="relative overflow-hidden rounded-3xl border border-black/5 dark:border-white/10 bg-white/80 dark:bg-slate-900/70 backdrop-blur-md p-6 shadow-[0_24px_60px_-28px_rgba(15,23,42,0.28)]">
+        <section className="relative overflow-hidden rounded-3xl border border-black/5 bg-white/80 p-5 shadow-[0_24px_60px_-28px_rgba(15,23,42,0.28)] backdrop-blur-md dark:border-white/10 dark:bg-slate-900/70 sm:p-6">
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(99,102,241,0.08),transparent_34%),radial-gradient(circle_at_left,rgba(16,185,129,0.06),transparent_28%)] dark:bg-[radial-gradient(circle_at_top_right,rgba(129,140,248,0.10),transparent_34%),radial-gradient(circle_at_left,rgba(52,211,153,0.08),transparent_28%)]" />
           <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
             <div>
@@ -154,7 +154,7 @@ const DashboardView: React.FC<DashboardViewProps> = ({
             <button
               onClick={onDownloadSummary}
               disabled={isGeneratingSummary}
-              className="inline-flex items-center justify-center gap-2 rounded-2xl bg-indigo-600 px-4 py-3 text-sm font-medium text-white transition-all hover:bg-indigo-700 hover:shadow-[0_16px_40px_-20px_rgba(79,70,229,0.75)] disabled:cursor-not-allowed disabled:opacity-60"
+              className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-indigo-600 px-4 py-3 text-sm font-medium text-white transition-all hover:bg-indigo-700 hover:shadow-[0_16px_40px_-20px_rgba(79,70,229,0.75)] disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
             >
               {isGeneratingSummary ? (
                 <>
@@ -172,7 +172,7 @@ const DashboardView: React.FC<DashboardViewProps> = ({
         </section>
 
         <section className="grid gap-4 lg:grid-cols-[1.15fr_0.85fr]">
-          <div className="rounded-3xl border border-black/5 dark:border-white/10 bg-white/95 dark:bg-slate-900 p-6 shadow-[0_20px_50px_-30px_rgba(15,23,42,0.35)] ring-1 ring-white/40 dark:ring-white/5">
+          <div className="rounded-3xl border border-black/5 bg-white/95 p-5 shadow-[0_20px_50px_-30px_rgba(15,23,42,0.35)] ring-1 ring-white/40 dark:border-white/10 dark:bg-slate-900 dark:ring-white/5 sm:p-6">
             <p className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.22em] text-slate-500 dark:text-slate-400">
               <GraduationCap className="h-4 w-4 text-indigo-500" />
               {DD.userData}
@@ -205,7 +205,7 @@ const DashboardView: React.FC<DashboardViewProps> = ({
             </div>
           </div>
 
-          <div className="relative overflow-hidden rounded-3xl border border-black/5 dark:border-white/10 bg-white dark:bg-slate-900 p-6 shadow-[0_20px_50px_-30px_rgba(15,23,42,0.35)] ring-1 ring-white/40 dark:ring-white/5">
+          <div className="relative overflow-hidden rounded-3xl border border-black/5 bg-white p-5 shadow-[0_20px_50px_-30px_rgba(15,23,42,0.35)] ring-1 ring-white/40 dark:border-white/10 dark:bg-slate-900 dark:ring-white/5 sm:p-6">
             <div className="pointer-events-none absolute right-0 top-0 h-20 w-20 rounded-full bg-emerald-200/20 blur-2xl dark:bg-emerald-500/10" />
             <p className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.22em] text-slate-500 dark:text-slate-400">
               <Activity className="h-4 w-4 text-emerald-500" />
@@ -253,7 +253,7 @@ const DashboardView: React.FC<DashboardViewProps> = ({
         </section>
 
         <section className="grid gap-4 lg:grid-cols-2">
-          <div className="rounded-3xl border border-black/5 dark:border-white/10 bg-white dark:bg-slate-900 p-6 shadow-[0_18px_42px_-28px_rgba(5,150,105,0.35)] ring-1 ring-white/40 dark:ring-white/5">
+          <div className="rounded-3xl border border-black/5 bg-white p-5 shadow-[0_18px_42px_-28px_rgba(5,150,105,0.35)] ring-1 ring-white/40 dark:border-white/10 dark:bg-slate-900 dark:ring-white/5 sm:p-6">
             <p className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.22em] text-slate-500 dark:text-slate-400">
               <Trophy className="h-4 w-4 text-emerald-500" />
               {DD.strengths}
@@ -274,7 +274,7 @@ const DashboardView: React.FC<DashboardViewProps> = ({
             )}
           </div>
 
-          <div className="rounded-3xl border border-black/5 dark:border-white/10 bg-white dark:bg-slate-900 p-6 shadow-[0_18px_42px_-28px_rgba(245,158,11,0.35)] ring-1 ring-white/40 dark:ring-white/5">
+          <div className="rounded-3xl border border-black/5 bg-white p-5 shadow-[0_18px_42px_-28px_rgba(245,158,11,0.35)] ring-1 ring-white/40 dark:border-white/10 dark:bg-slate-900 dark:ring-white/5 sm:p-6">
             <p className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.22em] text-slate-500 dark:text-slate-400">
               <Activity className="h-4 w-4 text-amber-500" />
               {DD.weaknesses}
@@ -295,8 +295,8 @@ const DashboardView: React.FC<DashboardViewProps> = ({
           </div>
         </section>
 
-        <section className="rounded-3xl border border-black/5 dark:border-white/10 bg-white dark:bg-slate-900 p-6 shadow-[0_24px_60px_-34px_rgba(15,23,42,0.32)] ring-1 ring-white/40 dark:ring-white/5">
-          <div className="flex items-center justify-between gap-3">
+        <section className="rounded-3xl border border-black/5 bg-white p-5 shadow-[0_24px_60px_-34px_rgba(15,23,42,0.32)] ring-1 ring-white/40 dark:border-white/10 dark:bg-slate-900 dark:ring-white/5 sm:p-6">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <p className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.22em] text-slate-500 dark:text-slate-400">
                 <GraduationCap className="h-4 w-4 text-indigo-500" />
@@ -330,7 +330,7 @@ const DashboardView: React.FC<DashboardViewProps> = ({
                           .replace("{accuracy}", typeof topic.accuracy === "number" ? `${topic.accuracy}%` : DD.accuracyPending)}
                       </p>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex shrink-0 items-center gap-2 self-start sm:self-center">
                       <span className="rounded-full bg-white dark:bg-slate-900 px-3 py-1 text-xs font-medium text-slate-600 shadow-sm dark:text-slate-300">
                         {DD.openDetails}
                       </span>
@@ -413,7 +413,7 @@ const DashboardView: React.FC<DashboardViewProps> = ({
           </div>
         </section>
 
-        <section className="rounded-3xl border border-black/5 dark:border-white/10 bg-white dark:bg-slate-900 p-6 shadow-[0_24px_60px_-34px_rgba(15,23,42,0.32)] ring-1 ring-white/40 dark:ring-white/5">
+        <section className="rounded-3xl border border-black/5 bg-white p-5 shadow-[0_24px_60px_-34px_rgba(15,23,42,0.32)] ring-1 ring-white/40 dark:border-white/10 dark:bg-slate-900 dark:ring-white/5 sm:p-6">
           <p className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.22em] text-slate-500 dark:text-slate-400">
             <FileDown className="h-4 w-4 text-indigo-500" />
             {DD.currentSummary}

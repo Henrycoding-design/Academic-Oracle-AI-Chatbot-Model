@@ -18,7 +18,11 @@ export async function getAccessToken() {
       return null;
     }
   } catch (err) {
-    console.error('An unexpected error occurred:', err.message);
+    if (err instanceof Error) {
+      console.error('An unexpected error occurred:', err.message);
+    } else {
+      console.error('An unexpected error occurred:', err);
+    }
     return null;
   }
 }

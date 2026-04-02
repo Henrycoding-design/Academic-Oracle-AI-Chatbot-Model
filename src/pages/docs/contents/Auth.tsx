@@ -9,7 +9,7 @@ export default function Auth() {
   };
 
   return (
-    <div className="space-y-32">
+    <div className="space-y-20 sm:space-y-24 lg:space-y-32">
       {/* Header Section */}
       <section className="pt-10">
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 mb-6">
@@ -18,16 +18,16 @@ export default function Auth() {
           </svg>
           <span className="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-400">Identity Guard Active</span>
         </div>
-        <h1 className="text-5xl font-black tracking-tighter bg-gradient-to-r from-emerald-400 via-teal-400 to-blue-500 bg-clip-text text-transparent pb-4">
+        <h1 className="bg-gradient-to-r from-emerald-400 via-teal-400 to-blue-500 bg-clip-text pb-4 text-4xl font-black tracking-tighter text-transparent sm:text-5xl">
           Security & Authentication
         </h1>
-        <p className="text-xl text-slate-400 leading-relaxed max-w-3xl font-medium">
+        <p className="max-w-3xl text-lg font-medium leading-relaxed text-slate-400 sm:text-xl">
           Academic Oracle employs a <span className="text-white">hardened security posture</span>. By isolating sensitive logic in encrypted edge environments, we ensure your credentials never touch the client-side.
         </p>
       </section>
 
       {/* Security Infrastructure Card */}
-      <section className="p-10 rounded-[2.5rem] bg-white/[0.02] border border-white/10 backdrop-blur-xl relative overflow-hidden group">
+      <section className="group relative overflow-hidden rounded-[2.5rem] border border-white/10 bg-white/[0.02] p-6 backdrop-blur-xl sm:p-10">
         {/* Animated Scanning Beam Effect */}
         <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-transparent via-emerald-500/40 to-transparent -translate-y-full animate-[scan_4s_linear_infinite]" />
         
@@ -45,7 +45,7 @@ export default function Auth() {
           </p>
         </div>
         
-        <div className="grid md:grid-cols-2 gap-12 mt-8">
+        <div className="mt-8 grid gap-10 md:grid-cols-2 md:gap-12">
           <div className="space-y-4 group/item">
             <h4 className="text-white font-bold text-lg flex items-center gap-3">
               <span className="w-2 h-2 bg-emerald-500 rounded-full shadow-[0_0_8px_rgba(16,185,129,0.8)]" />
@@ -68,17 +68,17 @@ export default function Auth() {
       </section>
 
       {/* Technical Process Section */}
-      <section className="grid md:grid-cols-2 gap-20 items-center">
+      <section className="grid items-center gap-10 md:grid-cols-2 md:gap-20">
         <div className="relative">
             <div className="absolute -inset-4 bg-emerald-500/5 blur-3xl rounded-full" />
             <div className="relative space-y-6">
-                <h3 className="text-3xl font-bold text-white tracking-tight">Zero-Trust Protocol</h3>
-                <p className="text-slate-400 leading-relaxed text-lg">
+                <h3 className="text-2xl font-bold tracking-tight text-white sm:text-3xl">Zero-Trust Protocol</h3>
+                <p className="text-base leading-relaxed text-slate-400 sm:text-lg">
                     The client-side is treated as a public space. By utilizing <span className="text-white font-mono bg-white/5 px-2 py-0.5 rounded">AES-256-GCM</span> within high-security vaults, we ensure keys never touch browser memory or history.
                 </p>
             </div>
         </div>
-        <div className="p-8 rounded-3xl bg-white/[0.02] border border-white/5 space-y-6 group">
+        <div className="group space-y-6 rounded-3xl border border-white/5 bg-white/[0.02] p-6 sm:p-8">
           <h3 className="text-xl font-bold text-white flex items-center gap-2">
             <span className="text-blue-400 text-xs font-mono">02 //</span> 
             Authenticated Orchestration
@@ -103,12 +103,12 @@ export default function Auth() {
             </p>
         </div>
 
-        <div className="group relative p-10 rounded-[2.5rem] bg-gradient-to-br from-emerald-900/20 via-black to-black border border-emerald-500/20 hover:border-emerald-500/40 transition-all duration-500 overflow-hidden">
+        <div className="group relative overflow-hidden rounded-[2.5rem] border border-emerald-500/20 bg-gradient-to-br from-emerald-900/20 via-black to-black p-6 transition-all duration-500 hover:border-emerald-500/40 sm:p-10">
           {/* Background Decorative Mesh */}
           <div className="absolute inset-0 opacity-10 pointer-events-none" 
                style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, #10b981 1px, transparent 0)', backgroundSize: '24px 24px' }} />
           
-          <div className="relative flex flex-col md:flex-row justify-between items-center gap-10">
+          <div className="relative flex flex-col items-center justify-between gap-8 md:flex-row md:gap-10">
             <div className="space-y-6 text-center md:text-left">
               <div>
                 <h4 className="text-emerald-400 font-mono text-lg font-bold tracking-tighter">SECURE_EDGE_VAULT_ROOT</h4>

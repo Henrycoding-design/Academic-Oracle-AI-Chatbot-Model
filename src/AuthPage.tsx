@@ -13,6 +13,13 @@ const AuthPage: React.FC<{
   const [user, setUser] = useState<any>(null);
   const [apiError, setApiError] = useState<string | null>(null);
 
+  useEffect(() => {
+    if (apiError) {
+      window.alert(apiError);
+      setApiError(null);
+    }
+  }, [apiError]);
+
   const ranRef = useRef(false);
 
   const validateApiKey = (key: string) => {
@@ -136,12 +143,7 @@ const AuthPage: React.FC<{
       </div>
     );
   }
-
-  if (apiError) {
-    return (
-      window.alert(apiError)
-    );
-  }
+  
 
   // 🔑 API SETUP SCREEN
   // if (needsApiKey) { // Current abandoned for simplicity

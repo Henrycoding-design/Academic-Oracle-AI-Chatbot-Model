@@ -22,10 +22,10 @@ import { readFileAsText } from "./services/fileReader";
 import 'katex/dist/katex.min.css';
 import ArcadeDemo from "./components/ArcadeDemo";
 import { createPortal } from "react-dom";
-import { useClickOutside } from './services/useClickOutsite';
+import { useClickOutside } from './services/useClickOutside.ts';
 import { generateSessionSummary } from './services/geminiService.ts';
 import { createSummaryDoc } from './services/createSummaryDoc.ts';
-import { Sparkles, SquarePen, ChevronDown, BrainCircuit, LogOut, User, LayoutDashboard } from 'lucide-react';
+import { Sparkles, SquarePen, ChevronDown, BrainCircuit, LogOut, User, LayoutDashboard, Menu, X } from 'lucide-react';
 import ProfilePage from './ProfilePage.tsx';
 import { QuizView } from './components/QuizView'; // Added QuizView
 import DashboardView from './components/DashboardView.tsx';
@@ -40,14 +40,14 @@ import { isWebSearchLimitReached, incrementWebSearch } from './services/webSearc
 import { classifyIntent } from './services/chatIntentClassifier.ts';
 import { getNewlyMasteredTopicTag, hasReadyOracleMemory, recordQuizResultInMemory, serializeOracleMemory } from './services/oracleMemory.ts';
 
-const SunIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+const SunIcon = (props: React.SVGProps<SVGSVGElement>) => (
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
     <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v2.25m6.364.386l-1.591 1.591M21 12h-2.25m-.386 6.364l-1.591-1.591M12 18.75V21m-4.773-4.227l-1.591 1.591M3 12h2.25m.386-6.364l1.591 1.591M15.75 12a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z" />
   </svg>
 );
 
-const MoonIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+const MoonIcon = (props: React.SVGProps<SVGSVGElement>) => (
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
     <path strokeLinecap="round" strokeLinejoin="round" d="M21.752 15.002A9.718 9.718 0 0118 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 003 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 009.002-5.998z" />
   </svg>
 );
@@ -366,6 +366,7 @@ const App: React.FC = () => {
   }, [isOracleOpen]);
 
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const userButtonRef = useRef<HTMLButtonElement>(null);
   const userMenuRef = useRef<HTMLDivElement>(null);
   useClickOutside([userButtonRef, userMenuRef], () => setIsUserMenuOpen(false), isUserMenuOpen); // hook to close user menu on outside click
@@ -543,6 +544,21 @@ const App: React.FC = () => {
     }
   }, [currentView]);
 
+  useEffect(() => {
+    setIsSidebarOpen(false);
+  }, [route, currentView]);
+
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 768) {
+        setIsSidebarOpen(false);
+      }
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
 
   // ⚡ Theme handling
   useEffect(() => {
@@ -682,7 +698,7 @@ const App: React.FC = () => {
       const token = session?.access_token;
       // increment quota here
       if (!encryptedApiKey){
-        const result = await canSendMessage(currentChatIdRef, token!);
+        const result = await canSendMessage(currentChatIdRef, token!); // error here
         if (!result.allowed) {
           setError(LANGUAGE_DATA[language].ui.freeSessionLimit);
           return;
@@ -1136,6 +1152,21 @@ const App: React.FC = () => {
     user?.user_metadata?.avatar_url ||
     user?.user_metadata?.picture ||
     `https://api.dicebear.com/7.x/identicon/svg?seed=${user?.id}`;
+
+  const openHome = () => {
+    if (isLoading) {
+      alert(LANGUAGE_DATA[language].ui.pleaseWait);
+      return;
+    }
+
+    setIsSidebarOpen(false);
+    window.open('/home', '_self');
+  };
+
+  const goToView = (path: string) => {
+    setIsSidebarOpen(false);
+    navigate(path);
+  };
   
   // // normalize routes (for routing from other pages. Ex: src/pages/home/Navbar.tsx)
   // const isProfileRoute =
@@ -1179,22 +1210,37 @@ const App: React.FC = () => {
     ) : (
       /* Use flex-col and h-screen to ensure the container fills the viewport */
       <div className="flex h-screen w-full overflow-hidden bg-slate-50 dark:bg-slate-950 font-sans antialiased">
+        {isSidebarOpen && ( // backdrop for mobile when sidebar is open
+          <button
+            type="button"
+            aria-label="Close sidebar"
+            className="fixed inset-0 z-30 bg-slate-950/45 backdrop-blur-sm md:hidden"
+            onClick={() => setIsSidebarOpen(false)}
+          />
+        )}
         
-        {/* 1. Sidebar - Kept as is, but removed fixed to let Flex handle it */}
-        <aside className="w-14 flex flex-col items-center pt-4 pb-4 bg-white/30 dark:bg-white/5 backdrop-blur-md border-r border-black/5 dark:border-white/10 z-30">
+        {/* 1. Sidebar */}
+        <aside className={`fixed inset-y-0 left-0 z-40 flex w-16 flex-col items-center border-r border-black/5 bg-white/85 pt-4 pb-4 backdrop-blur-md transition-transform duration-300 dark:border-white/10 dark:bg-slate-950/90 md:static md:w-14 md:translate-x-0 md:bg-white/30 md:dark:bg-white/5 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+            <div className="mb-4 flex w-full justify-end px-3 md:hidden">
+              <button
+                type="button"
+                aria-label="Close sidebar"
+                className="rounded-lg p-1.5 text-slate-700 transition-colors hover:bg-black/5 dark:text-slate-200 dark:hover:bg-white/10"
+                onClick={() => setIsSidebarOpen(false)}
+              >
+                <X size={18} />
+              </button>
+            </div>
             <div className="mb-6">
               {/* <span className="text-[10px] px-1.5 py-0.5 rounded-sm bg-indigo-500/90 text-white tracking-wide">UNIV</span> */}
               <div className="p-1 rounded-[8px] transition-colors hover:bg-black/5 dark:hover:bg-white/10">
-              <a onClick={() => {
-                if (isLoading) {alert(LANGUAGE_DATA[language].ui.pleaseWait); return; }
-                window.open('/home', '_self');
-              }}>
+              <a onClick={openHome}>
                 <img src="/icon.png" alt="Academic Oracle Logo" className="w-8 h-7 select-none"/>
               </a>
               </div>
             </div>
             <div className="flex flex-col gap-4">
-              <button className="p-2 rounded-lg hover:bg-black/5 dark:hover:bg-white/10 text-slate-700 dark:text-slate-200" onClick={resetChat} title={LANGUAGE_DATA[language].tooltips.newChat}>
+              <button className="p-2 rounded-lg hover:bg-black/5 dark:hover:bg-white/10 text-slate-700 dark:text-slate-200" onClick={() => { setIsSidebarOpen(false); resetChat(); }} title={LANGUAGE_DATA[language].tooltips.newChat}>
                 <SquarePen size={18} />
               </button>
 
@@ -1204,7 +1250,7 @@ const App: React.FC = () => {
                     ? 'bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400'
                     : 'hover:bg-black/5 dark:hover:bg-white/10 text-slate-700 dark:text-slate-200'
                 }`}
-                onClick={() => navigate("/dashboard")}
+                onClick={() => goToView("/dashboard")}
                 title="Dashboard"
               >
                 <LayoutDashboard size={18} />
@@ -1217,7 +1263,7 @@ const App: React.FC = () => {
                   ? 'bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400' 
                   : 'hover:bg-black/5 dark:hover:bg-white/10 text-slate-700 dark:text-slate-200'
                 }`}
-                onClick={() => navigate("/quiz")} 
+                onClick={() => goToView("/quiz")} 
                 title={LANGUAGE_DATA[language].tooltips.quiz}
               >
                 <BrainCircuit size={18} />
@@ -1246,7 +1292,7 @@ const App: React.FC = () => {
                     border border-black/5 dark:border-white/10
                     text-sm z-[9999]
                   ">
-                    <button className="flex items-center w-full px-3 py-2 text-left hover:bg-black/5" onClick={() => {navigate("/profile")}}>
+                    <button className="flex items-center w-full px-3 py-2 text-left hover:bg-black/5" onClick={() => { setIsSidebarOpen(false); navigate("/profile"); }}>
                       <User size="17" /> <span className='mx-2'>{LANGUAGE_DATA[language].ui.profile}</span> 
                     </button>
                     <button
@@ -1266,13 +1312,23 @@ const App: React.FC = () => {
         <div className="flex flex-col flex-1 h-full overflow-hidden relative">
           
           {/* Header - Fixed height */}
-          <header className="h-16 flex items-center justify-between px-6 bg-slate-50/70 dark:bg-slate-950/70 backdrop-blur-md border-b border-black/5 dark:border-white/10 z-20">
-            <button 
-              ref={oracleButtonRef}
-              className="text-lg font-medium text-slate-900 dark:text-slate-100 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
-              onClick={() => setIsOracleOpen(prev => !prev)}>
-                Academic Oracle <ChevronDown size={16} className="inline-block ml-1 mb-0.5" />
-            </button>
+          <header className="h-16 flex items-center justify-between gap-3 px-3 sm:px-4 md:px-6 bg-slate-50/70 dark:bg-slate-950/70 backdrop-blur-md border-b border-black/5 dark:border-white/10 z-20">
+            <div className="flex min-w-0 items-center gap-2 sm:gap-3">
+              <button
+                type="button"
+                aria-label="Open sidebar"
+                className="rounded-lg p-2 text-slate-700 transition-colors hover:bg-black/5 dark:text-slate-200 dark:hover:bg-white/10 md:hidden"
+                onClick={() => setIsSidebarOpen(true)}
+              >
+                <Menu size={18} />
+              </button>
+              <button 
+                ref={oracleButtonRef}
+                className="min-w-0 text-left text-sm font-medium text-slate-900 transition-colors hover:text-indigo-600 dark:text-slate-100 dark:hover:text-indigo-400 sm:text-base md:text-lg"
+                onClick={() => setIsOracleOpen(prev => !prev)}>
+                  <span className="truncate">Academic Oracle</span> <ChevronDown size={16} className="inline-block ml-1 mb-0.5 shrink-0" />
+              </button>
+            </div>
             {isOracleOpen && oraclePos &&
               createPortal(
                 <div
@@ -1304,7 +1360,7 @@ const App: React.FC = () => {
                 document.body
               )
             }
-            <div className="flex items-center">
+            <div className="flex shrink-0 items-center">
               <button
                 onClick={() => setIsDark(!isDark)}
                 className="p-1.5 mr-2 rounded-full bg-white/60 dark:bg-slate-950 
@@ -1336,7 +1392,7 @@ const App: React.FC = () => {
           {/* MAIN VIEW SWITCHER */}
           <main ref={mainScrollRef} className="flex-1 overflow-y-auto scroll-smooth custom-scrollbar relative">
             {currentView === 'chat' ? (
-              <div className="max-w-4xl mx-auto px-4 pt-8 pb-32">
+              <div className="mx-auto max-w-4xl px-3 pt-6 pb-32 sm:px-4 sm:pt-8">
                 {messages.map((msg, index) => {
                   const isLast = index === messages.length - 1;
                   const isUser = msg.role === "user";

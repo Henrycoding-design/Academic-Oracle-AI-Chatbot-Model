@@ -1,3 +1,4 @@
+import { RefObject } from "react";
 import { supabase } from "../services/supabaseClient";
 
 const MAX_CALLS_PER_SESSION = 60;
@@ -28,7 +29,7 @@ const isOutOfQuota = (quota: SessionQuota): boolean => {
 }
 // ------------------
 
-const checkQuota = async (accessToken) => {
+const checkQuota = async (accessToken: string | undefined) => {
   const { data, error } = await supabase.functions.invoke(
     "rate-limit-check",
     {
@@ -45,7 +46,7 @@ const checkQuota = async (accessToken) => {
   return data;
 };
 
-export const canSendMessage = async (chatId: string, accessToken?: string) => {
+export const canSendMessage = async (chatId: RefObject<string>, accessToken?: string) => {
   try {
     const backend = await checkQuota(accessToken);
 
