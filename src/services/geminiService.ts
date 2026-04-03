@@ -517,6 +517,9 @@ export const sendMessageToBotRace = async (params: {
     if (err.message && err.message.includes("Race timeout")) {
       throw new Error("All models timed out. Please try again.");
     }
+    if (err.message && err.message.includes("All models in race failed")) { // fail fast if all models responsed with errors
+      throw new Error("All models failed before the race timeout. Please try again.");
+    }
     if (isInvalidApiKeyError(err)) throw new InvalidAPIError();
     throw err;
   }
