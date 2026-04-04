@@ -1,7 +1,7 @@
 [
   {
     "version": "2.3.5",
-    "date": "2026-04-01",
+    "date": "2026-04-04",
     "changes": [
       { "type": "improve", "text": "Expanded the learning engine with Feynman reinforcement, exam-style adaptation, wider mastery branching, and structured Oracle Memory JSON returns." },
       { "type": "improve", "text": "Added short-query fast branching to Balanced race mode for low-friction learning prompts under 6 words." },
