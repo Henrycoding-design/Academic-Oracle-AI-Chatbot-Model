@@ -1,8 +1,8 @@
-const ArcadeEmbedv2_0 = () => {
+const ArcadeEmbedv2_3 = () => {
     return (
         <div style={{ position: 'relative', paddingBottom: 'calc(45.708333333333336% + 41px)', height: '0', width: '100%' }}>
             <iframe
-            src="https://demo.arcade.software/IND40hWmfztK51AUs2ah?embed&embed_mobile=tab&embed_desktop=inline&show_copy_link=true"
+            src="https://demo.arcade.software/4RTzkfUuSWOKHfxXXPAj?embed&embed_mobile=tab&embed_desktop=inline&show_copy_link=true"
             title="Academic Oracle v2.0 Demo"
             frameBorder="0"
                 loading="lazy"
@@ -14,4 +14,4 @@ const ArcadeEmbedv2_0 = () => {
     )
 }
 
-export default ArcadeEmbedv2_0;
+export default ArcadeEmbedv2_3;

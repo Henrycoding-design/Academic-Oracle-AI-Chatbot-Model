@@ -281,7 +281,7 @@ const AuthPage: React.FC<{
       </button>
 
       <button
-        onClick={() => window.open("https://app.arcade.software/share/IND40hWmfztK51AUs2ah", "_blank")}
+        onClick={() => window.open("https://app.arcade.software/share/4RTzkfUuSWOKHfxXXPAj", "_blank")}
         className="inline-flex items-center gap-3 mt-5 px-7 py-3
              dark:bg-slate-900
              border-[1px] border-indigo-500

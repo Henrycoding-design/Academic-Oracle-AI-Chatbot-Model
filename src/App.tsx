@@ -785,11 +785,17 @@ const App: React.FC = () => {
         file: file ?? null,
       };
 
-      const isShortPrompt = countWords(userMessage) < 6; // heuristic check to fast-forward short prompts directly to Balanced Racing mode -> better UX, save time, tokens cost
-      const useRace = isShortPrompt ? true : shouldUseRace();
+      const isVeryShortPrompt = countWords(userMessage) < 3; // heuristic check to fast-forward short prompts directly to Balanced Racing mode -> better UX, save time, tokens cost
+      const isShortPrompt = countWords(userMessage) < 8;
+      const useRace = isVeryShortPrompt ? 
+      true : isShortPrompt ?
+      true : shouldUseRace(); // respect tailoring settings and rush hour optimization
       let raceIntent: "agentic" | "fast" | "balance" | null = null;
 
-      if (isShortPrompt) {
+      if (isVeryShortPrompt) {
+        raceIntent = "fast";
+        currentLoadingLabel = "Fast";
+      } else if (isShortPrompt) {
         raceIntent = "balance";
         currentLoadingLabel = "Balanced";
       } else if (useRace) {

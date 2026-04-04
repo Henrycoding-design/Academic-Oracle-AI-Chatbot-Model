@@ -4,16 +4,16 @@ import Navbar from "../ui/Navbar";
 import Footer from "../ui/Footer";
 import InfiniteRail from "./InfiniteRail";
 import FeatureGrid from "../ui/FeatureCard";
-import ArcadeDemov2_0 from "@/src/components/ArcadeProductDemov2.0";
+import ArcadeDemov2_3 from "@/src/components/ArcadeProductDemov2.3";
 import { Mail, Github, MessageSquare} from "lucide-react";
-import {motion , useReducedMotion} from "framer-motion";
+import {motion , useReducedMotion, Variants} from "framer-motion";
 
 // important!!
 import PageLayout from "@/src/layout/PageLayout";
 
 export default function Home() {
   const shouldReduce = useReducedMotion();
-  const reveal = {
+  const reveal : Variants = {
     hidden: { opacity: 0, y: shouldReduce? 0 : 30 },
     visible: {
       opacity: 1,
@@ -73,7 +73,7 @@ export default function Home() {
         </h2>
 
         <div className="mx-auto max-w-5xl rounded-2xl overflow-hidden shadow-[0_0_40px_rgba(59,130,246,0.15)]">
-            <ArcadeDemov2_0 />
+            <ArcadeDemov2_3 />
         </div>
       </motion.section>
 

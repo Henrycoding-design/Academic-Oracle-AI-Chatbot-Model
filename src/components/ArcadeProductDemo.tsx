@@ -2,7 +2,7 @@ const ArcadeEmbed = () => {
   return (
     <div style={{ position: 'relative', paddingBottom: 'calc(43.083333333333336% + 41px)', height: '0', width: '100%' }}>
       <iframe
-        src="https://demo.arcade.software/qaqBFit3VG0hn1OfJ3Nf?embed&embed_mobile=tab&embed_desktop=inline&show_copy_link=true"
+        src="https://demo.arcade.software/IND40hWmfztK51AUs2ah?embed&embed_mobile=tab&embed_desktop=inline&show_copy_link=true"
         title="Academic Oracle Product demo"
         frameBorder="0"
         loading="lazy"
@@ -15,3 +15,4 @@ const ArcadeEmbed = () => {
 }
 
 export default ArcadeEmbed;
+
