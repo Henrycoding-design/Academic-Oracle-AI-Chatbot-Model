@@ -1,0 +1,16 @@
+# Default owner for the whole repository
+* @Henrycoding-design
+
+# Frontend / UI
+/src/ @Henrycoding-design
+
+# Backend / API
+/supabase/ @Henrycoding-design
+
+# Documentation
+/docs/ @Henrycoding-design
+
+# Config / deployment
+/package.json @Henrycoding-design
+/vite.config.ts @Henrycoding-design
+/tsconfig*.json @Henrycoding-design
