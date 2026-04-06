@@ -9,6 +9,8 @@ export const LANGUAGE_DATA: Record<AppLanguage, {
     newChat: string;
     summary: string;
     quiz: string;
+    copyCode: string;
+    copied: string;
   };
   ui: {
     // Quiz UI labels
@@ -158,6 +160,8 @@ export const LANGUAGE_DATA: Record<AppLanguage, {
       newChat: "Start New Chat",
       summary: "Generate Summary Doc",
       quiz: "Mastery Quiz",
+      copyCode: "Copy code",
+      copied: "Copied",
     },
     ui: {
       chat: "Chat",
@@ -312,6 +316,8 @@ export const LANGUAGE_DATA: Record<AppLanguage, {
       newChat: "Commencer une nouvelle discussion",
       summary: "Générer le résumé",
       quiz: "Quiz de Maîtrise",
+      copyCode: "Copier le code",
+      copied: "Copié",
     },
     ui: {
       chat: "Chat",
@@ -466,6 +472,8 @@ export const LANGUAGE_DATA: Record<AppLanguage, {
       newChat: "Iniciar nueva conversación",
       summary: "Generar resumen",
       quiz: "Cuestionario de Dominio",
+      copyCode: "Copiar código",
+      copied: "Copiado",
     },
     ui: {
       chat: "Chat",
@@ -620,6 +628,8 @@ export const LANGUAGE_DATA: Record<AppLanguage, {
       newChat: "Bắt đầu cuộc trò chuyện mới",
       summary: "Tạo tài liệu tổng kết",
       quiz: "Bài kiểm tra thành thạo",
+      copyCode: "Sao chép mã",
+      copied: "Đã sao chép",
     },
     ui: {
       chat: "Trò chuyện",

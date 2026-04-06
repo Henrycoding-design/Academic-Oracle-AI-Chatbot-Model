@@ -1,6 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { BlockMath, InlineMath } from 'react-katex';
 import hljs from "../lib/highlight";
+import { Copy, Check, Code2 } from "lucide-react";
+import { LANGUAGE_DATA, type AppLanguage } from "../lang/Language.tsx";
 
 interface MarkdownContentProps {
   content: string;
@@ -98,27 +100,43 @@ const CodeBlock: React.FC<{ code: string; language?: string }> = ({
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const displayLang = normalizeLang(language) ?? detectedLang ?? "code";
+  const appLanguage =
+    (typeof window !== "undefined"
+      ? (localStorage.getItem("academic-oracle-lang") as AppLanguage | null)
+      : null) ?? "en"; // default to English if not set or on server
+
   return (
     <div className="relative group my-6 rounded-xl bg-slate-50 dark:bg-[#0d1117] border border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm">
       <div className="flex items-center justify-between px-4 py-2 bg-slate-200/50 dark:bg-white/5 border-b border-slate-200 dark:border-slate-800">
-        <span className="text-[10px] uppercase tracking-widest text-slate-500 dark:text-slate-400 font-bold">
-          {normalizeLang(language) ?? detectedLang ?? "text"}
-        </span>
+        <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400">
+          <Code2 size={14} className="shrink-0" />
+          <span className="text-[10px] uppercase tracking-widest font-bold">
+            {displayLang}
+          </span>
+        </div>
+
         <button
           onClick={handleCopy}
-          className="p-1.5 rounded-md hover:bg-slate-300/50 dark:hover:bg-white/10 text-slate-600 dark:text-slate-400 transition-colors flex items-center gap-1.5 text-xs font-medium"
+          className="p-1.5 rounded-md hover:bg-slate-300/50 dark:hover:bg-white/10 text-slate-600 dark:text-slate-400 transition-all duration-200 flex items-center justify-center active:scale-95"
+          aria-label={copied ? "Copied" : "Copy code"}
+          title={copied ? LANGUAGE_DATA[appLanguage].tooltips.copied : LANGUAGE_DATA[appLanguage].tooltips.copyCode}
         >
-          {copied ? "Copied!" : "Copy"}
+          {copied ? (
+            <Check size={14} className="shrink-0" />
+          ) : (
+            <Copy size={14} className="shrink-0" />
+          )}
         </button>
       </div>
-      
-      <pre className="p-4 overflow-x-auto text-sm font-mono leading-relaxed tab-size-2" style={{tabSize: 2}}>
-        <code 
-          ref={codeRef} 
-          /* Using !text-slate-900 and dark:!text-slate-200 ensures 
-             the base code text is readable even if hljs fails 
-          */
-          className={`language-${normalizeLang(language) ?? detectedLang ?? ""} !bg-transparent !p-0 !text-slate-900 dark:!text-slate-200`}
+
+      <pre
+        className="p-4 overflow-x-auto text-sm font-mono leading-relaxed tab-size-2"
+        style={{ tabSize: 2 }}
+      >
+        <code
+          ref={codeRef}
+          className={`language-${displayLang} !bg-transparent !p-0 !text-slate-900 dark:!text-slate-200`}
         >
           {code}
         </code>
@@ -188,10 +206,29 @@ const TableBlock: React.FC<{ lines: string[], parseInline: (text: string) => Rea
   );
 };
 
+const BlockQuote: React.FC<{ lines: string[], parseInline: (text: string) => React.ReactNode[] }> = ({ lines, parseInline }) => {
+  return (
+    <blockquote className="my-4 border-l-4 border-indigo-400 dark:border-indigo-500 pl-4 py-3 bg-slate-50 dark:bg-slate-900/40 rounded-r-lg text-slate-700 dark:text-slate-300">
+      <div className="space-y-2">
+        {lines.map((line, i) => (
+          <p key={i} className="leading-relaxed italic">
+            {parseInline(line)}
+          </p>
+        ))}
+      </div>
+    </blockquote>
+  );
+};
+
 const isHr = (line:string) => {
   const t = line.trim();
   return /^(-{3,}|\*{3,}|_{3,})$/.test(t);
 }
+
+const isBlockquoteLine = (line: string) => {
+  // return line.trim().startsWith('>');
+  return /^\s*>\s+/.test(line); // allows for optional leading whitespace before > and requires at least one space after > to prevent misread with the mathmatical > symbol in block math
+};
 
 
 export const MarkdownContent: React.FC<MarkdownContentProps> = ({ content, ismcq = false }) => {
@@ -218,6 +255,8 @@ export const MarkdownContent: React.FC<MarkdownContentProps> = ({ content, ismcq
   let mathBlockLines: string[] = [];
   let inTable = false;
   let tableLines: string[] = [];
+  let inBlockquote = false;
+  let blockquoteLines: string[] = [];
 
 
   const flushList = (key: number) => {
@@ -240,17 +279,17 @@ export const MarkdownContent: React.FC<MarkdownContentProps> = ({ content, ismcq
       if (!part) return null;
 
       // 1. Block Math: $$...$$ OR \[...\]
-      if (part.startsWith('$$') && part.endsWith('$$')) {
-        return <BlockMath key={index} math={part.slice(2, -2).trim()} />;
-      }
+      // if (part.startsWith('$$') && part.endsWith('$$')) {
+      //   return <BlockMath key={index} math={part.slice(2, -2).trim()} />;
+      // }
       if (part.startsWith('\\[') && part.endsWith('\\]')) {
         return <BlockMath key={index} math={part.slice(2, -2).trim()} />;
       }
 
       // 2. Inline Math: $...$ OR \(...\)
-      if (part.startsWith('$') && part.endsWith('$')) {
-        return <InlineMath key={index} math={part.slice(1, -1).trim()} />;
-      }
+      // if (part.startsWith('$') && part.endsWith('$')) {
+      //   return <InlineMath key={index} math={part.slice(1, -1).trim()} />;
+      // }
       if (part.startsWith('\\(') && part.endsWith('\\)')) {
         return <InlineMath key={index} math={part.slice(2, -2).trim()} />;
       }
@@ -354,6 +393,37 @@ export const MarkdownContent: React.FC<MarkdownContentProps> = ({ content, ismcq
       inTable = false;
     }
 
+    // BLOCKQUOTE START / CONTINUE
+    if (isBlockquoteLine(line)) {
+      flushList(i);
+
+      if (inTable && tableLines.length > 0) {
+        elements.push(
+          <TableBlock key={`table-${i}`} lines={[...tableLines]} parseInline={parseInline} />
+        );
+        tableLines = [];
+        inTable = false;
+      }
+
+      inBlockquote = true;
+      // blockquoteLines.push(line.trim().replace(/^>\s?/, ''));
+      blockquoteLines.push(line.replace(/^\s*>\s+/, '')); // prevent misread with the mathmatical > symbol in block math
+      continue;
+    }
+
+    // BLOCKQUOTE END
+    if (inBlockquote && !isBlockquoteLine(line)) {
+      elements.push(
+        <BlockQuote
+          key={`blockquote-${i}`}
+          lines={[...blockquoteLines]}
+          parseInline={parseInline}
+        />
+      );
+      blockquoteLines = [];
+      inBlockquote = false;
+    }
+
     if (isHr(line)) {
       flushList(i);
 
@@ -398,6 +468,16 @@ export const MarkdownContent: React.FC<MarkdownContentProps> = ({ content, ismcq
   if (inTable && tableLines.length > 0) {
     elements.push(
       <TableBlock key="table-end" lines={[...tableLines]} parseInline={parseInline} />
+    );
+  }
+
+  if (inBlockquote && blockquoteLines.length > 0) {
+    elements.push(
+      <BlockQuote
+        key="blockquote-end"
+        lines={[...blockquoteLines]}
+        parseInline={parseInline}
+      />
     );
   }
 
