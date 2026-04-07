@@ -21,6 +21,7 @@ Excluded files include:
 - src/App.tsx
 - src/components/DashboardView.tsx
 - src/components/QuizView.tsx
+- src/components/MarkdownContent.tsx
 
 Public visibility of excluded files does not grant permission to copy,
 redistribute, modify, reuse, republish, or sublicense them outside the official
