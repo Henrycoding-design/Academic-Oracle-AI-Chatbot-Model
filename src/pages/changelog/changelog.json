@@ -1,5 +1,13 @@
 [
   {
+    "version": "2.3.6.5",
+    "date": "2026-04-10",
+    "changes": [
+      { "type": "improve", "text": "Introduced LiquidAI Instruct and MiniMax 2.5 for race modes, replacing StepFun 3.5 now that the free tier is no longer available." },
+      { "type": "fix", "text": "Resolved Quiz level state consistency issues across supported languages." }
+    ]
+  },
+  {
     "version": "2.3.6",
     "date": "2026-04-06",
     "changes": [
