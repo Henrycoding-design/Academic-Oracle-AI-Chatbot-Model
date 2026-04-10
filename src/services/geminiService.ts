@@ -59,6 +59,26 @@ type estimateQuizConfigResponse = {
   mcqRatio: number;
 };
 
+const normalizeQuizLevel = (level: unknown): QuizConfig["level"] | null => {
+  if (typeof level !== "string") return null;
+
+  const normalized = level.trim().toLowerCase();
+
+  if (["fundamental", "fondamental", "cơ bản", "co ban"].includes(normalized)) {
+    return "Fundamental";
+  }
+
+  if (["intermediate", "intermédiaire", "intermediaire", "intermedio", "trung cấp", "trung cap"].includes(normalized)) {
+    return "Intermediate";
+  }
+
+  if (["advanced", "avancé", "avance", "avanzado", "nâng cao", "nang cao"].includes(normalized)) {
+    return "Advanced";
+  }
+
+  return null;
+};
+
 type TemperatureEstimationResponse = {
   temperature: number;
 };
@@ -319,7 +339,7 @@ export const sleep = (ms: number) =>
   new Promise<void>(resolve => setTimeout(resolve, ms));
 
 type EdgeCallParams = {
-  provider: "gemini" | "stepfun";
+  provider: "gemini" | "openrouter";
   model: string;
   prompt: string;
   temp?: number;
@@ -401,9 +421,9 @@ const getGeminiTextFromEdge = async (params: Omit<EdgeCallParams, "provider">) =
   return text;
 };
 
-const getStepFunTextFromEdge = async (params: Omit<EdgeCallParams, "provider">) => {
+const getOpenRouterTextFromEdge = async (params: Omit<EdgeCallParams, "provider">) => {
   const response = await invokeEdgeAI({
-    provider: "stepfun",
+    provider: "openrouter",
     ...params,
   });
 
@@ -463,16 +483,40 @@ export const sendMessageToBotRace = async (params: {
     return { model, text };
   };
 
-  const callStepFun = async () => {
-    const text = await getStepFunTextFromEdge({
-      model: "stepfun/step-3.5-flash:free",
+  // const callStepFun = async () => {
+  //   const text = await getOpenRouterTextFromEdge({
+  //     model: "stepfun/step-3.5-flash:free",
+  //     prompt,
+  //     temp,
+  //     mode: "chat",
+  //     language: resolvedLanguage,
+  //   });
+
+  //   return { model: "stepfun-3.5-flash", text };
+  // };
+
+  const callMiniMax = async () => {
+    const text = await getOpenRouterTextFromEdge({
+      model: "minimax/minimax-m2.5:free",
       prompt,
       temp,
       mode: "chat",
       language: resolvedLanguage,
     });
 
-    return { model: "stepfun-3.5-flash", text };
+    return { model: "minimax-m2.5", text };
+  };
+
+  const callLiquidAI = async () => {
+    const text = await getOpenRouterTextFromEdge({
+      model: "liquid/lfm-2.5-1.2b-instruct:free",
+      prompt,
+      temp,
+      mode: "chat",
+      language: resolvedLanguage,
+    });
+
+    return { model: "liquid-instruct", text };
   };
 
   try {
@@ -481,7 +525,7 @@ export const sendMessageToBotRace = async (params: {
     if (intent === "agentic") {
       console.log("Using agentic strategy for this request");
       raceResult = await raceModels([
-        () => callStepFun(),
+        () => callMiniMax(),
         () => callGemini("gemini-3-flash-preview")
       ]);
     }
@@ -489,14 +533,14 @@ export const sendMessageToBotRace = async (params: {
       console.log("Using fast strategy for this request");
       raceResult = await raceModels([
         () => callGemini("gemini-2.5-flash-lite"),
-        () => callStepFun()
+        () => callLiquidAI()
       ]);
     }
     else {
       console.log("Using balanced strategy for this request");
       raceResult = await raceModels([
         () => callGemini("gemini-3-flash-preview"),
-        () => callStepFun()
+        () => callMiniMax()
       ]);
     }
 
@@ -717,10 +761,10 @@ ${history.map((h) => `${h.role.toUpperCase()}: ${h.content}`).join("\n\n")}
 };
 
 // 2. NEW: Estimate Quiz Configuration based on Chat Context
-export const estimateQuizConfig = async (
+export const estimateQuizConfig = async ( // the config level can cause mismatch language keys, consider add a language param here so that the model can return consistent keys or refactor to use consistent keys across the app
   history: ChatHistoryItem[], 
   memory: string | null,
-  encryptedKeyPayload: any
+  encryptedKeyPayload: any,
 ): Promise<QuizConfig> => {
   const lightMemory = formatOracleMemoryForQuizConfig(memory);
   
@@ -749,11 +793,17 @@ export const estimateQuizConfig = async (
       encryptedKeyPayload,
     });
 
-    if (!isEstimateQuizConfigResponse(JSON.parse(text))) {
+    const parsed = JSON.parse(text);
+    const normalizedLevel = normalizeQuizLevel(parsed?.level);
+    const normalizedConfig = normalizedLevel
+      ? { ...parsed, level: normalizedLevel }
+      : parsed;
+
+    if (!isEstimateQuizConfigResponse(normalizedConfig)) {
       throw new InvalidAIResponseError("Invalid response format for quiz config estimation");
     }
 
-    return JSON.parse(text);
+    return normalizedConfig;
   } catch (err) { // no retry, return default config
     return {
       level: "Fundamental",
@@ -1057,8 +1107,8 @@ const formatInvokeError = (error: any, data: any) => { // debugging purposes
 export const generateSearchQueries = async (
   userPrompt: string
 ): Promise<string[]> => {
-  const text = await getStepFunTextFromEdge({
-    model: "stepfun/step-3.5-flash:free",
+  const text = await getOpenRouterTextFromEdge({
+    model: "liquid/lfm-2.5-1.2b-instruct:free",
     prompt: userPrompt,
     temp: 0.2,
     systemInstruction: QUERY_EXTRACT_PROMPT,

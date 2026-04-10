@@ -33,6 +33,8 @@ type QuizState = 'config' | 'loading' | 'active' | 'review';
 export const QuizView: React.FC<QuizViewProps> = ({ 
   language, history, memory, encryptedApiKey, onBack, onExplainRequest, onAddToMemory 
 }) => {
+  const difficultyLevels: QuizConfig["level"][] = ["Fundamental", "Intermediate", "Advanced"];
+
   // --- State ---
   const [viewState, setViewState] = useState<QuizState>('config');
   const [config, setConfig] = useState<QuizConfig>({ level: 'Intermediate', count: 5, mcqRatio: 0.5 });
@@ -214,17 +216,17 @@ export const QuizView: React.FC<QuizViewProps> = ({
             <div>
               <label className="block text-sm font-medium mb-2 text-slate-700 dark:text-slate-300">{LD.ui.difficultyLevel}</label>
               <div className="grid grid-cols-3 gap-2">
-                {LD.ui.difficultyOptions.map((l) => (
+                {difficultyLevels.map((level, index) => (
                   <button
-                    key={l}
-                    onClick={() => setConfig({ ...config, level: l as any })}
+                    key={level}
+                    onClick={() => setConfig({ ...config, level })}
                     className={`py-2 px-3 rounded-lg text-sm transition-all ${
-                      config.level === l 
+                      config.level === level
                         ? 'bg-indigo-600 text-white shadow-md' 
                         : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200'
                     }`}
                   >
-                    {l}
+                    {LD.ui.difficultyOptions[index] ?? level}
                   </button>
                 ))}
               </div>
