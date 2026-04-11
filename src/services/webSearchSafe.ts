@@ -1,9 +1,9 @@
 import { generateSearchQueries } from "./geminiService";
 import { runWebSearch } from "./webSearch";
 
-export const runQuotaSafeSearch = async (userPrompt: string) => {
+export const runQuotaSafeSearch = async (userPrompt: string, encryptedApiKey: any) => {
 
-  const queries = await generateSearchQueries(userPrompt);
+  const queries = await generateSearchQueries(userPrompt, encryptedApiKey);
 
   const results = [];
 

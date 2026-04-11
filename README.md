@@ -206,7 +206,7 @@ from the public repository alone.
 * Backend (AI Orchestration): Supabase Edge Functions
 * Models:
   * Google GenAI (Gemini-3, Gemini-2.5)
-  * Stepfun-3.5 (fallback / high-load routing)
+  * Minimax-2.5 (fallback / high-load routing)
 * Web Search: JigsawStack API
 * Auth & Database: Supabase (Postgres + OAuth)
 * Build Tool: Vite 6

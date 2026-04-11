@@ -713,7 +713,7 @@ const App: React.FC = () => {
           setLoadingModeLabel("Web Search");
           incrementWebSearch();
 
-          const webResults = await runQuotaSafeSearch(userMessage);
+          const webResults = await runQuotaSafeSearch(userMessage, encryptedApiKey);
 
           if (webResults && webResults.length > 0) {
 

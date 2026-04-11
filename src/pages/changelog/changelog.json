@@ -1,5 +1,14 @@
 [
   {
+    "version": "2.3.6.8",
+    "date": "2026-04-11",
+    "changes": [
+      { "type": "improve", "text": "Improved overall response quality and learning adaptation by refining model selection and orchestration behavior." },
+      { "type": "improve", "text": "Introduced Gemini 3.1 Flash Lite for faster and more accurate responses across chat, quiz, and query generation flows." },
+      { "type": "fix", "text": "Removed LiquidAI integrations due to inconsistent and low-quality responses, replacing it with Gemini 3.1 Flash Lite." }
+    ]
+  },
+  {
     "version": "2.3.6.5",
     "date": "2026-04-10",
     "changes": [

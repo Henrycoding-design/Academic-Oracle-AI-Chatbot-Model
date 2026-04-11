@@ -52,7 +52,7 @@ export default function AIStudio() {
               border: "border-blue-500/20"
             },
             { 
-              name: "stepfun-3.5", 
+              name: "minimax-2.5", 
               role: "Reasoning Parity", 
               desc: "Maintains performance during primary provider traffic spikes or outages.",
               color: "text-emerald-400",

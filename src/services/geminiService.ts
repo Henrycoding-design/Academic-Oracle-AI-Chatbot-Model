@@ -22,6 +22,7 @@ import {
   mergeOracleMemoryUpdate,
   parseOracleMemory,
 } from "./oracleMemory";
+import { encryptApiKey } from "./edgeCrypto";
 
 // const SYSTEM_INSTRUCTION = `You are the 'Academic Oracle', a world-class polymath and supportive mentor. 
 // Your scope is UNLIMITED: from primary education and competitive exams (IGCSE, SAT, AP, IELTS) to University-level research and professional Industrial practices.
@@ -42,6 +43,7 @@ import {
 const MODEL_FALLBACK_CHAIN = [
   "gemini-3-flash-preview",
   "gemini-2.5-flash-lite",
+  "gemini-3.1-flash-lite-preview", // safer public model
   "gemini-2.5-flash" // last resort due to this model also being use in Quiz generation/validation -> less load balancing
 ] as const;
 
@@ -478,7 +480,12 @@ export const sendMessageToBotRace = async (params: {
       mode: "chat",
       language: resolvedLanguage,
       encryptedKeyPayload,
+      responseMimeType: "application/json",
     });
+
+    if (model === "gemini-3.1-flash-lite-preview") {
+      model = "gemini-3.1-flash-lite"; // shorter name for display
+    }
 
     return { model, text };
   };
@@ -507,7 +514,7 @@ export const sendMessageToBotRace = async (params: {
     return { model: "minimax-m2.5", text };
   };
 
-  const callLiquidAI = async () => {
+  const callLiquidAI = async () => { // this model is fast but not good and return poor quality response, rather not use it anywhere else in the app
     const text = await getOpenRouterTextFromEdge({
       model: "liquid/lfm-2.5-1.2b-instruct:free",
       prompt,
@@ -533,14 +540,14 @@ export const sendMessageToBotRace = async (params: {
       console.log("Using fast strategy for this request");
       raceResult = await raceModels([
         () => callGemini("gemini-2.5-flash-lite"),
-        () => callLiquidAI()
+        () => callGemini("gemini-3.1-flash-lite-preview"),
       ]);
     }
     else {
       console.log("Using balanced strategy for this request");
       raceResult = await raceModels([
         () => callGemini("gemini-3-flash-preview"),
-        () => callMiniMax()
+        () => callGemini("gemini-3.1-flash-lite-preview"),
       ]);
     }
 
@@ -1105,13 +1112,16 @@ const formatInvokeError = (error: any, data: any) => { // debugging purposes
 };
 
 export const generateSearchQueries = async (
-  userPrompt: string
+  userPrompt: string,
+  encryptApiKeyPayload?: any
 ): Promise<string[]> => {
-  const text = await getOpenRouterTextFromEdge({
-    model: "liquid/lfm-2.5-1.2b-instruct:free",
+  const text = await getGeminiTextFromEdge({
+    model: "gemini-3.1-flash-lite-preview",
     prompt: userPrompt,
     temp: 0.2,
     systemInstruction: QUERY_EXTRACT_PROMPT,
+    responseMimeType: "application/json",
+    encryptedKeyPayload: encryptApiKeyPayload,
   });
 
   const parsed = extractAndParseJSONSafe(text);
