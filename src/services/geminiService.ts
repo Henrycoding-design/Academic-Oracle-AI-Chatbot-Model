@@ -439,6 +439,55 @@ const getOpenRouterTextFromEdge = async (params: Omit<EdgeCallParams, "provider"
   return text;
 };
 
+const parseOracleChatResponse = (
+  text: string,
+  memory: string | null | undefined,
+  history: { role: "user" | "model"; content: string }[],
+  model: string,
+): OracleResponse => {
+  const parsed = extractAndParseJSONSafe(text);
+
+  if (!parsed.ok || parsed.data == null) {
+    throw new InvalidAIResponseError("Invalid Oracle JSON payload");
+  }
+
+  if (!isOraclePayload(parsed.data)) {
+    throw new InvalidAIResponseError("Malformed Oracle payload");
+  }
+
+  return {
+    answer: parsed.data.answer,
+    memory: mergeOracleMemoryUpdate(memory, parsed.data.memory, history),
+    model,
+  };
+};
+
+const openRouterFallback = async (params: {
+  prompt: string;
+  temp: number;
+  language: "English" | "French" | "Spanish" | "Vietnamese";
+  memory?: string | null;
+  history: { role: "user" | "model"; content: string }[];
+}): Promise<OracleResponse> => {
+  const { prompt, temp, language, memory, history } = params;
+  const model = "openrouter/free";
+
+  try {
+    const text = await getOpenRouterTextFromEdge({
+      model,
+      prompt,
+      temp,
+      mode: "chat",
+      language,
+    });
+
+    return parseOracleChatResponse(text, memory, history, model);
+  } catch (error) {
+    console.error("Error occurred while fetching OpenRouter free response:", error);
+    throw error;
+  }
+};
+
 export const sendMessageToBotRace = async (params: {
   history: { role: "user" | "model"; content: string }[];
   memory?: string | null;
@@ -502,74 +551,68 @@ export const sendMessageToBotRace = async (params: {
   //   return { model: "stepfun-3.5-flash", text };
   // };
 
-  const callMiniMax = async () => {
-    const text = await getOpenRouterTextFromEdge({
-      model: "minimax/minimax-m2.5:free",
-      prompt,
-      temp,
-      mode: "chat",
-      language: resolvedLanguage,
-    });
+  // const callMiniMax = async () => {
+  //   const text = await getOpenRouterTextFromEdge({
+  //     model: "minimax/minimax-m2.5:free",
+  //     prompt,
+  //     temp,
+  //     mode: "chat",
+  //     language: resolvedLanguage,
+  //   });
 
-    return { model: "minimax-m2.5", text };
-  };
-
-  const callLiquidAI = async () => { // this model is fast but not good and return poor quality response, rather not use it anywhere else in the app
-    const text = await getOpenRouterTextFromEdge({
-      model: "liquid/lfm-2.5-1.2b-instruct:free",
-      prompt,
-      temp,
-      mode: "chat",
-      language: resolvedLanguage,
-    });
-
-    return { model: "liquid-instruct", text };
-  };
+  //   return { model: "minimax-m2.5", text };
+  // };
 
   try {
     let raceResult;
+    const isValidRaceResult = ({ text }: { text: string }) => {
+      const parsed = extractAndParseJSONSafe(text);
+      return parsed.ok && isOraclePayload(parsed.data);
+    };
 
     if (intent === "agentic") {
       console.log("Using agentic strategy for this request");
       raceResult = await raceModels([
-        () => callMiniMax(),
+        () => callGemini("gemini-3.1-flash-lite-preview"),
         () => callGemini("gemini-3-flash-preview")
-      ]);
+      ], isValidRaceResult);
     }
     else if (intent === "fast") {
       console.log("Using fast strategy for this request");
       raceResult = await raceModels([
         () => callGemini("gemini-2.5-flash-lite"),
         () => callGemini("gemini-3.1-flash-lite-preview"),
-      ]);
+      ], isValidRaceResult);
     }
     else {
       console.log("Using balanced strategy for this request");
       raceResult = await raceModels([
         () => callGemini("gemini-3-flash-preview"),
         () => callGemini("gemini-3.1-flash-lite-preview"),
-      ]);
+      ], isValidRaceResult);
     }
 
     // console.log(raceResult.text);
 
-    const parsed = extractAndParseJSONSafe(raceResult.text);
-
-    if (!parsed.ok || !isOraclePayload(parsed.data)) {
-      throw new InvalidAIResponseError("Malformed Oracle payload");
-    }
-
-    return {
-      answer: parsed.data.answer,
-      memory: mergeOracleMemoryUpdate(memory, parsed.data.memory, history),
-      model: raceResult.model,
-    };
+    return parseOracleChatResponse(raceResult.text, memory, history, raceResult.model);
   } catch (err: any) {
     if (err.message && err.message.includes("Race timeout")) {
-      throw new Error("All models timed out. Please try again.");
+      return openRouterFallback({
+        prompt,
+        temp,
+        language: resolvedLanguage,
+        memory,
+        history,
+      });
     }
     if (err.message && err.message.includes("All models in race failed")) { // fail fast if all models responsed with errors
-      throw new Error("All models failed before the race timeout. Please try again.");
+      return openRouterFallback({
+        prompt,
+        temp,
+        language: resolvedLanguage,
+        memory,
+        history,
+      });
     }
     if (isInvalidApiKeyError(err)) throw new InvalidAPIError();
     throw err;
@@ -669,22 +712,10 @@ export const sendMessageToBot = async (params: {
       // console.log(`Raw response from model ${model}:`, response.text);
       
       // USE THE HYBRID PARSER HERE
-      const parsed = extractAndParseJSONSafe(text); // this also throws invalid ai reponse
-
-      if (!parsed.ok || parsed.data == null) throw new InvalidAIResponseError(); // throws here
-
-      if (!isOraclePayload(parsed.data)) { // guard type
-        throw new InvalidAIResponseError("Malformed Oracle payload");
-      }
-
       // Debug Only
-      // console.log(`Response from model ${model}:`, parsed);
+      // console.log(`Response from model ${model}:`, text);
 
-      return {
-        answer: parsed.data.answer,
-        memory: mergeOracleMemoryUpdate(memory, parsed.data.memory, history),
-        model: model,
-      };
+      return parseOracleChatResponse(text, memory, history, model);
     } catch (err: any) {
       lastError = err;
       // If it's a rate limit, try the next model in the chain
@@ -696,7 +727,19 @@ export const sendMessageToBot = async (params: {
       throw err;
     }
   }
-  throw lastError;
+  // last resort for openrouter/free fallback
+  try {
+    return await openRouterFallback({
+      prompt,
+      temp,
+      language: resolvedLanguage,
+      memory,
+      history,
+    });
+  } catch (fallbackError) {
+    if (isInvalidApiKeyError(fallbackError)) throw new InvalidAPIError();
+    throw fallbackError ?? lastError;
+  }
 };
 
 
@@ -768,7 +811,7 @@ ${history.map((h) => `${h.role.toUpperCase()}: ${h.content}`).join("\n\n")}
 };
 
 // 2. NEW: Estimate Quiz Configuration based on Chat Context
-export const estimateQuizConfig = async ( // the config level can cause mismatch language keys, consider add a language param here so that the model can return consistent keys or refactor to use consistent keys across the app
+export const estimateQuizConfig = async (
   history: ChatHistoryItem[], 
   memory: string | null,
   encryptedKeyPayload: any,
@@ -801,7 +844,7 @@ export const estimateQuizConfig = async ( // the config level can cause mismatch
     });
 
     const parsed = JSON.parse(text);
-    const normalizedLevel = normalizeQuizLevel(parsed?.level);
+    const normalizedLevel = normalizeQuizLevel(parsed?.level); // this prevents mismatch between UI and Model language
     const normalizedConfig = normalizedLevel
       ? { ...parsed, level: normalizedLevel }
       : parsed;
@@ -1021,7 +1064,7 @@ export const runCronPromptGuard = async (
 
   try {
     const text = await getGeminiTextFromEdge({
-      model: "gemini-2.5-flash-lite",
+      model: "gemini-3.1-flash-lite-preview",
       prompt,
       temp: 0.2,
       responseMimeType: "application/json",
