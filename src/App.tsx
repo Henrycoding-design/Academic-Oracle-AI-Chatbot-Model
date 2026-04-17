@@ -698,7 +698,7 @@ const App: React.FC = () => {
       const token = session?.access_token;
       // increment quota here
       if (!encryptedApiKey){
-        const result = await canSendMessage(currentChatIdRef, token!); // error here
+        const result = await canSendMessage(currentChatIdRef, token!);
         if (!result.allowed) {
           setError(LANGUAGE_DATA[language].ui.freeSessionLimit);
           return;
