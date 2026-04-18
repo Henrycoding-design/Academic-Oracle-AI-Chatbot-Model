@@ -713,7 +713,11 @@ const App: React.FC = () => {
           setLoadingModeLabel("Web Search");
           incrementWebSearch();
 
-          const webResults = await runQuotaSafeSearch(userMessage, encryptedApiKey);
+          const webResults = await runQuotaSafeSearch(
+            userMessage,
+            encryptedApiKey,
+            decision.web_search_topic ?? "general"
+          );
 
           if (webResults && webResults.length > 0) {
 
@@ -749,10 +753,22 @@ const App: React.FC = () => {
 
         } catch (e) {
           console.warn("Web search failed", e);
+          setMessages(prev => [
+            ...prev,
+            { role: "model", content: LANGUAGE_DATA[language].ui.webSearchFailedMessage },
+          ]);
+          setIsLoading(false);
+          return;
         }
       } else if (isWebSearchLimitReached()){
         console.warn("Web Search Limit reaches");
-        alert(LANGUAGE_DATA[language].ui.webSearchQuotaReached);
+        // alert(LANGUAGE_DATA[language].ui.webSearchQuotaReached); remove alert, use in-chat message for better UX
+        setMessages(prev => [
+          ...prev,
+          { role: "model", content: LANGUAGE_DATA[language].ui.webSearchQuotaReachedMessage },
+        ]);
+        setIsLoading(false);
+        return;
       }
 
       let fileContext = "";

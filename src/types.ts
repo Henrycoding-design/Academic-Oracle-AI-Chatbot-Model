@@ -97,6 +97,7 @@ export type GuardResult = {
   web_search: boolean;
   jailbreak: boolean;
   reason: string;
+  web_search_topic?: "news" | "general" | "finance" | null;
 };
 
 export const PROVIDERS = ["gemini", "stepfun"] as const;

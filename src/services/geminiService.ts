@@ -999,7 +999,11 @@ const isCronGuardDecision = (obj: any): obj is GuardResult => {
     typeof obj === "object" &&
     typeof obj.web_search === "boolean" &&
     typeof obj.jailbreak === "boolean" &&
-    typeof obj.reason === "string"
+    typeof obj.reason === "string" &&
+    (
+      obj.web_search_topic == null ||
+      ["news", "general", "finance"].includes(obj.web_search_topic)
+    )
   );
 };
 
@@ -1043,8 +1047,15 @@ Return STRICT JSON ONLY:
 {
   "web_search": boolean,
   "jailbreak": boolean,
-  "reason": "short explanation"
+  "reason": "short explanation",
+  "web_search_topic": "news" | "general" | "finance" | null
 }
+
+Rules for "web_search_topic":
+- Return "news" for current events, headlines, breaking updates, and latest happenings.
+- Return "finance" for stocks, markets, company financial updates, crypto prices, and economic market data.
+- Return "general" for all other prompts that still require web search.
+- Return null if web_search is false.
 
 User prompt:
 """
@@ -1085,7 +1096,8 @@ export const runCronPromptGuard = async (
     return {
       web_search: false,
       jailbreak: false,
-      reason: "Error: fallback_guard"
+      reason: "Error: fallback_guard",
+      web_search_topic: null,
     };
 
   }
