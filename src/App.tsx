@@ -239,7 +239,7 @@ const App: React.FC = () => {
 
   const lastRequestRef = useRef<{ // for retry
     message: string;
-    file?: File | null;
+    files?: File[];
   } | null>(null);
 
   const [chatHistory, setChatHistory] = useState<ChatHistoryItem[]>(() => {
@@ -621,7 +621,7 @@ const App: React.FC = () => {
   // ✅ Handle sending messages with dynamic encryptedApiKey
   const handleSendMessage = async (
     userMessage: string,
-    file?: File | null,
+    files: File[] = [],
     isRetry = false
   ) => {
     if (!session?.access_token) { handleLogout(); return; }
@@ -637,12 +637,12 @@ const App: React.FC = () => {
           {
             role: "user",
             content: userMessage,
-            attachment: file
-              ? {
+            attachments: files.length > 0
+              ? files.map((file) => ({
                   name: file.name,
                   type: file.type,
                   size: file.size,
-                }
+                }))
               : undefined,
           },
         ]);
@@ -773,13 +773,19 @@ const App: React.FC = () => {
 
       let fileContext = "";
 
-      if (file) {
-        const extractedText = await readFileAsText(file);
-        fileContext = `
+      if (files.length > 0) {
+        const extractedFileTexts = await Promise.all(
+          files.map(async (file) => {
+            const extractedText = await readFileAsText(file);
+            return `
   --- FILE CONTEXT (${file.name}) ---
   ${extractedText}
   --- END FILE CONTEXT ---
   `;
+          })
+        );
+
+        fileContext = extractedFileTexts.join("\n");
       }
 
       let outgoingHistory = chatHistory;
@@ -798,7 +804,7 @@ const App: React.FC = () => {
       // cache for retry if failed
       lastRequestRef.current = {
         message: userMessage,
-        file: file ?? null,
+        files,
       };
 
       const isVeryShortPrompt = countWords(userMessage) < 3; // heuristic check to fast-forward short prompts directly to Balanced Racing mode -> better UX, save time, tokens cost
@@ -979,7 +985,7 @@ const App: React.FC = () => {
 
     handleSendMessage(
       lastRequestRef.current.message,
-      lastRequestRef.current.file,
+      lastRequestRef.current.files ?? [],
       true
     );
   };

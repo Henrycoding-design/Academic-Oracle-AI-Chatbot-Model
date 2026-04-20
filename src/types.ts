@@ -9,6 +9,7 @@ export interface Message {
   role: "user" | "model";
   content: string;
   attachment?: AttachmentMeta;
+  attachments?: AttachmentMeta[];
 }
 
 export interface ChatHistoryItem {

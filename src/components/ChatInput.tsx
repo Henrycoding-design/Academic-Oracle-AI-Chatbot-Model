@@ -1,9 +1,8 @@
-
 import React, { useLayoutEffect, useRef, useState, useEffect} from 'react';
 import { LANGUAGE_DATA, AppLanguage } from '../lang/Language.tsx';
 
 interface ChatInputProps {
-  onSendMessage: (message: string, file?: File | null) => void;
+  onSendMessage: (message: string, files?: File[]) => void;
   isLoading: boolean;
   language: AppLanguage;
 }
@@ -30,7 +29,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, isLoading, 
   };
   const [inputValue, setInputValue] = useState('');
   const [isComposing, setIsComposing] = useState(false);
-  const [attachedFile, setAttachedFile] = useState<File | null>(null);
+  const [attachedFiles, setAttachedFiles] = useState<File[]>([]);
   const [placeholder, setPlaceholder] = useState(PLACEHOLDERS.full);
   const taRef = useRef<HTMLTextAreaElement | null>(null);
 
@@ -57,15 +56,16 @@ export const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, isLoading, 
     return () => clearTimeout(timeout);
   }, [inputValue]);
 
-
   const handleSubmit = () => {
-    if (!inputValue.trim() && !attachedFile) return;
+    if (!inputValue.trim() && attachedFiles.length === 0) return;
     if (isLoading) return;
 
-
-    onSendMessage(inputValue, attachedFile);
-    setAttachedFile(null);
+    onSendMessage(inputValue, attachedFiles);
+    setAttachedFiles([]);
     setInputValue('');
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
     localStorage.removeItem("chat_input_draft");
   };
 
@@ -124,80 +124,123 @@ export const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, isLoading, 
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const appendFiles = (incomingFiles: FileList | null) => {
+    if (!incomingFiles?.length) return;
+
+    setAttachedFiles((prev) => {
+      const next = [...prev];
+
+      Array.from(incomingFiles).forEach((file) => {
+        const exists = next.some(
+          (existing) =>
+            existing.name === file.name &&
+            existing.size === file.size &&
+            existing.lastModified === file.lastModified
+        );
+
+        if (!exists) {
+          next.push(file);
+        }
+      });
+
+      return next;
+    });
+    // const newFiles = Array.from(incomingFiles);
+    // setAttachedFiles((prev) => [...prev, ...newFiles]);
+
+    // if (fileInputRef.current) {
+    //   fileInputRef.current.value = '';
+    // }
+  };
+
+  const removeAttachedFile = (index: number) => {
+    setAttachedFiles((prev) => prev.filter((_, i) => i !== index));
+    
+    if (fileInputRef.current) { // this is to allow re-uploading the same file after deletion, as some browsers won't trigger onChange if the same file is selected again
+      fileInputRef.current.value = '';
+    }
+  };
 
   return (
     <div className="w-full px-4 pb-3 pt-2">
       <div className="max-w-4xl mx-auto">
-        <div className="flex items-end gap-3 p-2 rounded-2xl bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl border border-slate-200 dark:border-slate-800 shadow-xl transition-all duration-300">
-          <button
-            type="button"
-            onClick={() => fileInputRef.current?.click()}
-            className="p-2 rounded-xl hover:bg-slate-200 dark:hover:bg-slate-700 transition"
-            title={LANGUAGE_DATA[language].ui.uploadFile}
-          >
-            📎
-          </button>
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept=".pdf,.docx,.txt,.png,.jpg"
-            hidden
-            onChange={(e) => {
-              const file = e.target.files?.[0];
-              if (file) setAttachedFile(file);
-            }}
-          />
-          <textarea
-            ref={taRef}
-            value={inputValue}
-            onChange={(e) => setInputValue(e.target.value)}
-            onKeyDown={onKeyDown}
-            onCompositionStart={() => setIsComposing(true)}
-            onCompositionEnd={() => setIsComposing(false)}
-            placeholder={placeholder}
-            rows={1}
-            className="
-              flex-grow px-4 py-3 bg-transparent
-              text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500
-              focus:outline-none resize-none
-              min-h-[48px]
-              max-h-[120px]
-            "
-            style={{ lineHeight: "1.5" }}
-          />
-          {attachedFile && (
-            <div className="flex items-center gap-2 mb-2 px-3 py-1.5
-                            bg-slate-200 dark:bg-slate-800
-                            rounded-xl text-sm">
-              <span className="truncate max-w-[200px] text-slate-900 dark:text-slate-100">
-                <span>
-                  {fileIconFor(attachedFile.name)}
-                </span> {attachedFile.name}
-              </span>
-              <button
-                onClick={() => setAttachedFile(null)}
-                className="text-slate-500 hover:text-rose-500"
-              >
-                ✕
-              </button>
+        <div className="rounded-2xl bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl border border-slate-200 dark:border-slate-800 shadow-xl transition-all duration-300">
+          {attachedFiles.length > 0 && (
+            <div className="px-2 pt-2">
+              <div className="flex flex-wrap gap-2">
+                {attachedFiles.map((file, index) => (
+                  <div
+                    key={`${file.name}-${file.size}-${file.lastModified}-${index}`}
+                    className="inline-flex max-w-full items-center gap-2 px-3 py-1.5 bg-slate-200 dark:bg-slate-800 rounded-xl text-sm"
+                  >
+                    <span className="truncate max-w-[220px] text-slate-900 dark:text-slate-100">
+                      <span>
+                        {fileIconFor(file.name)}
+                      </span> {file.name}
+                    </span>
+                    <button
+                      onClick={() => removeAttachedFile(index)}
+                      className="shrink-0 text-slate-500 hover:text-rose-500"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
-          <button
-            type="button"
-            onClick={handleSubmit}
-            disabled={isLoading || !inputValue.trim()}
-            className={`
-              flex-shrink-0 p-3 rounded-lg transition-all duration-200
-              shadow-lg active:scale-95
-              ${isLoading || !inputValue.trim()
-                ? "bg-slate-200 dark:bg-slate-800 text-slate-400 dark:text-slate-600 cursor-not-allowed"
-                : "bg-indigo-600 hover:bg-indigo-500 text-white"}
-            `}
-            style={{ borderRadius: '8px' }}
-            aria-label="Send message"
-          >
-            <SendIcon className="w-6 h-6" />
-          </button>
+          <div className="flex items-end gap-3 p-2">
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              className="p-2 rounded-xl hover:bg-slate-200 dark:hover:bg-slate-700 transition"
+              title={LANGUAGE_DATA[language].ui.uploadFile}
+            >
+              📎
+            </button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".pdf,.docx,.txt,.png,.jpg"
+              multiple
+              hidden
+              onChange={(e) => appendFiles(e.target.files)}
+            />
+            <textarea
+              ref={taRef}
+              value={inputValue}
+              onChange={(e) => setInputValue(e.target.value)}
+              onKeyDown={onKeyDown}
+              onCompositionStart={() => setIsComposing(true)}
+              onCompositionEnd={() => setIsComposing(false)}
+              placeholder={placeholder}
+              rows={1}
+              className="
+                flex-grow px-4 py-3 bg-transparent
+                text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500
+                focus:outline-none resize-none
+                min-h-[48px]
+                max-h-[120px]
+              "
+              style={{ lineHeight: "1.5" }}
+            />
+            <button
+              type="button"
+              onClick={handleSubmit}
+              disabled={isLoading || (!inputValue.trim() && attachedFiles.length === 0)}
+              className={`
+                flex-shrink-0 p-3 rounded-lg transition-all duration-200
+                shadow-lg active:scale-95
+                ${isLoading || (!inputValue.trim() && attachedFiles.length === 0)
+                  ? "bg-slate-200 dark:bg-slate-800 text-slate-400 dark:text-slate-600 cursor-not-allowed"
+                  : "bg-indigo-600 hover:bg-indigo-500 text-white"}
+              `}
+              style={{ borderRadius: '8px' }}
+              aria-label="Send message"
+            >
+              <SendIcon className="w-6 h-6" />
+            </button>
+          </div>
         </div>
       </div>
       <div className="mt-3 text-center text-[10.5px] leading-snug text-slate-400 dark:text-slate-500 select-none opacity-80">
