@@ -9,7 +9,7 @@ export default function ChatFlow() {
           The Learning Lifecycle
         </h1>
         <p className="max-w-3xl text-balance text-lg font-medium leading-relaxed text-slate-400 sm:text-xl">
-          Academic Oracle isn't just a chat interface; it is a <span className="text-white">seamless cognitive loop</span>. We combine Socratic inquiry with high-performance engineering to keep learners in the "Zone of Proximal Development."
+          Academic Oracle follows a scientifically grounded flow: <span className="text-white italic">Ask → Think → Hint → Attempt → Mastery</span>. We optimize for retention and intuition rather than passive consumption.
         </p>
       </section>
 
@@ -23,26 +23,26 @@ export default function ChatFlow() {
           </svg>
         </div>
 
-        <h2 className="text-3xl font-bold text-white mb-10 tracking-tight">Uninterrupted Intelligence</h2>
+        <h2 className="text-3xl font-bold text-white mb-10 tracking-tight">Structured Reasoning</h2>
         
         <div className="grid gap-10 md:grid-cols-2 md:gap-16">
           <div className="space-y-4 relative">
             <h4 className="text-white font-bold text-lg flex items-center gap-3">
               <span className="px-2 py-0.5 rounded-md bg-blue-500/10 text-blue-400 border border-blue-500/20 text-[10px] uppercase tracking-widest font-black">Logic</span>
-              Guided Interaction
+              Hint-Based Flow
             </h4>
             <p className="text-sm text-slate-400 leading-relaxed">
-              Every interaction triggers a selective evaluation to ensure session latency never interrupts the train of thought. We move the learner forward with hints and pacing that support <span className="text-white">deep understanding</span> rather than answer dumping.
+              Instead of dumping answers, we utilize <span className="text-white">progressive hinting</span>. Every interaction is shaped by Oracle Memory JSON returns, ensuring the AI thinks about the pedagogical path before it speaks.
             </p>
           </div>
 
           <div className="space-y-4 relative">
             <h4 className="text-white font-bold text-lg flex items-center gap-3">
-              <span className="px-2 py-0.5 rounded-md bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 text-[10px] uppercase tracking-widest font-black">State</span>
-              Learning Continuity
+              <span className="px-2 py-0.5 rounded-md bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 text-[10px] uppercase tracking-widest font-black">Memory</span>
+              Feynman Reinforcement
             </h4>
             <p className="text-sm text-slate-400 leading-relaxed">
-              The Oracle maintains an evolving context of your session. This <span className="text-white">internal adaptation logic</span> tracks conceptual gaps and sentiment, silently adjusting the complexity of feedback in real-time.
+              When a concept doesn't click, the system triggers <span className="text-white">first-principles rebuilding</span>. By mapping conceptual gaps, the Oracle adapts its phrasing to ensure durable mental models.
             </p>
           </div>
         </div>
@@ -60,12 +60,12 @@ export default function ChatFlow() {
                 </p>
                 <div className="absolute -bottom-4 right-10 flex gap-2">
                   <span className="px-3 py-1.5 bg-blue-600 text-xs font-bold text-white rounded-lg shadow-[0_10px_20px_rgba(37,99,235,0.4)] flex items-center gap-2 animate-bounce">
-                    <span className="text-[10px]">✨</span> Explain this
+                    <span className="text-[10px]">✨</span> Follow up
                   </span>
                 </div>
               </div>
               <div className="flex items-center justify-between mt-2">
-                <p className="text-[10px] text-slate-500 font-mono uppercase tracking-[0.2em]">Feature: Selection Trigger</p>
+                <p className="text-[10px] text-slate-500 font-mono uppercase tracking-[0.2em]">v2.4.0: Selection Context</p>
                 <div className="flex gap-1">
                     <div className="w-1 h-1 rounded-full bg-blue-500/40" />
                     <div className="w-1 h-1 rounded-full bg-blue-500/40" />
@@ -76,9 +76,9 @@ export default function ChatFlow() {
           </div>
         </div>
         <div className="order-1 md:order-2 space-y-6">
-          <h3 className="text-3xl font-bold text-white tracking-tight">Frictionless <br/><span className="text-blue-400">Deep-Dives</span></h3>
+          <h3 className="text-3xl font-bold text-white tracking-tight">Active <br/><span className="text-blue-400">Curiosity Triggers</span></h3>
           <p className="text-slate-400 leading-relaxed">
-            Never leave the flow to search for a definition. Our <strong>"Explain on Select"</strong> feature allows you to highlight any term to trigger an immediate, Socratic follow-up without losing your place in the conversation.
+            Our <strong>"Follow-up Suggestion System"</strong> reduces the friction between curiosity and action. Highlight any text to trigger a context-aware follow-up mode that allows for deeper inquiry without auto-sending, keeping you in control.
           </p>
         </div>
       </section>
@@ -91,19 +91,19 @@ export default function ChatFlow() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04a11.735 11.735 0 00-1.59 7.477c.282 1.499 1.05 2.872 2.103 3.93a11.954 11.954 0 0015.536 0c1.053-1.058 1.822-2.43 2.103-3.93a11.732 11.732 0 00-1.59-7.477z" />
             </svg>
           </div>
-          <h3 className="text-2xl font-bold text-white tracking-tight">Safety & Grounding</h3>
+          <h3 className="text-2xl font-bold text-white tracking-tight">Hallucination Suppression</h3>
         </div>
         <div className="grid gap-8 md:grid-cols-2 md:gap-12">
           <div className="space-y-3">
-            <h5 className="text-emerald-400 text-sm font-bold uppercase tracking-widest">Real-time Grounding</h5>
+            <h5 className="text-emerald-400 text-sm font-bold uppercase tracking-widest">Hybrid Reasoning</h5>
             <p className="text-sm text-slate-400 leading-relaxed">
-              When current events or niche academic papers are required, the Oracle leverages advanced search tools to pull verified data, ensuring every response is grounded in reality.
+              When search quotas are met or knowledge gaps are identified, the system switches to a controlled response protocol. No outdated answers are framed as current, ensuring high-fidelity academic integrity.
             </p>
           </div>
           <div className="space-y-3 border-t border-white/5 pt-6 md:border-l md:border-t-0 md:pl-8 md:pt-0">
-            <h5 className="text-rose-400 text-sm font-bold uppercase tracking-widest">Integrity Guardrails</h5>
+            <h5 className="text-rose-400 text-sm font-bold uppercase tracking-widest">Jailbreak Detection</h5>
             <p className="text-sm text-slate-400 leading-relaxed">
-              Proprietary shields analyze prompts to block malicious injections, ensuring the Oracle remains a safe, strictly academic environment for rigorous study.
+              Prompts are sanitized via a backend security layer before execution. This prevents prompt-injection misuse while strictly confining the AI to its role as a reasoning partner.
             </p>
           </div>
         </div>
@@ -113,9 +113,9 @@ export default function ChatFlow() {
       <section className="space-y-12">
         <div className="flex flex-col gap-6 border-b border-white/5 pb-8 md:flex-row md:items-end md:justify-between">
           <div className="max-w-xl">
-            <h3 className="text-3xl font-bold text-white mb-4 tracking-tight">The Validation Loop</h3>
+            <h3 className="text-3xl font-bold text-white mb-4 tracking-tight">Mastery Checks</h3>
             <p className="text-slate-400 leading-relaxed text-sm md:text-base">
-              Once mastery is detected, the Oracle triggers a <strong>synchronized checkpoint</strong>. These practice cycles help test understanding and revisit weak areas before concluding a session.
+              Once pattern extraction is confirmed, the Oracle triggers an <strong>adaptive checkpoint</strong>. v2.4.0 features Gemini-first quiz generation for faster, more consistent testing cycles.
             </p>
           </div>
           <div className="flex gap-1.5 pb-2">
@@ -127,9 +127,9 @@ export default function ChatFlow() {
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {[
-            { id: "01", label: "Targeted Practice", color: "blue", text: "Checks are dynamically tuned to your session's specific level and learning goals." },
-            { id: "02", label: "Direct Remediation", color: "purple", text: "Missed concepts lead back into guided explanation and contextual review." },
-            { id: "03", label: "Memory Sync", color: "cyan", text: "Performance data is cached and automatically woven into your final summary guide." }
+            { id: "01", label: "Pattern Discovery", color: "blue", text: "We prioritize identifying underlying logic over rote explanation of isolated facts." },
+            { id: "02", label: "Adaptive Phrasing", color: "purple", text: "Incorrect attempts trigger a shift in pedagogical approach rather than repetitive loops." },
+            { id: "03", label: "Memory Integration", color: "cyan", text: "Performance surfaces in your Dashboard circular efficiency indicator for progress reflection." }
           ].map((item) => (
             <div key={item.id} className="p-8 rounded-3xl bg-white/[0.02] border border-white/5 hover:bg-white/[0.05] hover:border-blue-500/20 transition-all duration-300 group">
               <div className={`text-xs font-black mb-6 text-${item.color}-400 flex items-center gap-2`}>
@@ -148,12 +148,12 @@ export default function ChatFlow() {
         <div className="inline-block px-3 py-1 rounded-full bg-white/5 border border-white/10 text-[10px] font-bold text-slate-400 uppercase tracking-[0.3em]">
             Visual Standards
         </div>
-        <h3 className="text-3xl font-bold text-white italic tracking-tight">Premium Academic Rendering</h3>
+        <h3 className="text-3xl font-bold text-white italic tracking-tight">Cognitive Focus Rendering</h3>
         <p className="text-slate-400 max-w-2xl leading-relaxed">
-          Communication is clearer when it's beautiful. Our UI supports high-fidelity rendering for complex subjects:
+          The interface is designed for minimal disruption, using high-fidelity rendering to turn complex data into visual insight:
         </p>
         <div className="flex flex-wrap gap-3">
-          {["LaTeX & KaTeX", "Syntactic Code Blocks", "Interactive Tables", "Markdown Prose", "Adaptive Diagrams"].map((tag) => (
+          {["KaTeX Math", "Dynamic Tables", "Syntax Highlighting", "Oracle Memory Logs", "Dashboard Visuals"].map((tag) => (
             <span key={tag} className="px-4 py-2 rounded-xl border border-white/10 bg-white/5 text-xs font-mono text-blue-300 hover:border-blue-500/50 hover:bg-blue-500/5 transition-all cursor-default">
               {tag}
             </span>
@@ -165,17 +165,17 @@ export default function ChatFlow() {
       <section className="group relative grid items-center gap-10 overflow-hidden rounded-[3rem] border border-blue-500/20 bg-gradient-to-br from-blue-600/15 via-blue-600/5 to-transparent p-6 sm:p-8 lg:grid-cols-[1fr_minmax(0,350px)] lg:gap-12 lg:p-12">
         <div className="space-y-6">
           <div className="flex items-center gap-3">
-            <h2 className="text-3xl font-bold text-white tracking-tight">Mastery & Portability</h2>
-            <span className="text-[10px] bg-blue-500/20 px-2 py-0.5 rounded text-blue-300 border border-blue-500/20 font-bold uppercase">Learner Focused</span>
+            <h2 className="text-3xl font-bold text-white tracking-tight">Session Summary</h2>
+            <span className="text-[10px] bg-blue-500/20 px-2 py-0.5 rounded text-blue-300 border border-blue-500/20 font-bold uppercase">v2.3.5+</span>
           </div>
           <p className="text-base leading-relaxed text-slate-400 sm:text-lg">
-            At the end of a session, the "Summary" button generates a structured <span className="text-white font-semibold">.docx revision guide</span>. Your results and focus fields are automatically woven into the document.
+            Directly from your <span className="text-white font-semibold">Learning Dashboard</span>, download a structured summary. It surfaces strengths, weaknesses, and key formulas generated through the session's discovery loops.
           </p>
           <ul className="grid grid-cols-1 gap-4 text-sm text-white/70 sm:grid-cols-2">
-            <li className="flex items-center gap-2 font-medium"><span className="text-blue-400">✦</span> Real-world Case Studies</li>
-            <li className="flex items-center gap-2 font-medium"><span className="text-blue-400">✦</span> Mastery Scorecards</li>
-            <li className="flex items-center gap-2 font-medium"><span className="text-blue-400">✦</span> Focused Revision Fields</li>
-            <li className="flex items-center gap-2 font-medium"><span className="text-blue-400">✦</span> AI-Graded Answers</li>
+            <li className="flex items-center gap-2 font-medium"><span className="text-blue-400">✦</span> Learning Efficiency Index</li>
+            <li className="flex items-center gap-2 font-medium"><span className="text-blue-400">✦</span> Performance Scorecards</li>
+            <li className="flex items-center gap-2 font-medium"><span className="text-blue-400">✦</span> Adaptive Next-Focus</li>
+            <li className="flex items-center gap-2 font-medium"><span className="text-blue-400">✦</span> Structured Revision Docs</li>
           </ul>
         </div>
         
@@ -183,13 +183,13 @@ export default function ChatFlow() {
           <div className="p-8 bg-[#050810] rounded-3xl border border-white/10 text-center shadow-2xl transform group-hover:-translate-y-2 transition-transform duration-500">
             <div className="w-16 h-16 bg-blue-600/20 rounded-2xl mx-auto mb-6 flex items-center justify-center">
                 <svg className="w-8 h-8 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                 </svg>
             </div>
-            <p className="text-[10px] text-blue-400 uppercase tracking-[0.2em] mb-2 font-black">Ready for Export</p>
-            <div className="text-xs font-mono text-white/60 truncate bg-white/5 p-2 rounded-lg">session-summary.docx</div>
+            <p className="text-[10px] text-blue-400 uppercase tracking-[0.2em] mb-2 font-black">Dashboard Integrated</p>
+            <div className="text-xs font-mono text-white/60 truncate bg-white/5 p-2 rounded-lg">learner-profile.summary</div>
             <button className="mt-6 w-full py-4 bg-blue-600 hover:bg-blue-500 text-white text-sm font-black rounded-xl transition-all shadow-lg shadow-blue-900/40 uppercase tracking-widest">
-              Download
+              View Insights
             </button>
           </div>
         </div>
@@ -198,8 +198,8 @@ export default function ChatFlow() {
       {/* Closing Call to Action */}
       <section className="text-center py-10 relative">
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-blue-500/5 blur-[120px] -z-10" />
-        <h4 className="text-3xl font-bold text-white mb-4 tracking-tight">The future of pedagogy is flow.</h4>
-        <p className="mx-auto mb-10 max-w-xl text-base text-slate-500 sm:text-lg">Ready to experience uninterrupted intelligence?</p>
+        <h4 className="text-3xl font-bold text-white mb-4 tracking-tight">The goal is not memorization.</h4>
+        <p className="mx-auto mb-10 max-w-xl text-base text-slate-500 sm:text-lg">It is deep, durable learning through a structured reasoning partner.</p>
         <a 
           href="/" 
           className="inline-flex items-center px-12 py-4 bg-white text-black font-black rounded-2xl hover:bg-blue-50 transition-all hover:scale-105 active:scale-95 shadow-[0_20px_40px_rgba(255,255,255,0.1)]"

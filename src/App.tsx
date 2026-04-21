@@ -1532,7 +1532,7 @@ const App: React.FC = () => {
                     top: selectionPos.y,
                     left: selectionPos.x,
                       transform: selectionPos.placeAbove
-                      ? "translate(-50%, 15%)"
+                      ? "translate(-50%, -25%)"
                       : "translate(-50%, 0)"
                   }}
                   className="

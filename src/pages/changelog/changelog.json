@@ -1,5 +1,24 @@
 [
   {
+    "version": "2.4.0",
+    "date": "2026-04-21",
+    "changes": [
+      { "type": "feature", "text": "Introduced gemini-3.1-flash-lite-preview as a core model across chat, quiz, cron, and query generation workflows." },
+      { "type": "improve", "text": "Reworked orchestration to a Gemini-first architecture with OpenRouter as a validated last-resort fallback." },
+      { "type": "improve", "text": "Upgraded racing logic from 'first response wins' to 'first valid response wins' for more reliable outputs." },
+      { "type": "fix", "text": "Resolved hallucination issue in web search branch by preventing model calls when search quota is exceeded and returning a controlled response." },
+      { "type": "improve", "text": "Enhanced system prompts to reduce out-of-date or fabricated answers when user queries exceed model knowledge cutoff." },
+      { "type": "internal", "text": "Removed LiquidAI integrations due to shallow response quality." },
+      { "type": "internal", "text": "Deprecated minimax2.5 due to high latency and frequent unavailability." },
+      { "type": "improve", "text": "Optimized web search query generation using Gemini models with pre-validation to reduce quota waste." },
+      { "type": "feature", "text": "Migrated web search provider to Tavily with Jigsawstack as a backup for improved reliability." },
+      { "type": "improve", "text": "Refined mastery check flow to limit repetition, introduce adaptive phrasing, and provide clearer fallback paths." },
+      { "type": "fix", "text": "Fixed mobile UI issue where uploaded files appeared beside text instead of stacking properly." },
+      { "type": "feature", "text": "Added 'Follow up' interaction mode in selection popup, allowing contextual queries without auto-send." },
+      { "type": "fix", "text": "Resolved UI overlap issues in follow-up container with dynamic spacing and layout adjustments." }
+    ]
+  },
+  {
     "version": "2.3.6.8",
     "date": "2026-04-11",
     "changes": [

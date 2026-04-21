@@ -65,16 +65,21 @@ You don’t just learn faster — you learn *properly*.
 
 ### 🧠 Learning Engine
 
-- Hint-based reasoning flow (Ask first, reveal progressively)
-- Structured thinking prompts with richer Oracle Memory JSON returns
-- Feynman-technique reinforcement when understanding needs to be rebuilt from first principles
-- Exam-style adaptation and wider mastery branching for more context-aware coaching
-- Pattern extraction instead of answer dumping
-- **Follow-up suggestion system (NEW v2.3.0)**
-  - Context-aware follow-up buttons appear on text selection
-  - Enables deeper exploration without breaking learning flow
+- **Hint-based reasoning flow** — ask first, reveal progressively
+- **Structured thinking prompts** with richer Oracle Memory JSON returns
+- **Feynman-technique reinforcement** when understanding needs rebuilding from first principles
+- **Exam-style adaptation** and wider mastery branching for context-aware coaching
+- **Pattern extraction** instead of answer dumping
+- **Follow-up suggestion system** *(updated v2.4.0)*
+  - Context-aware follow-up buttons on text selection
+  - New "Follow up" mode with input container (no auto-send)
   - Reduces friction between curiosity → action
+- **Improved mastery check system**
+  - Max 2 mastery checks per topic
+  - Adaptive phrasing after incorrect attempts
+  - Smart fallback: explain → user chooses retry or move on
 
+---
 
 ### 📝 Integrated Quiz Platform
 
@@ -84,10 +89,14 @@ You don’t just learn faster — you learn *properly*.
 - Reinforcement-based correction
 - Mid-session language switching
 - Unified Chat + Quiz UI system
-- Short-query routing can jump directly into Balanced race mode for fast lightweight prompts
+- Short-query routing can jump directly into Balanced race mode
+- **Gemini-first execution** *(updated v2.4.0)*
+  - Faster and more consistent quiz generation
+  - Improved reliability with validated fallback system
 
+---
 
-### 📊 Learning Dashboard (NEW v2.3.5)
+### 📊 Learning Dashboard *(new v2.3.5)*
 
 - Dedicated dashboard tab for learner overview and progress reflection
 - Displays user profile, academic level, current topic, and learning level
@@ -96,69 +105,70 @@ You don’t just learn faster — you learn *properly*.
 - Surfaces strengths, weaknesses, and overall session summary in one place
 - Integrated **Download Session Summary** action from the dashboard
 
+---
 
-### ⚙️ Intelligent Request Routing (UPDATED v2.3.0)
+### ⚙️ Intelligent Request Routing *(major update v2.4.0)*
 
-- Multi-mode execution pipeline:
-  - **Standard**
-  - **Fast**
-  - **Balanced**
-  - **Agentic**
-  - **Web Search**
-- Real-time system state visibility via **Loading Status Text Bar**
+- **Gemini-first orchestration pipeline** — Chat / Quiz / Summary / Crons all prioritize Gemini models
+- OpenRouter used strictly as last-resort fallback with validation
+- **Multi-mode execution pipeline**
+  - Standard
+  - Fast
+  - Balanced
+  - Agentic
+  - Web Search
+- **Upgraded racing logic** — from "first response wins" → "first *valid* response wins"
+- **Dynamic routing** based on query complexity, latency conditions, and system load
+- **Real-time system state visibility** via Loading Status Text Bar
   - Displays current processing stage
   - Improves transparency of AI behavior
-- Dynamic routing based on:
-  - Query complexity
-  - Latency conditions
-  - System load
 
-Academic Oracle doesn’t just respond — it **decides how to think first**.
+> Academic Oracle doesn't just respond — it decides how to think first.
 
+---
 
-### 🌐 Web Search Integration (NEW v2.3.0)
+### 🌐 Web Search Integration *(updated v2.4.0)*
 
-- JigsawStack-powered search pipeline
-- Designed for:
-  - Real-time knowledge retrieval
-  - SPA / dynamic site parsing
+- **Tavily** as primary search provider; **JigsawStack** as fallback
+- Designed for real-time knowledge retrieval and SPA / dynamic site parsing
 - Activated only when needed (cost-efficient routing)
-- Hybrid reasoning:
-  - AI + live data synthesis
+- **Improved hallucination safety** — if search quota is exceeded, system returns a controlled response (no model call), preventing outdated answers being framed as current
+- **Hybrid reasoning** — AI + live data synthesis
 
+---
 
-### 🔐 Security & Architecture (MAJOR UPDATE v2.3.0)
+### 🔐 Security & Architecture *(major update v2.3.0, reinforced v2.4.0)*
 
-- **All AI API calls moved to Supabase backend**
-  - No direct client exposure of sensitive keys
-  - Production-grade architecture
-- Secure Edge Function orchestration
-- Core prompt logic migrated into Supabase Edge Functions for tighter backend control
+- All AI API calls handled via Supabase backend — no direct client exposure of keys
+- Production-grade, secure Edge Function orchestration
+- Core prompt logic centralized in backend
 - Encrypted handling of sensitive internal data
 - Supabase-backed session continuity
-
+- **Reliability enhancements** *(v2.4.0)*
+  - Strict fallback validation before returning responses
+  - Reduced silent failures in multi-model execution
 
 #### 🛡️ Prompt Security Layer
+
 - Jailbreak detection & filtering system
 - Prompt sanitation before model execution
+- Updated prompt constraints to reduce answering beyond knowledge cutoff
 - Controlled response shaping to prevent misuse
 
-Academic Oracle is no longer just a frontend AI tool —  
-it is a **secured distributed AI system**.
+> Academic Oracle is no longer just a frontend AI tool — it is a secured, distributed AI system.
 
+---
 
 ### 🎨 UX & Rendering
 
-- Robust Markdown rendering
-- Math (KaTeX)
-- Tables
-- Code blocks
+- **Robust Markdown rendering** — math (KaTeX), tables, code blocks
 - Dark / Light mode
 - Responsive design (desktop & mobile)
 - Structured session summary generation backed by Oracle Memory data
-- **Non-blocking UI architecture**
-  - Failures never crash the interface
-  - Graceful degradation on errors
+- **UI improvements** *(v2.4.0)*
+  - File uploads now stack above input (fixes mobile layout issues)
+  - Follow-up container UI with dynamic spacing (no overlap bugs)
+- **Non-blocking UI architecture** — failures never crash the interface; graceful degradation on errors
 
 ---
 
@@ -202,16 +212,21 @@ from the public repository alone.
 ---
 
 ## Tech Stack
-* Frontend: React 19 + TypeScript
-* Backend (AI Orchestration): Supabase Edge Functions
-* Models:
-  * Google GenAI (Gemini-3, Gemini-2.5)
-  * Minimax-2.5 (fallback / high-load routing)
-* Web Search: JigsawStack API
-* Auth & Database: Supabase (Postgres + OAuth)
-* Build Tool: Vite 6
-* Styling: Tailwind CSS
-* Math Rendering: KaTeX
+
+- **Frontend:** React 19 + TypeScript
+- **Backend (AI Orchestration):** Supabase Edge Functions
+- **Models:**
+  - Google GenAI (Gemini 2.5, Gemini 3)
+  - OpenRouter (last-resort fallback with validation layer)
+- **Web Search:** Tavily (primary) + JigsawStack (fallback)
+- **Auth & Database:** Supabase (Postgres + OAuth)
+- **Build Tool:** Vite 6
+- **Styling:** Tailwind CSS + Framer Motion
+- **Math Rendering:** KaTeX
+- **Document Handling:** docx, PDF.js, Mammoth, FileSaver
+- **OCR:** Tesseract.js
+- **Syntax Highlighting:** Highlight.js
+- **Routing:** React Router v7
 
 ---
 
