@@ -1,10 +1,13 @@
 import React, { useLayoutEffect, useRef, useState, useEffect} from 'react';
+import {CornerDownRight} from 'lucide-react';
 import { LANGUAGE_DATA, AppLanguage } from '../lang/Language.tsx';
 
 interface ChatInputProps {
   onSendMessage: (message: string, files?: File[]) => void;
   isLoading: boolean;
   language: AppLanguage;
+  followUpSelectionText?: string | null;
+  onClearFollowUpSelection?: () => void;
 }
 
 const SendIcon = ({ className }: { className: string }) => (
@@ -21,7 +24,14 @@ const SendIcon = ({ className }: { className: string }) => (
   </svg>
 );
 
-export const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, isLoading, language }) => {
+
+export const ChatInput: React.FC<ChatInputProps> = ({
+  onSendMessage,
+  isLoading,
+  language,
+  followUpSelectionText,
+  onClearFollowUpSelection,
+}) => {
   const PLACEHOLDERS = {
     full: LANGUAGE_DATA[language].ui.placeholderFull,
     medium: LANGUAGE_DATA[language].ui.placeholderMedium,
@@ -60,9 +70,16 @@ export const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, isLoading, 
     if (!inputValue.trim() && attachedFiles.length === 0) return;
     if (isLoading) return;
 
-    onSendMessage(inputValue, attachedFiles);
+    const nextMessage = followUpSelectionText
+      ? LANGUAGE_DATA[language].ui.followUpSelectionPrompt
+          .replace("{selection}", followUpSelectionText)
+          .replace("{message}", inputValue)
+      : inputValue;
+
+    onSendMessage(nextMessage, attachedFiles);
     setAttachedFiles([]);
     setInputValue('');
+    onClearFollowUpSelection?.();
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
@@ -162,9 +179,29 @@ export const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, isLoading, 
   };
 
   return (
-    <div className="w-full px-4 pb-3 pt-2">
+    <div className="w-full px-4 pb-4 pt-3 sm:pb-3 sm:pt-2">
       <div className="max-w-4xl mx-auto">
         <div className="rounded-2xl bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl border border-slate-200 dark:border-slate-800 shadow-xl transition-all duration-300">
+          {followUpSelectionText && (
+            <div className="px-3 pt-3">
+              <div className="flex items-start gap-3 rounded-2xl border border-indigo-200/80 bg-indigo-50/90 px-3 py-2.5 text-sm text-slate-700 dark:border-indigo-500/30 dark:bg-indigo-500/10 dark:text-slate-200">
+                <div className="min-w-0 flex flex-1 items-start gap-2.5">
+                  <CornerDownRight className="mt-0.5 h-4 w-4 shrink-0 text-indigo-700 dark:text-indigo-300" />
+                  <div className="min-w-0 max-h-12 overflow-hidden text-sm leading-5 text-slate-600 dark:text-slate-300">
+                    "{followUpSelectionText}"
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={onClearFollowUpSelection}
+                  className="shrink-0 rounded-lg px-2 py-1 text-slate-500 transition hover:bg-white/70 hover:text-slate-700 dark:text-slate-400 dark:hover:bg-slate-800/70 dark:hover:text-slate-200"
+                  aria-label="Clear follow-up selection"
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
+          )}
           {attachedFiles.length > 0 && (
             <div className="px-2 pt-2">
               <div className="flex flex-wrap gap-2">

@@ -373,6 +373,7 @@ const App: React.FC = () => {
 
   // UX mouse select tools
   const [selectedText, setSelectedText] = useState<string | null>(null);
+  const [followUpSelectionText, setFollowUpSelectionText] = useState<string | null>(null);
   const [selectionPos, setSelectionPos] = useState<{
     x:number,
     y:number,
@@ -1420,7 +1421,7 @@ const App: React.FC = () => {
           {/* MAIN VIEW SWITCHER */}
           <main ref={mainScrollRef} className="flex-1 overflow-y-auto scroll-smooth custom-scrollbar relative">
             {currentView === 'chat' ? (
-              <div className="mx-auto max-w-4xl px-3 pt-6 pb-32 sm:px-4 sm:pt-8">
+              <div className={`mx-auto max-w-4xl px-3 pt-6 sm:px-4 sm:pt-8 ${followUpSelectionText ? 'pb-44 sm:pb-40' : 'pb-32'}`}>
                 {messages.map((msg, index) => {
                   const isLast = index === messages.length - 1;
                   const isUser = msg.role === "user";
@@ -1524,7 +1525,7 @@ const App: React.FC = () => {
             )}
             {selectedText && selectionPos &&
               createPortal(
-                <button
+                <div
                   data-explain-btn
                   style={{
                     position: "fixed",
@@ -1535,27 +1536,55 @@ const App: React.FC = () => {
                       : "translate(-50%, 0)"
                   }}
                   className="
-                    z-[9999] flex items-center gap-1.5 bg-indigo-600 text-white
-                    text-xs font-medium px-3 py-1.5 rounded-lg shadow-lg
-                  hover:bg-indigo-500 transition-colors animate-in fade-in zoom-in-95
+                    z-[9999] flex items-center gap-2 rounded-xl border border-slate-200/80
+                    bg-white/95 p-1 shadow-xl backdrop-blur dark:border-slate-700/80
+                    dark:bg-slate-900/95 animate-in fade-in zoom-in-95
                   "
-                  onClick={() => {
-                    if (isLoading) {return}
-
-                    const prompt = LANGUAGE_DATA[language].ui.explainSelectionPrompt.replace(
-                      "{selection}",
-                      selectedText
-                    );
-
-                    handleSendMessage(prompt);
-
-                    window.getSelection()?.removeAllRanges();
-                    setSelectedText(null);
-                  }}
                 >
-                  <Sparkles size={14}/>
-                  {LANGUAGE_DATA[language].ui.explainSelectionButton}
-                </button>,
+                  <button
+                    type="button"
+                    className="
+                      flex items-center gap-1.5 rounded-lg bg-indigo-600 px-3 py-1.5
+                      text-xs font-medium text-white transition-colors hover:bg-indigo-500
+                    "
+                    onClick={() => {
+                      if (isLoading) return;
+
+                      const prompt = LANGUAGE_DATA[language].ui.explainSelectionPrompt.replace(
+                        "{selection}",
+                        selectedText
+                      );
+
+                      handleSendMessage(prompt);
+
+                      window.getSelection()?.removeAllRanges();
+                      setSelectedText(null);
+                      setSelectionPos(null);
+                    }}
+                  >
+                    <Sparkles size={14}/>
+                    {LANGUAGE_DATA[language].ui.explainSelectionButton}
+                  </button>
+                  <button
+                    type="button"
+                    className="
+                      flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium
+                      text-slate-700 transition-colors hover:bg-slate-100 dark:text-slate-200
+                      dark:hover:bg-slate-800
+                    "
+                    onClick={() => {
+                      // if (isLoading) return;
+
+                      setFollowUpSelectionText(selectedText);
+                      window.getSelection()?.removeAllRanges();
+                      setSelectedText(null);
+                      setSelectionPos(null);
+                    }}
+                  >
+                    <SquarePen size={14}/>
+                    {LANGUAGE_DATA[language].ui.followUpSelectionButton}
+                  </button>
+                </div>,
                 document.body
               )
             }
@@ -1565,7 +1594,13 @@ const App: React.FC = () => {
           {currentView === 'chat' && (
             <footer className="absolute bottom-0 left-0 right-0 z-30 pointer-events-none">
               <div className="pointer-events-auto bg-gradient-to-t from-slate-50 dark:from-slate-950 via-slate-50/90 to-transparent">
-                <ChatInput onSendMessage={handleSendMessage} isLoading={isLoading} language={language} />
+                <ChatInput
+                  onSendMessage={handleSendMessage}
+                  isLoading={isLoading}
+                  language={language}
+                  followUpSelectionText={followUpSelectionText}
+                  onClearFollowUpSelection={() => setFollowUpSelectionText(null)}
+                />
               </div>
             </footer>
           )}

@@ -37,7 +37,9 @@ export const LANGUAGE_DATA: Record<AppLanguage, {
     correctExclaim: string;
     notQuite: string;
     explainSelectionButton: string;
+    followUpSelectionButton: string;
     explainSelectionPrompt: string;
+    followUpSelectionPrompt: string;
     explainContext: string; // template for explain-in-chat context: {question},{answer},{result},{feedback}
     quizSummary: string; // template for summary: {score},{total},{level}
     askExplain: string;
@@ -191,7 +193,9 @@ export const LANGUAGE_DATA: Record<AppLanguage, {
       correctExclaim: "Correct!",
       notQuite: "Not quite right",
       explainSelectionButton: "Explain further",
+      followUpSelectionButton: "Follow up",
       explainSelectionPrompt: "Explain this part more clearly and simply:\n\n\"{selection}\"",
+      followUpSelectionPrompt: "Selected part:\n\"{selection}\"\n\nFollow-up question:\n{message}",
       askExplain: "Ask Oracle to explain in Chat",
       seeResults: "See Results",
       nextQuestion: "Next Question",
@@ -349,7 +353,9 @@ export const LANGUAGE_DATA: Record<AppLanguage, {
       quizSummary: "Quiz terminé. Score : {score}/{total}. Difficulté : {level}.",
       chatTooShortForQuiz: "Historique de discussion ou mémoire de session insuffisant pour générer un quiz.",
       explainSelectionButton: "Expliquer davantage",
+      followUpSelectionButton: "Suivi",
       explainSelectionPrompt: "Expliquez cette partie plus clairement et simplement :\n\n\"{selection}\"",
+      followUpSelectionPrompt: "Partie selectionnee :\n\"{selection}\"\n\nQuestion de suivi :\n{message}",
       askExplain: "Demander à l'Oracle d'expliquer dans le chat",
       seeResults: "Voir les résultats",
       nextQuestion: "Question suivante",
@@ -507,7 +513,9 @@ export const LANGUAGE_DATA: Record<AppLanguage, {
       quizSummary: "Cuestionario completado. Puntuación: {score}/{total}. Dificultad: {level}.",
       chatTooShortForQuiz: "Historial de chat o memoria de sesión insuficiente para generar un cuestionario.",
       explainSelectionButton: "Explicar más",
+      followUpSelectionButton: "Continuar",
       explainSelectionPrompt: "Explica esta parte con más claridad y sencillez:\n\n\"{selection}\"",
+      followUpSelectionPrompt: "Parte seleccionada:\n\"{selection}\"\n\nPregunta de seguimiento:\n{message}",
       askExplain: "Pedirle al Oráculo que explique en el chat",
       seeResults: "Ver resultados",
       nextQuestion: "Siguiente pregunta",
@@ -665,7 +673,9 @@ export const LANGUAGE_DATA: Record<AppLanguage, {
       quizSummary: "Hoàn thành bài kiểm tra. Điểm: {score}/{total}. Mức độ: {level}.",
       chatTooShortForQuiz: "Lịch sử trò chuyện hoặc bộ nhớ phiên không đủ để tạo bài kiểm tra.",
       explainSelectionButton: "Giải thích thêm",
+      followUpSelectionButton: "Hỏi tiếp",
       explainSelectionPrompt: "Giải thích phần này rõ ràng và đơn giản hơn:\n\n\"{selection}\"",
+      followUpSelectionPrompt: "Phần đã chọn:\n\"{selection}\"\n\nCâu hỏi tiếp theo:\n{message}",
       askExplain: "Yêu cầu Oracle giải thích trong trò chuyện",
       seeResults: "Xem kết quả",
       nextQuestion: "Câu tiếp theo",
