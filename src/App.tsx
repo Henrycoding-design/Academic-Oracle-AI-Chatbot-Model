@@ -239,7 +239,7 @@ const App: React.FC = () => {
 
   const lastRequestRef = useRef<{ // for retry
     message: string;
-    file?: File | null;
+    files?: File[];
   } | null>(null);
 
   const [chatHistory, setChatHistory] = useState<ChatHistoryItem[]>(() => {
@@ -373,6 +373,7 @@ const App: React.FC = () => {
 
   // UX mouse select tools
   const [selectedText, setSelectedText] = useState<string | null>(null);
+  const [followUpSelectionText, setFollowUpSelectionText] = useState<string | null>(null);
   const [selectionPos, setSelectionPos] = useState<{
     x:number,
     y:number,
@@ -621,7 +622,7 @@ const App: React.FC = () => {
   // ✅ Handle sending messages with dynamic encryptedApiKey
   const handleSendMessage = async (
     userMessage: string,
-    file?: File | null,
+    files: File[] = [],
     isRetry = false
   ) => {
     if (!session?.access_token) { handleLogout(); return; }
@@ -637,12 +638,12 @@ const App: React.FC = () => {
           {
             role: "user",
             content: userMessage,
-            attachment: file
-              ? {
+            attachments: files.length > 0
+              ? files.map((file) => ({
                   name: file.name,
                   type: file.type,
                   size: file.size,
-                }
+                }))
               : undefined,
           },
         ]);
@@ -698,7 +699,7 @@ const App: React.FC = () => {
       const token = session?.access_token;
       // increment quota here
       if (!encryptedApiKey){
-        const result = await canSendMessage(currentChatIdRef, token!); // error here
+        const result = await canSendMessage(currentChatIdRef, token!);
         if (!result.allowed) {
           setError(LANGUAGE_DATA[language].ui.freeSessionLimit);
           return;
@@ -713,7 +714,11 @@ const App: React.FC = () => {
           setLoadingModeLabel("Web Search");
           incrementWebSearch();
 
-          const webResults = await runQuotaSafeSearch(userMessage, encryptedApiKey);
+          const webResults = await runQuotaSafeSearch(
+            userMessage,
+            encryptedApiKey,
+            decision.web_search_topic ?? "general"
+          );
 
           if (webResults && webResults.length > 0) {
 
@@ -749,21 +754,39 @@ const App: React.FC = () => {
 
         } catch (e) {
           console.warn("Web search failed", e);
+          setMessages(prev => [
+            ...prev,
+            { role: "model", content: LANGUAGE_DATA[language].ui.webSearchFailedMessage },
+          ]);
+          setIsLoading(false);
+          return;
         }
       } else if (isWebSearchLimitReached()){
         console.warn("Web Search Limit reaches");
-        alert(LANGUAGE_DATA[language].ui.webSearchQuotaReached);
+        // alert(LANGUAGE_DATA[language].ui.webSearchQuotaReached); remove alert, use in-chat message for better UX
+        setMessages(prev => [
+          ...prev,
+          { role: "model", content: LANGUAGE_DATA[language].ui.webSearchQuotaReachedMessage },
+        ]);
+        setIsLoading(false);
+        return;
       }
 
       let fileContext = "";
 
-      if (file) {
-        const extractedText = await readFileAsText(file);
-        fileContext = `
+      if (files.length > 0) {
+        const extractedFileTexts = await Promise.all(
+          files.map(async (file) => {
+            const extractedText = await readFileAsText(file);
+            return `
   --- FILE CONTEXT (${file.name}) ---
   ${extractedText}
   --- END FILE CONTEXT ---
   `;
+          })
+        );
+
+        fileContext = extractedFileTexts.join("\n");
       }
 
       let outgoingHistory = chatHistory;
@@ -782,7 +805,7 @@ const App: React.FC = () => {
       // cache for retry if failed
       lastRequestRef.current = {
         message: userMessage,
-        file: file ?? null,
+        files,
       };
 
       const isVeryShortPrompt = countWords(userMessage) < 3; // heuristic check to fast-forward short prompts directly to Balanced Racing mode -> better UX, save time, tokens cost
@@ -963,7 +986,7 @@ const App: React.FC = () => {
 
     handleSendMessage(
       lastRequestRef.current.message,
-      lastRequestRef.current.file,
+      lastRequestRef.current.files ?? [],
       true
     );
   };
@@ -1398,7 +1421,7 @@ const App: React.FC = () => {
           {/* MAIN VIEW SWITCHER */}
           <main ref={mainScrollRef} className="flex-1 overflow-y-auto scroll-smooth custom-scrollbar relative">
             {currentView === 'chat' ? (
-              <div className="mx-auto max-w-4xl px-3 pt-6 pb-32 sm:px-4 sm:pt-8">
+              <div className={`mx-auto max-w-4xl px-3 pt-6 sm:px-4 sm:pt-8 ${followUpSelectionText ? 'pb-44 sm:pb-40' : 'pb-32'}`}>
                 {messages.map((msg, index) => {
                   const isLast = index === messages.length - 1;
                   const isUser = msg.role === "user";
@@ -1502,38 +1525,66 @@ const App: React.FC = () => {
             )}
             {selectedText && selectionPos &&
               createPortal(
-                <button
+                <div
                   data-explain-btn
                   style={{
                     position: "fixed",
                     top: selectionPos.y,
                     left: selectionPos.x,
                       transform: selectionPos.placeAbove
-                      ? "translate(-50%, 15%)"
+                      ? "translate(-50%, -25%)"
                       : "translate(-50%, 0)"
                   }}
                   className="
-                    z-[9999] flex items-center gap-1.5 bg-indigo-600 text-white
-                    text-xs font-medium px-3 py-1.5 rounded-lg shadow-lg
-                  hover:bg-indigo-500 transition-colors animate-in fade-in zoom-in-95
+                    z-[9999] flex items-center gap-2 rounded-xl border border-slate-200/80
+                    bg-white/95 p-1 shadow-xl backdrop-blur dark:border-slate-700/80
+                    dark:bg-slate-900/95 animate-in fade-in zoom-in-95
                   "
-                  onClick={() => {
-                    if (isLoading) {return}
-
-                    const prompt = LANGUAGE_DATA[language].ui.explainSelectionPrompt.replace(
-                      "{selection}",
-                      selectedText
-                    );
-
-                    handleSendMessage(prompt);
-
-                    window.getSelection()?.removeAllRanges();
-                    setSelectedText(null);
-                  }}
                 >
-                  <Sparkles size={14}/>
-                  {LANGUAGE_DATA[language].ui.explainSelectionButton}
-                </button>,
+                  <button
+                    type="button"
+                    className="
+                      flex items-center gap-1.5 rounded-lg bg-indigo-600 px-3 py-1.5
+                      text-xs font-medium text-white transition-colors hover:bg-indigo-500
+                    "
+                    onClick={() => {
+                      if (isLoading) return;
+
+                      const prompt = LANGUAGE_DATA[language].ui.explainSelectionPrompt.replace(
+                        "{selection}",
+                        selectedText
+                      );
+
+                      handleSendMessage(prompt);
+
+                      window.getSelection()?.removeAllRanges();
+                      setSelectedText(null);
+                      setSelectionPos(null);
+                    }}
+                  >
+                    <Sparkles size={14}/>
+                    {LANGUAGE_DATA[language].ui.explainSelectionButton}
+                  </button>
+                  <button
+                    type="button"
+                    className="
+                      flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium
+                      text-slate-700 transition-colors hover:bg-slate-100 dark:text-slate-200
+                      dark:hover:bg-slate-800
+                    "
+                    onClick={() => {
+                      // if (isLoading) return;
+
+                      setFollowUpSelectionText(selectedText);
+                      window.getSelection()?.removeAllRanges();
+                      setSelectedText(null);
+                      setSelectionPos(null);
+                    }}
+                  >
+                    <SquarePen size={14}/>
+                    {LANGUAGE_DATA[language].ui.followUpSelectionButton}
+                  </button>
+                </div>,
                 document.body
               )
             }
@@ -1543,7 +1594,13 @@ const App: React.FC = () => {
           {currentView === 'chat' && (
             <footer className="absolute bottom-0 left-0 right-0 z-30 pointer-events-none">
               <div className="pointer-events-auto bg-gradient-to-t from-slate-50 dark:from-slate-950 via-slate-50/90 to-transparent">
-                <ChatInput onSendMessage={handleSendMessage} isLoading={isLoading} language={language} />
+                <ChatInput
+                  onSendMessage={handleSendMessage}
+                  isLoading={isLoading}
+                  language={language}
+                  followUpSelectionText={followUpSelectionText}
+                  onClearFollowUpSelection={() => setFollowUpSelectionText(null)}
+                />
               </div>
             </footer>
           )}

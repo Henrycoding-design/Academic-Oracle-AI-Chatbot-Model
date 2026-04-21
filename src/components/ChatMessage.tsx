@@ -41,6 +41,7 @@ const fileIconFor = (type?: string, name?: string) => {
 
 export const ChatMessage: React.FC<ChatMessageProps> = ({ message, scrollRef }) => {
   const isModel = message.role === 'model';
+  const attachments = message.attachments ?? (message.attachment ? [message.attachment] : []);
 
   return (
     <div 
@@ -59,24 +60,29 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({ message, scrollRef }) 
         }`}
       >
         {/* 📎 Attachment UI (inside bubble, above text) */}
-        {message.attachment && (
-          <div
-            className={`
-              mb-2 inline-flex items-center gap-2
-              px-3 py-1.5 rounded-xl text-xs
-              ${
-                isModel
-                  ? 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200'
-                  : 'bg-indigo-500/80 text-white'
-              }
-            `}
-          >
-            <span>
-              {fileIconFor(message.attachment.type, message.attachment.name)}
-            </span>
-            <span className="font-medium truncate max-w-[160px]">
-              {message.attachment.name}
-            </span>
+        {attachments.length > 0 && (
+          <div className="mb-2 flex flex-wrap gap-2">
+            {attachments.map((attachment, index) => (
+              <div
+                key={`${attachment.name}-${attachment.size}-${index}`}
+                className={`
+                  inline-flex max-w-full items-center gap-2
+                  px-3 py-1.5 rounded-xl text-xs
+                  ${
+                    isModel
+                      ? 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200'
+                      : 'bg-indigo-500/80 text-white'
+                  }
+                `}
+              >
+                <span>
+                  {fileIconFor(attachment.type, attachment.name)}
+                </span>
+                <span className="font-medium truncate max-w-[160px]">
+                  {attachment.name}
+                </span>
+              </div>
+            ))}
           </div>
         )}
 

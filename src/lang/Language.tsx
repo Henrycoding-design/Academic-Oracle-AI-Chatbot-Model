@@ -37,7 +37,9 @@ export const LANGUAGE_DATA: Record<AppLanguage, {
     correctExclaim: string;
     notQuite: string;
     explainSelectionButton: string;
+    followUpSelectionButton: string;
     explainSelectionPrompt: string;
+    followUpSelectionPrompt: string;
     explainContext: string; // template for explain-in-chat context: {question},{answer},{result},{feedback}
     quizSummary: string; // template for summary: {score},{total},{level}
     askExplain: string;
@@ -95,6 +97,8 @@ export const LANGUAGE_DATA: Record<AppLanguage, {
     placeholderShort: string;
     disclaimer: string;
     webSearchQuotaReached: string;
+    webSearchFailedMessage: string;
+    webSearchQuotaReachedMessage: string;
     dashboard: {
       title: string;
       subtitle: string;
@@ -189,7 +193,9 @@ export const LANGUAGE_DATA: Record<AppLanguage, {
       correctExclaim: "Correct!",
       notQuite: "Not quite right",
       explainSelectionButton: "Explain further",
+      followUpSelectionButton: "Follow up",
       explainSelectionPrompt: "Explain this part more clearly and simply:\n\n\"{selection}\"",
+      followUpSelectionPrompt: "Selected part:\n\"{selection}\"\n\nFollow-up question:\n{message}",
       askExplain: "Ask Oracle to explain in Chat",
       seeResults: "See Results",
       nextQuestion: "Next Question",
@@ -245,6 +251,8 @@ export const LANGUAGE_DATA: Record<AppLanguage, {
       placeholderShort: "Ask a question…",
       disclaimer: "Academic Oracle may generate inaccurate or incomplete information. Verify all results independently before relying on them.",
       webSearchQuotaReached: "You have reached the Web Search quota. The model will fall back to knowledge from before 2024. Sorry for the inconvenience!",
+      webSearchFailedMessage: "The required web search for this prompt could not be completed. Response generation has been stopped to avoid using incomplete live information. Please try again.",
+      webSearchQuotaReachedMessage: "This prompt requires web search, but the web search quota has been reached. Response generation has been stopped to avoid using incomplete live information.",
       dashboard: {
         title: "Learning Dashboard",
         subtitle: "Session insight overview",
@@ -345,7 +353,9 @@ export const LANGUAGE_DATA: Record<AppLanguage, {
       quizSummary: "Quiz terminé. Score : {score}/{total}. Difficulté : {level}.",
       chatTooShortForQuiz: "Historique de discussion ou mémoire de session insuffisant pour générer un quiz.",
       explainSelectionButton: "Expliquer davantage",
+      followUpSelectionButton: "Suivi",
       explainSelectionPrompt: "Expliquez cette partie plus clairement et simplement :\n\n\"{selection}\"",
+      followUpSelectionPrompt: "Partie selectionnee :\n\"{selection}\"\n\nQuestion de suivi :\n{message}",
       askExplain: "Demander à l'Oracle d'expliquer dans le chat",
       seeResults: "Voir les résultats",
       nextQuestion: "Question suivante",
@@ -401,6 +411,8 @@ export const LANGUAGE_DATA: Record<AppLanguage, {
       placeholderShort: "Posez une question…",
       disclaimer: "Oracle Académique peut générer des informations inexactes ou incomplètes. Vérifiez tous les résultats indépendamment avant de vous y fier.",
       webSearchQuotaReached: "Vous avez atteint le quota de recherche Web. Le modèle reviendra à des connaissances antérieures à 2024. Désolé pour le désagrément !",
+      webSearchFailedMessage: "La recherche Web requise pour cette demande n'a pas pu être effectuée. La génération de réponse a été interrompue afin d'éviter l'utilisation d'informations en direct incomplètes. Veuillez réessayer.",
+      webSearchQuotaReachedMessage: "Cette demande nécessite une recherche Web, mais le quota de recherche Web est atteint. La génération de réponse a été interrompue afin d'éviter l'utilisation d'informations en direct incomplètes.",
       dashboard: {
         title: "Tableau d'apprentissage",
         subtitle: "Vue d'ensemble de la session",
@@ -501,7 +513,9 @@ export const LANGUAGE_DATA: Record<AppLanguage, {
       quizSummary: "Cuestionario completado. Puntuación: {score}/{total}. Dificultad: {level}.",
       chatTooShortForQuiz: "Historial de chat o memoria de sesión insuficiente para generar un cuestionario.",
       explainSelectionButton: "Explicar más",
+      followUpSelectionButton: "Continuar",
       explainSelectionPrompt: "Explica esta parte con más claridad y sencillez:\n\n\"{selection}\"",
+      followUpSelectionPrompt: "Parte seleccionada:\n\"{selection}\"\n\nPregunta de seguimiento:\n{message}",
       askExplain: "Pedirle al Oráculo que explique en el chat",
       seeResults: "Ver resultados",
       nextQuestion: "Siguiente pregunta",
@@ -557,6 +571,8 @@ export const LANGUAGE_DATA: Record<AppLanguage, {
       placeholderShort: "Haz una pregunta…",
       disclaimer: "Oracle Académico puede generar información inexacta o incompleta. Verifica todos los resultados de forma independiente antes de confiar en ellos.",
       webSearchQuotaReached: "Has alcanzado la cuota de búsqueda web. El modelo volverá a usar conocimiento anterior a 2024. ¡Perdón por las molestias!",
+      webSearchFailedMessage: "No se pudo completar la búsqueda web requerida para esta solicitud. La generación de la respuesta se ha detenido para evitar el uso de información en vivo incompleta. Inténtalo de nuevo.",
+      webSearchQuotaReachedMessage: "Esta solicitud requiere búsqueda web, pero se alcanzó la cuota de búsqueda web. La generación de la respuesta se ha detenido para evitar el uso de información en vivo incompleta.",
       dashboard: {
         title: "Panel de aprendizaje",
         subtitle: "Resumen de la sesión",
@@ -657,7 +673,9 @@ export const LANGUAGE_DATA: Record<AppLanguage, {
       quizSummary: "Hoàn thành bài kiểm tra. Điểm: {score}/{total}. Mức độ: {level}.",
       chatTooShortForQuiz: "Lịch sử trò chuyện hoặc bộ nhớ phiên không đủ để tạo bài kiểm tra.",
       explainSelectionButton: "Giải thích thêm",
+      followUpSelectionButton: "Hỏi tiếp",
       explainSelectionPrompt: "Giải thích phần này rõ ràng và đơn giản hơn:\n\n\"{selection}\"",
+      followUpSelectionPrompt: "Phần đã chọn:\n\"{selection}\"\n\nCâu hỏi tiếp theo:\n{message}",
       askExplain: "Yêu cầu Oracle giải thích trong trò chuyện",
       seeResults: "Xem kết quả",
       nextQuestion: "Câu tiếp theo",
@@ -713,6 +731,8 @@ export const LANGUAGE_DATA: Record<AppLanguage, {
       placeholderShort: "Hỏi một câu hỏi…",
       disclaimer: "Academic Oracle có thể tạo ra thông tin không chính xác hoặc không đầy đủ. Xác minh tất cả kết quả độc lập trước khi dựa vào chúng.",
       webSearchQuotaReached: "Bạn đã đạt giới hạn tìm kiếm web. Mô hình sẽ quay về phần kiến thức trước năm 2024. Xin lỗi vì sự bất tiện này!",
+      webSearchFailedMessage: "Không thể hoàn tất web search cần thiết cho yêu cầu này. Quá trình tạo phản hồi đã được dừng để tránh sử dụng thông tin thời gian thực chưa đầy đủ. Vui lòng thử lại.",
+      webSearchQuotaReachedMessage: "Yêu cầu này cần web search, nhưng đã đạt giới hạn web search. Quá trình tạo phản hồi đã được dừng để tránh sử dụng thông tin thời gian thực chưa đầy đủ.",
       dashboard: {
         title: "Bảng điều khiển học tập",
         subtitle: "Tổng quan phiên học",

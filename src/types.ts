@@ -9,6 +9,7 @@ export interface Message {
   role: "user" | "model";
   content: string;
   attachment?: AttachmentMeta;
+  attachments?: AttachmentMeta[];
 }
 
 export interface ChatHistoryItem {
@@ -97,6 +98,7 @@ export type GuardResult = {
   web_search: boolean;
   jailbreak: boolean;
   reason: string;
+  web_search_topic?: "news" | "general" | "finance" | null;
 };
 
 export const PROVIDERS = ["gemini", "stepfun"] as const;

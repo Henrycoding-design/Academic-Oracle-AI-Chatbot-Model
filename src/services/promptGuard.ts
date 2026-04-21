@@ -311,6 +311,7 @@ export function analyzePrompt(prompt: string, language: AppLanguage = "en"): Gua
   return {
     web_search: webScore >= 2,
     jailbreak: jailbreakScore >= 2,
-    reason: "regex"
+    reason: "regex",
+    web_search_topic: webScore >= 2 ? "general" : null,
   };
 }
