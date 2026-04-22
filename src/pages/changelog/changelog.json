@@ -1,5 +1,19 @@
 [
   {
+    "version": "2.4.2",
+    "date": "2026-04-22",
+    "changes": [
+      {
+        "type": "improve",
+        "text": "Switched donation system from BMAC to Ko-fi (PayPal-based) due to reliability issues."
+      },
+      {
+        "type": "feature",
+        "text": "Added support for pasting screenshots (Ctrl+V) directly into chat input as image attachments."
+      }
+    ]
+  },
+  {
     "version": "2.4.0",
     "date": "2026-04-21",
     "changes": [

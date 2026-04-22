@@ -89,7 +89,7 @@ export default function Navbar() {
             ]} />
             <NavItem label="Docs" href="/docs/getting-started" />
             <NavItem label="Changelog" href="/changelog" />
-            <NavItem label="Support" href="https://buymeacoffee.com/votanbinh" target="_blank" />
+            <NavItem label="Support" href="https://ko-fi.com/tanbinhvo" target="_blank" />
           </div>
         </div>
 
@@ -166,7 +166,7 @@ export default function Navbar() {
               <MobileLink href="/developers#home" label="Developers" onNavigate={() => setIsMobileMenuOpen(false)} />
               <MobileLink href="/docs/getting-started" label="Docs" onNavigate={() => setIsMobileMenuOpen(false)} />
               <MobileLink href="/changelog" label="Changelog" onNavigate={() => setIsMobileMenuOpen(false)} />
-              <MobileLink href="https://buymeacoffee.com/votanbinh" label="Support" target="_blank" onNavigate={() => setIsMobileMenuOpen(false)} />
+              <MobileLink href="https://ko-fi.com/tanbinhvo" label="Support" target="_blank" onNavigate={() => setIsMobileMenuOpen(false)} />
               <MobileLink href="/" label="Chat" onNavigate={() => setIsMobileMenuOpen(false)} />
               <div className="mt-2 flex items-center gap-3 border-t border-white/5 pt-3">
                 <button

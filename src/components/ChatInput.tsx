@@ -178,6 +178,40 @@ export const ChatInput: React.FC<ChatInputProps> = ({
     }
   };
 
+  // Handle paste event to allow pasting images directly from clipboard
+  const handlePaste: React.ClipboardEventHandler<HTMLTextAreaElement> = (e) => {
+    const items = e.clipboardData?.items;
+    if (!items) return;
+
+    const files: File[] = [];
+
+    for (let i = 0; i < items.length; i++) {
+      const item = items[i];
+
+      if (item.type.startsWith("image/")) {
+        const file = item.getAsFile();
+        if (file) {
+          const renamedFile = new File(
+            [file],
+            `pasted-${Date.now()}.png`,
+            { type: file.type }
+          );
+          files.push(renamedFile);
+        }
+      }
+    }
+
+    if (files.length > 0) {
+      e.preventDefault(); // 🔥 prevent random text insertion
+
+      // Convert File[] → FileList-like
+      const dataTransfer = new DataTransfer();
+      files.forEach((file) => dataTransfer.items.add(file));
+
+      appendFiles(dataTransfer.files);
+    }
+  };
+
   return (
     <div className="w-full px-4 pb-4 pt-3 sm:pb-3 sm:pt-2">
       <div className="max-w-4xl mx-auto">
@@ -247,6 +281,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
               ref={taRef}
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
+              onPaste={handlePaste}
               onKeyDown={onKeyDown}
               onCompositionStart={() => setIsComposing(true)}
               onCompositionEnd={() => setIsComposing(false)}

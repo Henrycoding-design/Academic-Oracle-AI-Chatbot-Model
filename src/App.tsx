@@ -1407,11 +1407,12 @@ const App: React.FC = () => {
                 hover:bg-white/80 dark:hover:bg-slate-700 
                 transition-colors 
                 flex items-center justify-center"
-                onClick={ ()=> window.open("https://buymeacoffee.com/votanbinh", "_blank")}
+                onClick={ ()=> window.open("https://ko-fi.com/tanbinhvo", "_blank")} // change from bmac to ko-fi
               >
                 <img
-                  src={isDark? "/buymeacoffeeblack.svg" : "/buymeacoffee.svg"}
-                  alt="Buy Me A Coffee"
+                  // src={isDark? "/buymeacoffeeblack.svg" : "/buymeacoffee.svg"}
+                  src='https://storage.ko-fi.com/cdn/cup-border.png'
+                  alt="Ko-fi"
                   className="w-6 h-5 object-contain"
                 />
               </button>
