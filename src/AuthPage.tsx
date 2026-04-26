@@ -299,9 +299,9 @@ const AuthPage: React.FC<{
         className="absolute bottom-8 text-sm text-slate-600 dark:text-slate-300
                   hover:text-indigo-600 dark:hover:text-indigo-400
                   transition-colors"
-        onClick={() => window.open("https://buymeacoffee.com/votanbinh", "_blank")}
+        onClick={() => window.open("https://ko-fi.com/tanbinhvo", "_blank")}
         >
-          Created by Vo Tan Binh (Parent: Ngo Ngoc Cuong)
+          Created by Vo Tan Binh. Buy me a coffee? ☕
       </button>
     </div>
 
