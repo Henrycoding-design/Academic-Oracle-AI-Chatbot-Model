@@ -11,7 +11,7 @@
  */
 
 import { supabase } from "./supabaseClient";
-import type { ChatHistoryItem, Message, OracleResponse, QuizConfig, QuizQuestion, QuizResult} from '../types';
+import type { ChatHistoryItem, CoreTestPayload, Message, OracleResponse, QuizConfig, QuizQuestion, QuizResult} from '../types';
 import { InvalidAIResponseError , InvalidAPIError, GuardResult} from "../types";
 import { AppLanguage } from "../lang/Language";
 import { classifyIntent } from "./chatIntentClassifier";
@@ -83,6 +83,120 @@ const normalizeQuizLevel = (level: unknown): QuizConfig["level"] | null => {
 
 type TemperatureEstimationResponse = {
   temperature: number;
+};
+
+const normalizeString = (value: unknown, fallback = "") =>
+  typeof value === "string" ? value.trim() : fallback;
+
+const normalizeNullableNumber = (value: unknown): number | null => {
+  if (typeof value !== "number" || !Number.isFinite(value)) return null;
+  return value;
+};
+
+const normalizeCoreTestItemType = (value: unknown): "open" | "mcq" => {
+  if (value === "mcq") return "mcq";
+  return "open";
+};
+
+const normalizeCoreTestPayload = (data: any): CoreTestPayload | null => {
+  if (!data || typeof data !== "object" || !Array.isArray(data.items)) {
+    return null;
+  }
+
+  const items = data.items
+    .map((item: any, index: number) => {
+      const prompt = normalizeString(
+        item?.prompt ?? item?.question ?? item?.content,
+      );
+
+      if (!prompt) return null;
+
+      const questionNumber = normalizeString(
+        item?.questionNumber ?? item?.label ?? item?.number,
+        String(index + 1),
+      );
+
+      const type = normalizeCoreTestItemType(item?.type);
+      const options = Array.isArray(item?.options)
+        ? item.options.filter((option: unknown): option is string => typeof option === "string" && option.trim().length > 0)
+          .map((option: string) => option.trim())
+        : [];
+
+      const isCorrect =
+        typeof item?.isCorrect === "boolean" ? item.isCorrect : null;
+
+      const score =
+        normalizeNullableNumber(item?.score) ??
+        (isCorrect === true ? 1 : isCorrect === false ? 0 : null);
+
+      const maxScore = normalizeNullableNumber(item?.maxScore) ?? 1;
+
+      return {
+        id: normalizeString(item?.id, `q${index + 1}`),
+        questionNumber,
+        type: type === "mcq" && options.length >= 2 ? "mcq" : "open",
+        prompt,
+        options: type === "mcq" ? options : [],
+        correctAnswer: normalizeString(item?.correctAnswer),
+        markScheme: normalizeString(
+          item?.markScheme ?? item?.referenceAnswer ?? item?.correctAnswer,
+        ),
+        userAnswer: normalizeString(item?.userAnswer),
+        isCorrect,
+        score,
+        maxScore,
+        feedback: normalizeString(item?.feedback),
+      };
+    })
+    .filter(Boolean) as CoreTestPayload["items"];
+
+  if (items.length === 0) {
+    return null;
+  }
+
+  const gradedItems = items.filter((item) => item.isCorrect !== null);
+  const derivedCorrect = gradedItems.filter((item) => item.isCorrect).length;
+  const derivedTotal = items.length;
+  const derivedPercentage = derivedTotal > 0
+    ? Math.round((derivedCorrect / derivedTotal) * 100)
+    : 0;
+  const derivedUsedMarkScheme = items.some((item) => item.markScheme.length > 0);
+
+  let summary: CoreTestPayload["summary"] = null;
+
+  if (data.summary && typeof data.summary === "object") {
+    const correct = normalizeNullableNumber(data.summary.correct);
+    const total = normalizeNullableNumber(data.summary.total);
+    const percentage = normalizeNullableNumber(data.summary.percentage);
+
+    if (correct !== null && total !== null && percentage !== null) {
+      summary = {
+        correct: Math.max(0, Math.round(correct)),
+        total: Math.max(0, Math.round(total)),
+        percentage: Math.max(0, Math.min(100, Math.round(percentage))),
+        usedMarkScheme:
+          typeof data.summary.usedMarkScheme === "boolean"
+            ? data.summary.usedMarkScheme
+            : derivedUsedMarkScheme,
+      };
+    }
+  }
+
+  if (!summary && gradedItems.length > 0) {
+    summary = {
+      correct: derivedCorrect,
+      total: derivedTotal,
+      percentage: derivedPercentage,
+      usedMarkScheme: derivedUsedMarkScheme,
+    };
+  }
+
+  return {
+    title: normalizeString(data.title, "Core Test System"),
+    instructions: normalizeString(data.instructions),
+    items,
+    summary,
+  };
 };
 
 const isEstimateQuizConfigResponse = (obj: any): obj is estimateQuizConfigResponse => {
@@ -989,6 +1103,242 @@ Return JSON:
     isCorrect: data.isCorrect,
     feedback: data.feedback
   };
+};
+
+const resolveOutputLanguage = (language: AppLanguage) =>
+  language === "en" ? "English"
+  : language === "fr" ? "French"
+  : language === "es" ? "Spanish"
+  : "Vietnamese";
+
+export const structureCoreTestFromPdf = async (
+  language: AppLanguage,
+  questionPaperText: string,
+  markSchemeText: string | null,
+  encryptedKeyPayload: any
+): Promise<CoreTestPayload> => {
+  const prompt = `
+System Language (FORCED INPUT/OUTPUT CONTENT LANGUAGE): ${resolveOutputLanguage(language)}
+
+You are building a minimal exam payload from extracted PDF text.
+
+Task:
+1. Read the question paper text.
+2. Split it into the actual exam questions or sub-questions that a student should answer.
+3. If mark scheme text is provided, attach the most relevant marking reference to each item in the "markScheme" field.
+4. Do not invent questions that are not grounded in the provided text.
+5. Keep the output concise and structured for UI rendering.
+6. Rewrite each extracted question into its fullest clear exam-ready form without omitting any original requirement, constraint, instruction, or context.
+7. Return question text in markdown-friendly form so the UI can render emphasis and lists correctly.
+
+Return STRICT JSON ONLY with this exact schema:
+{
+  "title": "string",
+  "instructions": "string",
+  "items": [
+    {
+      "id": "q1",
+      "questionNumber": "1",
+      "type": "open" | "mcq",
+      "prompt": "full question text",
+      "options": ["A", "B", "C", "D"],
+      "correctAnswer": "exact correct option text for MCQ, empty string if unknown or if open response",
+      "markScheme": "relevant marking points or expected answer, empty string if unavailable",
+      "userAnswer": "",
+      "isCorrect": null,
+      "score": null,
+      "maxScore": 1,
+      "feedback": ""
+    }
+  ],
+  "summary": null
+}
+
+Rules:
+- Preserve the question wording as closely as possible.
+- Do not cut, shorten, or drop any part of the question.
+- Present each question in the clearest and most professional full form for a student.
+- If the original question includes context before the ask, keep that context with the question.
+- Preserve bullet points, numbering, sub-parts, and line breaks in the "prompt" field.
+- Explicitly use markdown for structure when appropriate:
+  - **bold** for important labels, headings, or emphasis
+  - *italic* for softer emphasis or named terms when appropriate
+- Preserve bold and italic emphasis using markdown formatting when it is clearly implied by the source.
+- If a question has multiple requirements, keep all of them together in the same item unless the paper clearly separates them into sub-questions.
+- If the paper contains numbered sections, keep that numbering in "questionNumber".
+- Decide whether each item is "mcq" or "open" based on the question context.
+- Use "mcq" only when the question clearly provides or implies a fixed answer choice set whose possible responses can be determined before the student answers.
+- MCQ does not have to use A/B/C/D labels.
+- The choice set may use letters, numbers, statements, symbols, or any fixed response list.
+- The number of options may be 2, 4, 6, 10, or any other finite count.
+- For "mcq", extract the answer choices into "options".
+- For "mcq", set "correctAnswer" to the exact option text when it can be determined from the paper or mark scheme context.
+- For "open", return an empty array for "options".
+- If a question has no mark scheme match, keep "markScheme" as an empty string.
+- Do not return markdown.
+
+QUESTION PAPER TEXT:
+${questionPaperText}
+
+MARK SCHEME TEXT:
+${markSchemeText?.trim() ? markSchemeText : "No mark scheme provided."}
+`;
+
+  const tryParse = (text: string) => {
+    const parsed = extractAndParseJSONSafe(text);
+    if (!parsed.ok) {
+      throw new InvalidAIResponseError("Invalid core test structure payload");
+    }
+
+    const normalized = normalizeCoreTestPayload(parsed.data);
+    if (!normalized) {
+      throw new InvalidAIResponseError("Malformed core test structure payload");
+    }
+
+    return normalized;
+  };
+
+  try {
+    const text = await getGeminiTextFromEdge({
+      model: "gemini-2.5-flash",
+      prompt,
+      temp: 0.2,
+      mode: "quiz",
+      responseMimeType: "application/json",
+      encryptedKeyPayload,
+    });
+
+    return tryParse(text);
+  } catch (err) {
+    if (isRetryableAIError(err) || isRateLimitError(err) || isUnavailableError(err)) {
+      const retryText = await getGeminiTextFromEdge({
+        model: "gemini-2.5-flash-lite",
+        prompt,
+        temp: 0.1,
+        mode: "quiz",
+        responseMimeType: "application/json",
+        encryptedKeyPayload,
+      });
+
+      return tryParse(retryText);
+    }
+
+    throw err;
+  }
+};
+
+export const gradeCoreTestPayload = async (
+  language: AppLanguage,
+  payload: CoreTestPayload,
+  questionPaperText: string,
+  markSchemeText: string | null,
+  encryptedKeyPayload: any
+): Promise<CoreTestPayload> => {
+  const prompt = `
+System Language (FORCED INPUT/OUTPUT CONTENT LANGUAGE): ${resolveOutputLanguage(language)}
+
+You are grading a student's exam submission.
+
+You will receive:
+- The original question paper text.
+- The optional mark scheme text.
+- A structured JSON payload with questions and student answers.
+
+Grading policy:
+- Use the mark scheme first whenever it is available and relevant.
+- If no mark scheme exists for an item, use your own academic judgment based on the question.
+- Grade strictly but fairly.
+- This Phase 1 system uses binary scoring per item: score 1 if acceptable/correct, 0 if not.
+
+Return STRICT JSON ONLY using the SAME schema as the input payload:
+{
+  "title": "string",
+  "instructions": "string",
+  "items": [
+    {
+      "id": "q1",
+      "questionNumber": "1",
+      "type": "open" | "mcq",
+      "prompt": "full question text",
+      "options": ["A", "B", "C", "D"],
+      "correctAnswer": "exact correct option text for MCQ, empty string if unknown or if open response",
+      "markScheme": "relevant marking points or expected answer, empty string if unavailable",
+      "userAnswer": "student answer",
+      "isCorrect": true,
+      "score": 1,
+      "maxScore": 1,
+      "feedback": "brief grading note"
+    }
+  ],
+  "summary": {
+    "correct": 1,
+    "total": 1,
+    "percentage": 100,
+    "usedMarkScheme": true
+  }
+}
+
+Rules:
+- Preserve item order and ids.
+- Preserve item type and options.
+- Every item must include feedback.
+- "usedMarkScheme" must be true if any grading used the provided mark scheme.
+- For MCQ items, determine correctness against the exact fixed response set already implied by the question.
+- MCQ does not have to use A/B/C/D labels and may use any finite option list.
+- For MCQ items, populate "correctAnswer" with the exact correct option text if it can be determined.
+- Do not return markdown.
+
+QUESTION PAPER TEXT:
+${questionPaperText}
+
+MARK SCHEME TEXT:
+${markSchemeText?.trim() ? markSchemeText : "No mark scheme provided. Use your own judgment."}
+
+STRUCTURED TEST PAYLOAD:
+${JSON.stringify(payload)}
+`;
+
+  const tryParse = (text: string) => {
+    const parsed = extractAndParseJSONSafe(text);
+    if (!parsed.ok) {
+      throw new InvalidAIResponseError("Invalid core test grading payload");
+    }
+
+    const normalized = normalizeCoreTestPayload(parsed.data);
+    if (!normalized || !normalized.summary) {
+      throw new InvalidAIResponseError("Malformed core test grading payload");
+    }
+
+    return normalized;
+  };
+
+  try {
+    const text = await getGeminiTextFromEdge({
+      model: "gemini-2.5-flash",
+      prompt,
+      temp: 0.2,
+      mode: "quiz",
+      responseMimeType: "application/json",
+      encryptedKeyPayload,
+    });
+
+    return tryParse(text);
+  } catch (err) {
+    if (isRetryableAIError(err) || isRateLimitError(err) || isUnavailableError(err)) {
+      const retryText = await getGeminiTextFromEdge({
+        model: "gemini-2.5-flash-lite",
+        prompt,
+        temp: 0.1,
+        mode: "quiz",
+        responseMimeType: "application/json",
+        encryptedKeyPayload,
+      });
+
+      return tryParse(retryText);
+    }
+
+    throw err;
+  }
 };
 
 // Cron Guard:

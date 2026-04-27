@@ -25,10 +25,11 @@ import { createPortal } from "react-dom";
 import { useClickOutside } from './services/useClickOutside.ts';
 import { generateSessionSummary } from './services/geminiService.ts';
 import { createSummaryDoc } from './services/createSummaryDoc.ts';
-import { Sparkles, SquarePen, ChevronDown, BrainCircuit, LogOut, User, LayoutDashboard, Menu, X } from 'lucide-react';
+import { Sparkles, SquarePen, ChevronDown, BrainCircuit, LogOut, User, LayoutDashboard, Menu, X, FileText } from 'lucide-react';
 import ProfilePage from './ProfilePage.tsx';
 import { QuizView } from './components/QuizView'; // Added QuizView
 import DashboardView from './components/DashboardView.tsx';
+import CoreTestView from './components/CoreTestView.tsx';
 import { canSendMessage } from './services/sessionMarker.ts';
 import { InvalidAPIError } from './types';
 import { AppLanguage , LANGUAGE_DATA, LoadingModeLabel } from './lang/Language.tsx';
@@ -131,7 +132,8 @@ const App: React.FC = () => {
   const [session, setSession] = useState<any | null>(null);
 
   // NEW STATE: View Switching
-  const [currentView, setCurrentView] = useState<'chat' | 'quiz' | 'dashboard' | 'profile'>('chat');
+  const [currentView, setCurrentView] = useState<'chat' | 'quiz' | 'dashboard' | 'profile' | 'test'>('chat');
+  const [isCoreTestBusy, setIsCoreTestBusy] = useState(false);
   // NEW STATE: Mastery Popup
   const [showMasteryPopup, setShowMasteryPopup] = useState(false);
   // NEW STATE: Pending Explanation from Quiz
@@ -169,6 +171,8 @@ const App: React.FC = () => {
   useEffect(() => { // handle route changes for profile/account and quiz
     if (route === "/quiz") {
       setCurrentView("quiz");
+    } else if (route === "/test") {
+      setCurrentView("test");
     } else if (route === "/dashboard") {
       setCurrentView("dashboard");
     } else if (route === "/profile") {
@@ -1297,6 +1301,18 @@ const App: React.FC = () => {
               >
                 <BrainCircuit size={18} />
               </button>
+
+              <button
+                className={`p-2 rounded-lg transition-colors ${
+                  currentView === 'test'
+                    ? 'bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400'
+                    : 'hover:bg-black/5 dark:hover:bg-white/10 text-slate-700 dark:text-slate-200'
+                }`}
+                onClick={() => goToView("/test")}
+                title="Core Test System"
+              >
+                <FileText size={18} />
+              </button>
             </div>
             <div className="mt-auto relative">
               <button ref={userButtonRef} className="w-8 h-8 rounded-full overflow-hidden border border-white/20"
@@ -1512,7 +1528,7 @@ const App: React.FC = () => {
                 onDownloadSummary={handleGenerateSummary}
                 onBack={() => navigate("/")}
               />
-            ) : (
+            ) : currentView === 'test' ? null : (
               // QUIZ VIEW
               <QuizView 
                 language={language}
@@ -1523,6 +1539,16 @@ const App: React.FC = () => {
                 onExplainRequest={handleExplainRequest}
                 onAddToMemory={handleAddToMemory}
               />
+            )}
+            {(currentView === 'test' || isCoreTestBusy) && (
+              <div className={currentView === 'test' ? '' : 'hidden'}>
+                <CoreTestView
+                  language={language}
+                  encryptedApiKey={encryptedApiKey}
+                  onBack={() => navigate("/")}
+                  onBusyChange={setIsCoreTestBusy}
+                />
+              </div>
             )}
             {selectedText && selectionPos &&
               createPortal(

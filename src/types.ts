@@ -90,6 +90,35 @@ export interface QuizResult {
   feedback: string;
 }
 
+export interface CoreTestItem {
+  id: string;
+  questionNumber: string;
+  type: 'open' | 'mcq';
+  prompt: string;
+  options: string[];
+  correctAnswer: string;
+  markScheme: string;
+  userAnswer: string;
+  isCorrect: boolean | null;
+  score: number | null;
+  maxScore: number | null;
+  feedback: string;
+}
+
+export interface CoreTestSummary {
+  correct: number;
+  total: number;
+  percentage: number;
+  usedMarkScheme: boolean;
+}
+
+export interface CoreTestPayload {
+  title: string;
+  instructions: string;
+  items: CoreTestItem[];
+  summary: CoreTestSummary | null;
+}
+
 export type ChatIntent = "agentic" | "fast" | "balance";
 
 export type ChatTailoringMode = "no" | "standard" | "always";
