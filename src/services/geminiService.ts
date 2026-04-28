@@ -1159,6 +1159,10 @@ Rules:
 - Do not cut, shorten, or drop any part of the question.
 - Present each question in the clearest and most professional full form for a student.
 - If the original question includes context before the ask, keep that context with the question.
+- If the paper uses sub-questions such as '9(a)', '9(b)', '10(c)', or similar sequel notation, treat each sub-question as its own separate item when the paper presents them separately.
+- For a sub-question item, include only the shared parent context needed to understand that specific sub-question.
+- Do not rewrite one sub-question so that it also includes sibling parts like '9(b)' or '9(c)'.
+- Example: if '9(a)', '9(b)', and '9(c)' are separate asks, the '9(a)' item must contain only the content needed for '9(a)'.
 - Preserve bullet points, numbering, sub-parts, and line breaks in the "prompt" field.
 - Explicitly use markdown for structure when appropriate:
   - **bold** for important labels, headings, or emphasis
@@ -1203,6 +1207,101 @@ ${markSchemeText?.trim() ? markSchemeText : "No mark scheme provided."}
       model: "gemini-2.5-flash",
       prompt,
       temp: 0.2,
+      mode: "quiz",
+      responseMimeType: "application/json",
+      encryptedKeyPayload,
+    });
+
+    return tryParse(text);
+  } catch (err) {
+    if (isRetryableAIError(err) || isRateLimitError(err) || isUnavailableError(err)) {
+      const retryText = await getGeminiTextFromEdge({
+        model: "gemini-2.5-flash-lite",
+        prompt,
+        temp: 0.1,
+        mode: "quiz",
+        responseMimeType: "application/json",
+        encryptedKeyPayload,
+      });
+
+      return tryParse(retryText);
+    }
+
+    throw err;
+  }
+};
+
+export const enrichCoreTestCorrectAnswers = async (
+  language: AppLanguage,
+  payload: CoreTestPayload,
+  questionPaperText: string,
+  markSchemeText: string,
+  encryptedKeyPayload: any
+): Promise<Record<string, string>> => {
+  const prompt = `
+System Language (FORCED INPUT/OUTPUT CONTENT LANGUAGE): ${resolveOutputLanguage(language)}
+
+You are updating an already-structured exam payload after a mark scheme was uploaded.
+
+Your job:
+- Do NOT rebuild, rewrite, reorder, split, merge, or reclassify the questions.
+- Do NOT change prompt text, options, type, numbering, user answers, score fields, or feedback fields.
+- Only determine and return the best available "correctAnswer" for each existing item using the mark scheme first.
+
+Return STRICT JSON ONLY in this exact shape:
+{
+  "items": [
+    {
+      "id": "q1",
+      "correctAnswer": "exact correct answer text, or empty string if it still cannot be determined"
+    }
+  ]
+}
+
+Rules:
+- Preserve the same item ids from the input payload.
+- Return one output entry for every input item.
+- For MCQ, return the exact correct option text.
+- For open response, return the clearest concise correct answer or expected answer text if the mark scheme provides one.
+- If the mark scheme does not determine a correct answer for an item, return an empty string for that item.
+- Do not return markdown.
+
+QUESTION PAPER TEXT:
+${questionPaperText}
+
+MARK SCHEME TEXT:
+${markSchemeText}
+
+EXISTING STRUCTURED PAYLOAD:
+${JSON.stringify(payload)}
+`;
+
+  const tryParse = (text: string) => {
+    const parsed = extractAndParseJSONSafe(text);
+    if (!parsed.ok || !parsed.data || !Array.isArray(parsed.data.items)) {
+      throw new InvalidAIResponseError("Invalid core test answer enrichment payload");
+    }
+
+    const entries = parsed.data.items
+      .filter((item: any) => typeof item?.id === "string")
+      .map((item: any) => ({
+        id: item.id.trim(),
+        correctAnswer: normalizeString(item?.correctAnswer),
+      }));
+
+    const answerMap: Record<string, string> = {};
+    for (const entry of entries) {
+      answerMap[entry.id] = entry.correctAnswer;
+    }
+
+    return answerMap;
+  };
+
+  try {
+    const text = await getGeminiTextFromEdge({
+      model: "gemini-2.5-flash",
+      prompt,
+      temp: 0.1,
       mode: "quiz",
       responseMimeType: "application/json",
       encryptedKeyPayload,
