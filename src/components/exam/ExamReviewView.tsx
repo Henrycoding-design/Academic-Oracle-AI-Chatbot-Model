@@ -1,11 +1,14 @@
 import React from 'react';
 import type { CoreTestPayload } from '../../types';
+import { ExamBackToChatButton } from './ExamBackToChatButton';
 import { MarkdownContent } from '../MarkdownContent';
 
 type ExamReviewViewProps = {
   title: string;
   payload: CoreTestPayload;
   onBack: () => void;
+  onBackToChat: () => void;
+  chatLabel: string;
   onRedo: () => void;
 };
 
@@ -13,10 +16,13 @@ export const ExamReviewView: React.FC<ExamReviewViewProps> = ({
   title,
   payload,
   onBack,
+  onBackToChat,
+  chatLabel,
   onRedo,
 }) => {
   return (
-    <div className="mx-auto flex w-full max-w-5xl flex-col gap-6 px-3 py-6 sm:px-4 sm:py-8">
+    <div className="relative mx-auto flex w-full max-w-5xl flex-col gap-6 px-3 pb-6 pt-20 sm:px-4 sm:pb-8 sm:pt-24 md:pt-8">
+      <ExamBackToChatButton onClick={onBackToChat} label={chatLabel} />
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-indigo-500 dark:text-indigo-300">
@@ -46,15 +52,22 @@ export const ExamReviewView: React.FC<ExamReviewViewProps> = ({
       <div className="space-y-4">
         {payload.items.map((item) => {
           const isUnanswered = !item.userAnswer.trim();
+          const itemScore = item.score ?? 0;
+          const itemMaxScore = item.maxScore ?? 1;
+          const isPartial = itemScore > 0 && itemScore < itemMaxScore;
           const reviewState = isUnanswered
             ? 'unanswered'
-            : item.isCorrect
-              ? 'correct'
-              : 'incorrect';
+            : isPartial
+              ? 'partial'
+              : item.isCorrect || itemScore >= itemMaxScore
+                ? 'correct'
+                : 'incorrect';
 
           const cardClassName =
             reviewState === 'correct'
               ? 'border-emerald-200 bg-emerald-50/40 dark:border-emerald-900/40 dark:bg-emerald-950/10'
+              : reviewState === 'partial'
+                ? 'border-amber-200 bg-amber-50/40 dark:border-amber-900/40 dark:bg-amber-950/10'
               : reviewState === 'incorrect'
                 ? 'border-rose-200 bg-rose-50/40 dark:border-rose-900/40 dark:bg-rose-950/10'
                 : 'border-black/5 bg-white dark:border-white/10 dark:bg-slate-900';
@@ -62,6 +75,8 @@ export const ExamReviewView: React.FC<ExamReviewViewProps> = ({
           const badgeClassName =
             reviewState === 'correct'
               ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300'
+              : reviewState === 'partial'
+                ? 'bg-amber-100 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300'
               : reviewState === 'incorrect'
                 ? 'bg-rose-100 text-rose-700 dark:bg-rose-950/40 dark:text-rose-300'
                 : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300';
@@ -69,6 +84,8 @@ export const ExamReviewView: React.FC<ExamReviewViewProps> = ({
           const badgeText =
             reviewState === 'correct'
               ? 'Correct'
+              : reviewState === 'partial'
+                ? 'Partial'
               : reviewState === 'incorrect'
                 ? 'Incorrect'
                 : 'Unanswered';

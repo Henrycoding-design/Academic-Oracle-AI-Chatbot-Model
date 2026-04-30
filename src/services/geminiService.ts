@@ -11,7 +11,7 @@
  */
 
 import { supabase } from "./supabaseClient";
-import type { ChatHistoryItem, CoreTestPayload, Message, OracleResponse, QuizConfig, QuizQuestion, QuizResult} from '../types';
+import type { ChatHistoryItem, CoreTestGradingStyle, CoreTestPayload, Message, OracleResponse, QuizConfig, QuizQuestion, QuizResult} from '../types';
 import { InvalidAIResponseError , InvalidAPIError, GuardResult} from "../types";
 import { AppLanguage } from "../lang/Language";
 import { classifyIntent } from "./chatIntentClassifier";
@@ -93,9 +93,37 @@ const normalizeNullableNumber = (value: unknown): number | null => {
   return value;
 };
 
+const roundScore = (value: number) => Math.round(value * 10) / 10;
+
 const normalizeCoreTestItemType = (value: unknown): "open" | "mcq" => {
   if (value === "mcq") return "mcq";
   return "open";
+};
+
+const normalizeCoreTestGradingStyle = (value: unknown): CoreTestGradingStyle => {
+  if (typeof value !== "string") return "default";
+  const normalized = value.trim().toLowerCase();
+
+  if (["ap", "ielts", "sat", "act", "cambridge"].includes(normalized)) {
+    return normalized as CoreTestGradingStyle;
+  }
+
+  return "default";
+};
+
+const normalizeCoreTestHints = (item: any) => {
+  const hints = item?.hints && typeof item.hints === "object" ? item.hints : {};
+  const general = normalizeString(hints.general ?? item?.generalHint);
+  const specific = normalizeString(hints.specific ?? item?.specificHint);
+  const solution = normalizeString(hints.solution ?? item?.solutionHint ?? item?.explanation);
+
+  if (!general && !specific && !solution) return undefined;
+
+  return {
+    general,
+    specific,
+    solution,
+  };
 };
 
 const normalizeCoreTestPayload = (data: any): CoreTestPayload | null => {
@@ -141,6 +169,7 @@ const normalizeCoreTestPayload = (data: any): CoreTestPayload | null => {
         markScheme: normalizeString(
           item?.markScheme ?? item?.referenceAnswer ?? item?.correctAnswer,
         ),
+        hints: normalizeCoreTestHints(item),
         userAnswer: normalizeString(item?.userAnswer),
         isCorrect,
         score,
@@ -154,11 +183,16 @@ const normalizeCoreTestPayload = (data: any): CoreTestPayload | null => {
     return null;
   }
 
-  const gradedItems = items.filter((item) => item.isCorrect !== null);
+  const gradedItems = items.filter((item) => item.isCorrect !== null || item.score !== null);
   const derivedCorrect = gradedItems.filter((item) => item.isCorrect).length;
-  const derivedTotal = items.length;
+  const derivedEarnedScore = roundScore(
+    gradedItems.reduce((sum, item) => sum + Math.max(0, item.score ?? 0), 0),
+  );
+  const derivedTotal = roundScore(
+    items.reduce((sum, item) => sum + Math.max(0, item.maxScore ?? 1), 0),
+  );
   const derivedPercentage = derivedTotal > 0
-    ? Math.round((derivedCorrect / derivedTotal) * 100)
+    ? Math.round((derivedEarnedScore / derivedTotal) * 100)
     : 0;
   const derivedUsedMarkScheme = items.some((item) => item.markScheme.length > 0);
 
@@ -171,23 +205,25 @@ const normalizeCoreTestPayload = (data: any): CoreTestPayload | null => {
 
     if (correct !== null && total !== null && percentage !== null) {
       summary = {
-        correct: Math.max(0, Math.round(correct)),
-        total: Math.max(0, Math.round(total)),
+        correct: roundScore(Math.max(0, correct)),
+        total: roundScore(Math.max(0, total)),
         percentage: Math.max(0, Math.min(100, Math.round(percentage))),
         usedMarkScheme:
           typeof data.summary.usedMarkScheme === "boolean"
             ? data.summary.usedMarkScheme
             : derivedUsedMarkScheme,
+        gradingStyle: normalizeCoreTestGradingStyle(data.summary.gradingStyle),
       };
     }
   }
 
   if (!summary && gradedItems.length > 0) {
     summary = {
-      correct: derivedCorrect,
+      correct: derivedEarnedScore || derivedCorrect,
       total: derivedTotal,
       percentage: derivedPercentage,
       usedMarkScheme: derivedUsedMarkScheme,
+      gradingStyle: normalizeCoreTestGradingStyle(data.summary?.gradingStyle),
     };
   }
 
@@ -1129,7 +1165,7 @@ Task:
 4. Do not invent questions that are not grounded in the provided text.
 5. Keep the output concise and structured for UI rendering.
 6. Rewrite each extracted question into its fullest clear exam-ready form without omitting any original requirement, constraint, instruction, or context.
-7. Return question text in markdown-friendly form so the UI can render emphasis and lists correctly.
+7. Return question and hint text in markdown-friendly form so the UI can render emphasis, lists, tables, and math clearly.
 
 Return STRICT JSON ONLY with this exact schema:
 {
@@ -1144,6 +1180,11 @@ Return STRICT JSON ONLY with this exact schema:
       "options": ["A", "B", "C", "D"],
       "correctAnswer": "exact correct option text for MCQ, empty string if unknown or if open response",
       "markScheme": "relevant marking points or expected answer, empty string if unavailable",
+      "hints": {
+        "general": "broad strategy clue without giving away the answer",
+        "specific": "targeted clue about what concept or evidence to use without directly stating the final answer",
+        "solution": "full solution or expected response with concise explanation"
+      },
       "userAnswer": "",
       "isCorrect": null,
       "score": null,
@@ -1164,9 +1205,17 @@ Rules:
 - Do not rewrite one sub-question so that it also includes sibling parts like '9(b)' or '9(c)'.
 - Example: if '9(a)', '9(b)', and '9(c)' are separate asks, the '9(a)' item must contain only the content needed for '9(a)'.
 - Preserve bullet points, numbering, sub-parts, and line breaks in the "prompt" field.
-- Explicitly use markdown for structure when appropriate:
+- Use markdown standards inside "prompt" and "hints" string fields when they improve readability:
   - **bold** for important labels, headings, or emphasis
   - *italic* for softer emphasis or named terms when appropriate
+  - Bullet lists or numbered lists for multi-step instructions, grouped evidence, or answer requirements.
+  - Markdown tables for source tables, datasets, option matrices, matching questions, or values that need row/column alignment.
+  - Inline math with \\(...\\) for short formulas, symbols, units, variables, or equations inside a sentence.
+  - Block math with \\[...\\] for standalone equations, derivations, or calculation setups.
+  - Use clean line breaks between context, data, and the actual question ask.
+- Preserve tables from the source as markdown tables whenever the row/column relationship matters.
+- Preserve mathematical notation faithfully. Do not flatten fractions, powers, roots, subscripts, functions, units, or inequalities into ambiguous plain text.
+- In "hints", use the same formatting standards when a hint includes formulas, steps, mini tables, or a worked solution.
 - Preserve bold and italic emphasis using markdown formatting when it is clearly implied by the source.
 - If a question has multiple requirements, keep all of them together in the same item unless the paper clearly separates them into sub-questions.
 - If the paper contains numbered sections, keep that numbering in "questionNumber".
@@ -1179,7 +1228,12 @@ Rules:
 - For "mcq", set "correctAnswer" to the exact option text when it can be determined from the paper or mark scheme context.
 - For "open", return an empty array for "options".
 - If a question has no mark scheme match, keep "markScheme" as an empty string.
-- Do not return markdown.
+- Always include "hints":
+  - "general" gives a broad approach, command-word reminder, formula family, or topic clue.
+  - "specific" points to the key concept, method, evidence, or first useful step without directly stating the final answer.
+  - "solution" gives the answer or solved method with a concise explanation. Use the mark scheme when available; otherwise use careful academic judgment.
+- Return raw JSON only. Do not wrap the response in markdown, code fences, or explanatory text.
+- Markdown syntax is allowed only inside JSON string fields such as "prompt" and "hints" when it improves rendering.
 
 QUESTION PAPER TEXT:
 ${questionPaperText}
@@ -1216,7 +1270,7 @@ ${markSchemeText?.trim() ? markSchemeText : "No mark scheme provided."}
   } catch (err) {
     if (isRetryableAIError(err) || isRateLimitError(err) || isUnavailableError(err)) {
       const retryText = await getGeminiTextFromEdge({
-        model: "gemini-2.5-flash-lite",
+        model: "gemini-3.1-flash-lite-preview",
         prompt,
         temp: 0.1,
         mode: "quiz",
@@ -1264,7 +1318,7 @@ Rules:
 - For MCQ, return the exact correct option text.
 - For open response, return the clearest concise correct answer or expected answer text if the mark scheme provides one.
 - If the mark scheme does not determine a correct answer for an item, return an empty string for that item.
-- Do not return markdown.
+- Return raw JSON only. Do not wrap the response in markdown, code fences, or explanatory text.
 
 QUESTION PAPER TEXT:
 ${questionPaperText}
@@ -1331,8 +1385,23 @@ export const gradeCoreTestPayload = async (
   payload: CoreTestPayload,
   questionPaperText: string,
   markSchemeText: string | null,
+  gradingStyle: CoreTestGradingStyle,
   encryptedKeyPayload: any
 ): Promise<CoreTestPayload> => {
+  const normalizedGradingStyle = normalizeCoreTestGradingStyle(gradingStyle);
+  const stylePolicy =
+    normalizedGradingStyle === "ap"
+      ? "AP style: award rubric points for defensible reasoning, correct method, and required evidence. Use a 1-5 estimated grade from the final percentage."
+      : normalizedGradingStyle === "ielts"
+        ? "IELTS style: grade written responses with band-descriptor thinking for task response, accuracy, coherence, and relevant vocabulary. Convert the final percentage to an estimated 0-9 band."
+        : normalizedGradingStyle === "sat"
+          ? "SAT style: grade objective items strictly, evidence/grammar/math items by accuracy, and convert the final percentage to an estimated SAT section score."
+          : normalizedGradingStyle === "act"
+            ? "ACT style: grade objective items strictly and convert the final percentage to an estimated 1-36 scale score."
+            : normalizedGradingStyle === "cambridge"
+              ? "Cambridge style: follow mark scheme points closely, award partial credit for valid working and required keywords, and convert final percentage to an estimated A*-U grade."
+              : "Default style: use the mark scheme first, then academic judgment. Award partial marks where the response deserves them.";
+
   const prompt = `
 System Language (FORCED INPUT/OUTPUT CONTENT LANGUAGE): ${resolveOutputLanguage(language)}
 
@@ -1347,7 +1416,12 @@ Grading policy:
 - Use the mark scheme first whenever it is available and relevant.
 - If no mark scheme exists for an item, use your own academic judgment based on the question.
 - Grade strictly but fairly.
-- This Phase 1 system uses binary scoring per item: score 1 if acceptable/correct, 0 if not.
+- Selected grading style: ${normalizedGradingStyle.toUpperCase()}.
+- ${stylePolicy}
+- Use maxScore as the available marks for each item.
+- Award partial credit when the selected grading style, mark scheme, or student response quality supports it.
+- For MCQ, score full marks for the correct fixed option and 0 for an incorrect fixed option unless the question explicitly supports multiple selections or partial credit.
+- For open responses, score from 0 to maxScore.
 
 Return STRICT JSON ONLY using the SAME schema as the input payload:
 {
@@ -1362,18 +1436,24 @@ Return STRICT JSON ONLY using the SAME schema as the input payload:
       "options": ["A", "B", "C", "D"],
       "correctAnswer": "exact correct option text for MCQ, empty string if unknown or if open response",
       "markScheme": "relevant marking points or expected answer, empty string if unavailable",
+      "hints": {
+        "general": "broad strategy clue",
+        "specific": "targeted clue",
+        "solution": "full solution with concise explanation"
+      },
       "userAnswer": "student answer",
       "isCorrect": true,
-      "score": 1,
+      "score": 0.5,
       "maxScore": 1,
       "feedback": "brief grading note"
     }
   ],
   "summary": {
-    "correct": 1,
+    "correct": 0.5,
     "total": 1,
-    "percentage": 100,
-    "usedMarkScheme": true
+    "percentage": 50,
+    "usedMarkScheme": true,
+    "gradingStyle": "${normalizedGradingStyle}"
   }
 }
 
@@ -1382,10 +1462,15 @@ Rules:
 - Preserve item type and options.
 - Every item must include feedback.
 - "usedMarkScheme" must be true if any grading used the provided mark scheme.
+- "summary.correct" is total earned marks, not the number of correct questions.
+- "summary.total" is total available marks.
+- "summary.percentage" must be based on earned marks divided by available marks.
+- "summary.gradingStyle" must be "${normalizedGradingStyle}".
 - For MCQ items, determine correctness against the exact fixed response set already implied by the question.
 - MCQ does not have to use A/B/C/D labels and may use any finite option list.
 - For MCQ items, populate "correctAnswer" with the exact correct option text if it can be determined.
-- Do not return markdown.
+- Preserve or improve each item's "hints" object. The "solution" hint should match the final correct answer and grading feedback.
+- Return raw JSON only. Do not wrap the response in markdown, code fences, or explanatory text.
 
 QUESTION PAPER TEXT:
 ${questionPaperText}
@@ -1425,7 +1510,7 @@ ${JSON.stringify(payload)}
   } catch (err) {
     if (isRetryableAIError(err) || isRateLimitError(err) || isUnavailableError(err)) {
       const retryText = await getGeminiTextFromEdge({
-        model: "gemini-2.5-flash-lite",
+        model: "gemini-3.1-flash-lite-preview",
         prompt,
         temp: 0.1,
         mode: "quiz",

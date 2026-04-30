@@ -195,7 +195,7 @@ export const QuizView: React.FC<QuizViewProps> = ({
       <div className="relative flex h-full flex-col items-center justify-center p-4 pt-24 sm:p-6 sm:pt-24 animate-in fade-in zoom-in duration-300">
         <button
           onClick={onBack}
-          className="absolute left-4 top-4 z-30 flex items-center gap-2 px-3 py-1.5 sm:left-6 sm:top-6
+          className="absolute left-4 top-4 z-30 flex items-center gap-2 px-3 py-1.5 sm:left-6 sm:top-6 md:hidden
                     rounded-full
                     bg-white/75 dark:bg-slate-900/70
                     backdrop-blur-md
@@ -284,7 +284,7 @@ export const QuizView: React.FC<QuizViewProps> = ({
       <div className="relative h-full">
         <button
           onClick={onBack}
-          className="sticky left-0 top-4 z-30 ml-4 inline-flex items-center gap-2 px-3 py-1.5 sm:ml-6
+          className="sticky left-0 top-4 z-30 ml-4 inline-flex items-center gap-2 px-3 py-1.5 sm:ml-6 md:hidden
                     rounded-full
                     bg-white/85 dark:bg-slate-900/80
                     backdrop-blur-md
@@ -403,7 +403,7 @@ export const QuizView: React.FC<QuizViewProps> = ({
     <div className="relative flex h-full flex-col items-center justify-center p-4 pt-24 sm:p-6 sm:pt-24 animate-in fade-in">
       <button
         onClick={onBack}
-        className="absolute left-4 top-4 z-30 flex items-center gap-2 px-3 py-1.5 sm:left-6 sm:top-6
+        className="absolute left-4 top-4 z-30 flex items-center gap-2 px-3 py-1.5 sm:left-6 sm:top-6 md:hidden
                   rounded-full
                   bg-white/75 dark:bg-slate-900/70
                   backdrop-blur-md

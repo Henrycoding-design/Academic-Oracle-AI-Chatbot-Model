@@ -25,7 +25,7 @@ import { createPortal } from "react-dom";
 import { useClickOutside } from './services/useClickOutside.ts';
 import { generateSessionSummary } from './services/geminiService.ts';
 import { createSummaryDoc } from './services/createSummaryDoc.ts';
-import { Sparkles, SquarePen, ChevronDown, BrainCircuit, LogOut, User, LayoutDashboard, Menu, X, FileText } from 'lucide-react';
+import { Sparkles, SquarePen, ChevronDown, BrainCircuit, LogOut, User, LayoutDashboard, Menu, X, FileText, MessageSquare } from 'lucide-react';
 import ProfilePage from './ProfilePage.tsx';
 import { QuizView } from './components/QuizView'; // Added QuizView
 import DashboardView from './components/DashboardView.tsx';
@@ -1279,6 +1279,18 @@ const App: React.FC = () => {
 
               <button
                 className={`p-2 rounded-lg transition-colors ${
+                  currentView === 'chat'
+                    ? 'bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400'
+                    : 'hover:bg-black/5 dark:hover:bg-white/10 text-slate-700 dark:text-slate-200'
+                }`}
+                onClick={() => goToView("/")}
+                title={LANGUAGE_DATA[language].ui.chat}
+              >
+                <MessageSquare size={18} />
+              </button>
+
+              <button
+                className={`p-2 rounded-lg transition-colors ${
                   currentView === 'dashboard'
                     ? 'bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400'
                     : 'hover:bg-black/5 dark:hover:bg-white/10 text-slate-700 dark:text-slate-200'
@@ -1547,6 +1559,7 @@ const App: React.FC = () => {
                   encryptedApiKey={encryptedApiKey}
                   onBack={() => navigate("/")}
                   onBusyChange={setIsCoreTestBusy}
+                  onAddToMemory={handleAddToMemory}
                 />
               </div>
             )}

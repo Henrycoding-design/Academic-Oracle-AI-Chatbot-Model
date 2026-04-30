@@ -120,7 +120,7 @@ const DashboardView: React.FC<DashboardViewProps> = ({
         <div className="absolute bottom-12 left-1/3 h-28 w-28 rounded-full bg-amber-200/15 blur-3xl animate-pulse dark:bg-amber-500/10" style={{ animationDelay: "2.2s" }} />
       </div>
 
-      <div className="sticky top-3 z-30 mb-4 w-fit sm:top-4">
+      <div className="sticky top-3 z-30 mb-4 w-fit sm:top-4 md:hidden">
         <button
           onClick={onBack}
           className="flex items-center gap-2 px-3 py-1.5 

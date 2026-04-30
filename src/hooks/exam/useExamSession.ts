@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { AppLanguage } from '../../lang/Language';
-import type { CoreTestPayload } from '../../types';
+import type { CoreTestGradingStyle, CoreTestPayload } from '../../types';
 import { readFileAsText } from '../../services/fileReader';
 import {
   enrichCoreTestCorrectAnswers,
@@ -27,7 +27,8 @@ export interface ExamSession {
   payload: CoreTestPayload;
 }
 
-export type ExamHelpLevel = 'none' | 'standard' | 'guided';
+export type ExamHelpLevel = 'none' | 'general' | 'specific' | 'solution';
+export type ExamGradingStyle = CoreTestGradingStyle;
 
 export type ExamFilesState = {
   questionPaperName: string;
@@ -47,6 +48,7 @@ type StoredExamState = {
   session: ExamSession;
   files: ExamFilesState;
   helpLevel: ExamHelpLevel;
+  gradingStyle: ExamGradingStyle;
   activeJob: ExamActiveJob;
   error: string | null;
 };
@@ -86,6 +88,36 @@ const createDefaultFiles = (): ExamFilesState => ({
   questionPaperRaw: '',
   markSchemeRaw: '',
 });
+
+const normalizeHelpLevel = (value: unknown): ExamHelpLevel => {
+  if (
+    value === 'none' ||
+    value === 'general' ||
+    value === 'specific' ||
+    value === 'solution'
+  ) {
+    return value;
+  }
+
+  if (value === 'standard') return 'general';
+  if (value === 'guided') return 'specific';
+
+  return 'general';
+};
+
+const normalizeGradingStyle = (value: unknown): ExamGradingStyle => {
+  if (
+    value === 'ap' ||
+    value === 'ielts' ||
+    value === 'sat' ||
+    value === 'act' ||
+    value === 'cambridge'
+  ) {
+    return value;
+  }
+
+  return 'default';
+};
 
 const normalizeExtractedText = (text: string) =>
   text
@@ -138,13 +170,15 @@ const resetPayloadForAttempt = (payload: CoreTestPayload): CoreTestPayload => ({
 
 const buildUnansweredSubmissionPayload = (
   payload: CoreTestPayload,
+  gradingStyle: ExamGradingStyle,
 ): CoreTestPayload => ({
   ...payload,
   summary: {
     correct: 0,
-    total: payload.items.length,
+    total: payload.items.reduce((sum, item) => sum + (item.maxScore ?? 1), 0),
     percentage: 0,
     usedMarkScheme: false,
+    gradingStyle,
   },
   items: payload.items.map((item) => ({
     ...item,
@@ -166,16 +200,20 @@ export const useExamSession = ({
     storedState?.files ?? createDefaultFiles(),
   );
   const [helpLevel, setHelpLevel] = useState<ExamHelpLevel>(
-    storedState?.helpLevel ?? 'standard',
+    normalizeHelpLevel(storedState?.helpLevel),
+  );
+  const [gradingStyle, setGradingStyle] = useState<ExamGradingStyle>(
+    normalizeGradingStyle(storedState?.gradingStyle),
   );
   const [activeJob, setActiveJob] = useState<ExamActiveJob>(
-    storedState?.activeJob ?? null,
+    null,
   );
   const [error, setError] = useState<string | null>(
     storedState?.error ?? null,
   );
   const sessionRef = useRef(session);
   const filesRef = useRef(files);
+  const activeJobRef = useRef<ExamActiveJob>(activeJob);
 
   useEffect(() => {
     sessionRef.current = session;
@@ -186,16 +224,21 @@ export const useExamSession = ({
   }, [files]);
 
   useEffect(() => {
+    activeJobRef.current = activeJob;
+  }, [activeJob]);
+
+  useEffect(() => {
     if (typeof window === 'undefined') return;
 
     sessionStorage.setItem(STORAGE_KEY, JSON.stringify({
       session,
       files,
       helpLevel,
+      gradingStyle,
       activeJob,
       error,
     }));
-  }, [activeJob, error, files, helpLevel, session]);
+  }, [activeJob, error, files, gradingStyle, helpLevel, session]);
 
   const updateSession: UpdateExamSession = useCallback((next) => {
     setSession((previous) => {
@@ -208,6 +251,35 @@ export const useExamSession = ({
       return resolved;
     });
   }, []);
+
+  const startActiveJob = (job: Exclude<ExamActiveJob, null>) => {
+    if (activeJobRef.current !== null) {
+      setError('Another exam file is still processing. Please wait for it to finish before starting a new upload.');
+      return false;
+    }
+
+    activeJobRef.current = job;
+    setActiveJob(job);
+    return true;
+  };
+
+  const finishActiveJob = (job: Exclude<ExamActiveJob, null>) => {
+    if (activeJobRef.current !== job) return;
+
+    activeJobRef.current = null;
+    setActiveJob(null);
+  };
+
+  const switchActiveJob = (
+    fromJob: Exclude<ExamActiveJob, null>,
+    toJob: Exclude<ExamActiveJob, null>,
+  ) => {
+    if (activeJobRef.current !== fromJob) return false;
+
+    activeJobRef.current = toJob;
+    setActiveJob(toJob);
+    return true;
+  };
 
   const setDurationSeconds = (durationSeconds: number) => {
     updateSession((prev) => ({
@@ -247,17 +319,19 @@ export const useExamSession = ({
   const loadQuestionPaper = async (file?: File) => {
     if (!file) return;
 
+    if (!startActiveJob('questions')) return;
+
     const isPdf =
       file.type === 'application/pdf' ||
       file.name.toLowerCase().endsWith('.pdf');
 
     if (!isPdf) {
       setError('PDF files only for this test system.');
+      finishActiveJob('questions');
       return;
     }
 
     setError(null);
-    setActiveJob('questions');
 
     try {
       const rawText = normalizeExtractedText(await readFileAsText(file));
@@ -268,7 +342,7 @@ export const useExamSession = ({
         questionPaperRaw: rawText,
       }));
 
-      setActiveJob('structuring');
+      switchActiveJob('questions', 'structuring');
 
       const structured = await structureCoreTestFromPdf(
         language,
@@ -294,12 +368,14 @@ export const useExamSession = ({
       console.error(uploadError);
       setError('Failed to read or structure the question paper PDF.');
     } finally {
-      setActiveJob(null);
+      finishActiveJob('structuring');
     }
   };
 
   const loadMarkScheme = async (file?: File) => {
     if (!file) return;
+
+    if (!startActiveJob('markscheme')) return;
 
     const isPdf =
       file.type === 'application/pdf' ||
@@ -307,11 +383,11 @@ export const useExamSession = ({
 
     if (!isPdf) {
       setError('PDF files only for this test system.');
+      finishActiveJob('markscheme');
       return;
     }
 
     setError(null);
-    setActiveJob('markscheme');
 
     try {
       const rawText = normalizeExtractedText(await readFileAsText(file));
@@ -323,7 +399,7 @@ export const useExamSession = ({
       }));
 
       if (!filesRef.current.questionPaperRaw.trim()) {
-        setActiveJob(null);
+        finishActiveJob('markscheme');
         return;
       }
 
@@ -349,7 +425,7 @@ export const useExamSession = ({
       console.error(uploadError);
       setError('Failed to read or enrich correct answers from the mark scheme PDF.');
     } finally {
-      setActiveJob(null);
+      finishActiveJob('markscheme');
     }
   };
 
@@ -388,7 +464,7 @@ export const useExamSession = ({
         stage: 'results',
         status: 'graded',
         submittedAt: Date.now(),
-        payload: buildUnansweredSubmissionPayload(prev.payload),
+        payload: buildUnansweredSubmissionPayload(prev.payload, gradingStyle),
       }));
       return;
     }
@@ -408,6 +484,7 @@ export const useExamSession = ({
         currentFiles.markSchemeRaw.trim()
           ? currentFiles.markSchemeRaw
           : null,
+        gradingStyle,
         encryptedApiKey,
       );
 
@@ -430,6 +507,102 @@ export const useExamSession = ({
     }
   };
 
+  const retryLastFailedAction = async () => {
+    const currentError = error;
+    const currentFiles = filesRef.current;
+    const currentSession = sessionRef.current;
+
+    if (!currentError) return;
+
+    if (
+      currentError.includes('structure the question paper') &&
+      currentFiles.questionPaperRaw.trim()
+    ) {
+      setError(null);
+      setActiveJob('structuring');
+
+      try {
+        const structured = await structureCoreTestFromPdf(
+          language,
+          currentFiles.questionPaperRaw,
+          currentFiles.markSchemeRaw.trim()
+            ? currentFiles.markSchemeRaw
+            : null,
+          encryptedApiKey,
+        );
+
+        updateSession((prev) => ({
+          ...prev,
+          stage: 'setup',
+          status: 'idle',
+          startedAt: undefined,
+          submittedAt: undefined,
+          endTimestamp: undefined,
+          activeQuestionIndex: 0,
+          flaggedQuestionIds: [],
+          payload: mergeUserAnswers(structured, prev.payload),
+        }));
+      } catch (retryError) {
+        console.error(retryError);
+        setError('Failed to read or structure the question paper PDF.');
+      } finally {
+        setActiveJob(null);
+      }
+      return;
+    }
+
+    if (
+      currentError.includes('enrich correct answers') &&
+      currentFiles.questionPaperRaw.trim() &&
+      currentFiles.markSchemeRaw.trim()
+    ) {
+      setError(null);
+      setActiveJob('markscheme');
+
+      try {
+        const answerMap = await enrichCoreTestCorrectAnswers(
+          language,
+          currentSession.payload,
+          currentFiles.questionPaperRaw,
+          currentFiles.markSchemeRaw,
+          encryptedApiKey,
+        );
+
+        updateSession((prev) => ({
+          ...prev,
+          payload: {
+            ...prev.payload,
+            items: prev.payload.items.map((item) => ({
+              ...item,
+              correctAnswer: answerMap[item.id] ?? item.correctAnswer,
+            })),
+          },
+        }));
+      } catch (retryError) {
+        console.error(retryError);
+        setError('Failed to read or enrich correct answers from the mark scheme PDF.');
+      } finally {
+        setActiveJob(null);
+      }
+      return;
+    }
+
+    if (currentError.includes('grade the exam submission')) {
+      await submitExam();
+      return;
+    }
+
+    if (currentError.includes('No structured questions')) {
+      updateSession((prev) => ({
+        ...prev,
+        stage: 'setup',
+        status: 'idle',
+      }));
+    }
+
+    setError(null);
+  };
+
   const redoExam = () => {
     updateSession((prev) => ({
       ...prev,
@@ -447,7 +620,8 @@ export const useExamSession = ({
   const clearSession = () => {
     setSession(createDefaultSession());
     setFiles(createDefaultFiles());
-    setHelpLevel('standard');
+    setHelpLevel('general');
+    setGradingStyle('default');
     setActiveJob(null);
     setError(null);
 
@@ -460,11 +634,13 @@ export const useExamSession = ({
     session,
     files,
     helpLevel,
+    gradingStyle,
     activeJob,
     error,
     updateSession,
     setDurationSeconds,
     setHelpLevel,
+    setGradingStyle,
     setError,
     goToStage,
     updateAnswer,
@@ -472,6 +648,7 @@ export const useExamSession = ({
     loadMarkScheme,
     startExam,
     submitExam,
+    retryLastFailedAction,
     redoExam,
     clearSession,
   };

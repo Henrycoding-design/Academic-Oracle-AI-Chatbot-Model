@@ -98,6 +98,11 @@ export interface CoreTestItem {
   options: string[];
   correctAnswer: string;
   markScheme: string;
+  hints?: {
+    general: string;
+    specific: string;
+    solution: string;
+  };
   userAnswer: string;
   isCorrect: boolean | null;
   score: number | null;
@@ -105,11 +110,20 @@ export interface CoreTestItem {
   feedback: string;
 }
 
+export type CoreTestGradingStyle =
+  | 'default'
+  | 'ap'
+  | 'ielts'
+  | 'sat'
+  | 'act'
+  | 'cambridge';
+
 export interface CoreTestSummary {
   correct: number;
   total: number;
   percentage: number;
   usedMarkScheme: boolean;
+  gradingStyle?: CoreTestGradingStyle;
 }
 
 export interface CoreTestPayload {

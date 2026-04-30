@@ -1,5 +1,6 @@
 import React from 'react';
 import { Clock3, FileText, Flag, Play } from 'lucide-react';
+import { ExamBackToChatButton } from './ExamBackToChatButton';
 import { MarkdownContent } from '../MarkdownContent';
 
 type ExamInstructionViewProps = {
@@ -10,6 +11,8 @@ type ExamInstructionViewProps = {
   helpLevel: string;
   instructionsText: string;
   onBack: () => void;
+  onBackToChat: () => void;
+  chatLabel: string;
   onStart: () => void;
 };
 
@@ -32,17 +35,23 @@ export const ExamInstructionView: React.FC<ExamInstructionViewProps> = ({
   helpLevel,
   instructionsText,
   onBack,
+  onBackToChat,
+  chatLabel,
   onStart,
 }) => {
   return (
-    <div className="mx-auto flex w-full max-w-4xl flex-col gap-6 px-3 py-6 sm:px-4 sm:py-8">
-      <div>
-        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-indigo-500 dark:text-indigo-300">
-          Exam Instructions
-        </p>
-        <h1 className="mt-1 text-2xl font-semibold text-slate-900 dark:text-slate-100">
-          {title}
-        </h1>
+    <div className="relative mx-auto flex w-full max-w-4xl flex-col gap-6 px-3 pb-6 pt-20 sm:px-4 sm:pb-8 sm:pt-24 md:pt-8">
+      <ExamBackToChatButton onClick={onBackToChat} label={chatLabel} />
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-indigo-500 dark:text-indigo-300">
+            Exam Instructions
+          </p>
+          <h1 className="mt-1 text-2xl font-semibold text-slate-900 dark:text-slate-100">
+            {title}
+          </h1>
+        </div>
+
       </div>
 
       <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">

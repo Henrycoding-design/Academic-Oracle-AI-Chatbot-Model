@@ -1,6 +1,8 @@
-import React from 'react';
-import { AlertTriangle, ChevronLeft, ChevronRight, Clock3, Flag, Send } from 'lucide-react';
+import React, { useMemo, useState } from 'react';
+import { AlertTriangle, ChevronLeft, ChevronRight, Clock3, Flag, Lightbulb, LoaderCircle, Send } from 'lucide-react';
 import type { CoreTestItem } from '../../types';
+import type { ExamHelpLevel } from '../../hooks/exam/useExamSession';
+import { ExamErrorBanner } from './ExamErrorBanner';
 import { MarkdownContent } from '../MarkdownContent';
 
 type RuntimeToast = {
@@ -13,17 +15,21 @@ type ExamRuntimeViewProps = {
   activeQuestionIndex: number;
   currentQuestion: CoreTestItem | null;
   remainingMs: number;
+  helpLevel: ExamHelpLevel;
   isPaused: boolean;
   isSubmitting: boolean;
   unansweredCount: number;
   flaggedCount: number;
   toasts: RuntimeToast[];
+  error: string | null;
+  isRetrying: boolean;
   isResumeModalOpen: boolean;
   isSubmitConfirmOpen: boolean;
   onDismissResumeModal: () => void;
   onOpenSubmitConfirm: () => void;
   onCancelSubmitConfirm: () => void;
   onConfirmSubmit: () => void;
+  onRetryError: () => void;
   onAnswerChange: (questionId: string, answer: string) => void;
   onPrevious: () => void;
   onNext: () => void;
@@ -64,22 +70,68 @@ const getNavigatorClassName = (state: 'current' | 'answered' | 'unanswered' | 'f
   return 'border-slate-200 bg-white text-slate-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200';
 };
 
+const getFallbackHint = (question: CoreTestItem, helpLevel: ExamHelpLevel) => {
+  if (helpLevel === 'general') {
+    return question.type === 'mcq'
+      ? 'Read every option before selecting. Eliminate choices that contradict the question wording.'
+      : 'Identify the command word first, then list the key facts or steps the question is asking for.';
+  }
+
+  if (helpLevel === 'specific') {
+    return question.type === 'mcq'
+      ? 'Compare each option against the exact condition in the question, then choose the one that satisfies all parts.'
+      : `Start with the central concept, then add evidence, calculation, or explanation for each of the ${question.maxScore ?? 1} available mark(s).`;
+  }
+
+  if (helpLevel === 'solution') {
+    if (question.hints?.solution) return question.hints.solution;
+    if (question.correctAnswer) return `Expected answer: ${question.correctAnswer}`;
+    if (question.markScheme) return `Expected solution should cover: ${question.markScheme}`;
+    return 'No solution is available for this question yet.';
+  }
+
+  return '';
+};
+
+const getHintContent = (question: CoreTestItem, helpLevel: ExamHelpLevel) => {
+  if (helpLevel === 'none') return '';
+
+  const configuredHint =
+    helpLevel === 'general'
+      ? question.hints?.general
+      : helpLevel === 'specific'
+        ? question.hints?.specific
+        : question.hints?.solution;
+
+  return configuredHint || getFallbackHint(question, helpLevel);
+};
+
+const getHintLabel = (helpLevel: ExamHelpLevel) => {
+  if (helpLevel === 'solution') return 'Solution';
+  if (helpLevel === 'specific') return 'Specific Hint';
+  return 'Hint';
+};
+
 export const ExamRuntimeView: React.FC<ExamRuntimeViewProps> = ({
   items,
   activeQuestionIndex,
   currentQuestion,
   remainingMs,
+  helpLevel,
   isPaused,
   isSubmitting,
   unansweredCount,
   flaggedCount,
   toasts,
+  error,
+  isRetrying,
   isResumeModalOpen,
   isSubmitConfirmOpen,
   onDismissResumeModal,
   onOpenSubmitConfirm,
   onCancelSubmitConfirm,
   onConfirmSubmit,
+  onRetryError,
   onAnswerChange,
   onPrevious,
   onNext,
@@ -89,6 +141,23 @@ export const ExamRuntimeView: React.FC<ExamRuntimeViewProps> = ({
   isFlagged,
   isCurrent,
 }) => {
+  const [openHintQuestionIds, setOpenHintQuestionIds] = useState<string[]>([]);
+  const hintContent = useMemo(
+    () => currentQuestion ? getHintContent(currentQuestion, helpLevel) : '',
+    [currentQuestion, helpLevel],
+  );
+  const isHintOpen = currentQuestion
+    ? openHintQuestionIds.includes(currentQuestion.id)
+    : false;
+
+  const toggleHint = (questionId: string) => {
+    setOpenHintQuestionIds((prev) =>
+      prev.includes(questionId)
+        ? prev.filter((id) => id !== questionId)
+        : [...prev, questionId],
+    );
+  };
+
   return (
     <div className="relative mx-auto flex w-full max-w-7xl flex-col px-3 py-6 sm:px-4 sm:py-8">
       <header className="sticky top-0 z-20 rounded-2xl border border-black/5 bg-white/95 px-4 py-4 shadow-sm backdrop-blur dark:border-white/10 dark:bg-slate-950/95">
@@ -116,11 +185,25 @@ export const ExamRuntimeView: React.FC<ExamRuntimeViewProps> = ({
             disabled={isSubmitting}
             className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-indigo-700 disabled:cursor-not-allowed disabled:bg-slate-400"
           >
-            <Send className="h-4 w-4" />
+            {isSubmitting ? (
+              <LoaderCircle className="h-4 w-4 animate-spin" />
+            ) : (
+              <Send className="h-4 w-4" />
+            )}
             {isSubmitting ? 'Submitting...' : 'Submit'}
           </button>
         </div>
       </header>
+
+      {error && (
+        <div className="mt-4">
+          <ExamErrorBanner
+            message={error}
+            isRetrying={isRetrying}
+            onRetry={onRetryError}
+          />
+        </div>
+      )}
 
       <div className="mt-6 grid gap-6 lg:grid-cols-[260px_minmax(0,1fr)]">
         <aside className="rounded-2xl border border-black/5 bg-white p-4 shadow-sm dark:border-white/10 dark:bg-slate-900">
@@ -172,6 +255,24 @@ export const ExamRuntimeView: React.FC<ExamRuntimeViewProps> = ({
               <div className="mt-4 text-sm leading-6 text-slate-700 dark:text-slate-200">
                 <MarkdownContent content={currentQuestion.prompt} />
               </div>
+
+              {helpLevel !== 'none' && hintContent && (
+                <div className="mt-4">
+                  <button
+                    onClick={() => toggleHint(currentQuestion.id)}
+                    className="inline-flex items-center gap-2 rounded-lg border border-indigo-100 bg-indigo-50 px-3 py-2 text-sm font-medium text-indigo-700 transition-colors hover:bg-indigo-100 dark:border-indigo-900/40 dark:bg-indigo-950/20 dark:text-indigo-200 dark:hover:bg-indigo-950/40"
+                  >
+                    <Lightbulb className="h-4 w-4" />
+                    {isHintOpen ? 'Hide' : 'Show'} {getHintLabel(helpLevel)}
+                  </button>
+
+                  {isHintOpen && (
+                    <div className="mt-3 rounded-xl border border-indigo-100 bg-indigo-50/70 p-4 text-sm leading-6 text-indigo-900 dark:border-indigo-900/40 dark:bg-indigo-950/20 dark:text-indigo-100">
+                      <MarkdownContent content={hintContent} />
+                    </div>
+                  )}
+                </div>
+              )}
 
               {currentQuestion.type === 'mcq' && currentQuestion.options.length > 0 ? (
                 <div className="mt-5 grid gap-2">
