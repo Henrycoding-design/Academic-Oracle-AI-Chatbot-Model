@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { ExamSession, UpdateExamSession } from './useExamSession';
 
 type ExamTimerOptions = {
@@ -6,6 +6,7 @@ type ExamTimerOptions = {
   updateSession: UpdateExamSession;
   onAutoSubmit: () => void;
   onWarning: (message: string) => void;
+  isViewActive?: boolean;
 };
 
 type ExamTimerState = {
@@ -26,6 +27,7 @@ export const useExamTimer = ({
   updateSession,
   onAutoSubmit,
   onWarning,
+  isViewActive = true,
 }: ExamTimerOptions): ExamTimerState => {
   const [now, setNow] = useState(Date.now());
   const [isPaused, setIsPaused] = useState(false);
@@ -37,6 +39,20 @@ export const useExamTimer = ({
     300: false,
     60: false,
   });
+
+  const pauseExam = useCallback(() => {
+    if (pauseStartedAtRef.current) return;
+
+    pauseStartedAtRef.current = Date.now();
+    setNow(Date.now());
+    setIsPaused(true);
+  }, []);
+
+  const requestResumeAcknowledgement = useCallback(() => {
+    if (pauseStartedAtRef.current) {
+      setIsResumeModalOpen(true);
+    }
+  }, []);
 
   const remainingMs = useMemo(() => {
     if (!session.endTimestamp || session.stage !== 'runtime') {
@@ -118,21 +134,41 @@ export const useExamTimer = ({
     }
 
     const handleVisibilityChange = () => {
-      if (document.visibilityState === 'hidden' && !pauseStartedAtRef.current) {
-        pauseStartedAtRef.current = Date.now();
-        setIsPaused(true);
+      if (document.visibilityState === 'hidden') {
+        pauseExam();
         return;
       }
 
-      if (document.visibilityState === 'visible' && pauseStartedAtRef.current) {
-        setIsResumeModalOpen(true);
+      if (document.visibilityState === 'visible') {
+        requestResumeAcknowledgement();
       }
     };
 
     document.addEventListener('visibilitychange', handleVisibilityChange);
     return () =>
       document.removeEventListener('visibilitychange', handleVisibilityChange);
-  }, [session.stage, session.status]);
+  }, [pauseExam, requestResumeAcknowledgement, session.stage, session.status]);
+
+  useEffect(() => {
+    if (session.stage !== 'runtime' || session.status !== 'active') {
+      return;
+    }
+
+    if (!isViewActive) {
+      pauseExam();
+      return;
+    }
+
+    if (document.visibilityState === 'visible') {
+      requestResumeAcknowledgement();
+    }
+  }, [
+    isViewActive,
+    pauseExam,
+    requestResumeAcknowledgement,
+    session.stage,
+    session.status,
+  ]);
 
   const acknowledgeResume = () => {
     if (!pauseStartedAtRef.current) {

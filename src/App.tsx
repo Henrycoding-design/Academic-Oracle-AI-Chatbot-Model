@@ -1558,6 +1558,7 @@ const App: React.FC = () => {
                   language={language}
                   encryptedApiKey={encryptedApiKey}
                   onBack={() => navigate("/")}
+                  isViewActive={currentView === 'test'}
                   onBusyChange={setIsCoreTestBusy}
                   onAddToMemory={handleAddToMemory}
                 />

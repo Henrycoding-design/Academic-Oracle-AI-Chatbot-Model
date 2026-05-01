@@ -17,6 +17,7 @@ interface CoreTestViewProps {
   language: AppLanguage;
   encryptedApiKey: any;
   onBack: () => void;
+  isViewActive?: boolean;
   onBusyChange?: (isBusy: boolean) => void;
   onAddToMemory?: (summary: string, topicTag: string | null) => void;
 }
@@ -163,6 +164,7 @@ export const CoreTestView: React.FC<CoreTestViewProps> = ({
   language,
   encryptedApiKey,
   onBack,
+  isViewActive = true,
   onBusyChange,
   onAddToMemory,
 }) => {
@@ -227,6 +229,7 @@ export const CoreTestView: React.FC<CoreTestViewProps> = ({
         setToasts((prev) => prev.filter((toast) => toast.id !== toastId));
       }, 4000);
     },
+    isViewActive,
   });
 
   useEffect(() => {
@@ -369,10 +372,10 @@ export const CoreTestView: React.FC<CoreTestViewProps> = ({
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-indigo-500 dark:text-indigo-300">
-            Academic Oracle v2.5.0
+            Academic Oracle
           </p>
           <h1 className="mt-1 text-2xl font-semibold text-slate-900 dark:text-slate-100">
-            Professional Exam Runtime
+            Professional Exam Module
           </h1>
           <p className="mt-2 max-w-2xl text-sm text-slate-600 dark:text-slate-300">
             Upload source PDFs, prepare the exam session, and launch the multi-stage runtime without leaving this view.
