@@ -1,5 +1,22 @@
 [
   {
+    "version": "2.4.5",
+    "date": "2026-05-02",
+    "changes": [
+      { "type": "feature", "text": "Introduced full Exam Practice system simulating real-world conditions (timed, restricted help, no live feedback)." },
+      { "type": "improve", "text": "Added support for PDF, PNG, TXT, and DOCX in exam processing with automated text extraction and mark scheme parsing." },
+      { "type": "feature", "text": "Implemented multi-tier Help Level System (0-3) ranging from strict exam mode to full solutions with explanations." },
+      { "type": "improve", "text": "Enhanced AI grading logic using uploaded mark schemes with score, grade boundary estimation, and performance breakdown." },
+      { "type": "feature", "text": "Added 'examMemory' integration to track weak areas and mistake patterns, syncing with Oracle Memory for future learning." },
+      { "type": "improve", "text": "Integrated post-exam Review Mode with identified mistakes, improvement suggestions, and progressive reveal UX." },
+      { "type": "feature", "text": "Added full DOCX export support for exam results, including analytics, performance breakdown, and answers." },
+      { "type": "improve", "text": "Updated model orchestration: switched key evaluation tasks from gemini-2.5-flash to gemini-3.1-flash-preview." },
+      { "type": "improve", "text": "Refined anti-cheat mechanisms including tab-switch detection, warning banners, and timer pausing on window leave." },
+      { "type": "fix", "text": "Resolved race conditions in file uploads by disabling overlapping model requests and improving button feedback." },
+      { "type": "improve", "text": "Smoothed UI latency and added loading animations for more responsive feedback during complex AI tasks." }
+    ]
+  },
+  {
     "version": "2.4.2",
     "date": "2026-04-22",
     "changes": [

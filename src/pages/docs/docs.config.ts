@@ -8,4 +8,5 @@ export const docsConfig: DocConfig[] = [
   { slug: "auth", title: "Account & Access" },
   { slug: "aistudio", title: "Integration Notes" },
   { slug: "chatflow", title: "Learning Flow" },
+  { slug: "exampractice", title: "Exam Practice" },
 ];

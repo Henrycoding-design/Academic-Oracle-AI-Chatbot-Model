@@ -336,6 +336,7 @@ export const CoreTestView: React.FC<CoreTestViewProps> = ({
             estimatedGrade: grade,
             gradingStyleLabel,
             summary: resultSummary,
+            language,
           })
         }
         onAddToMemory={

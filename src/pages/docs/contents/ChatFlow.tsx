@@ -141,9 +141,41 @@ export default function ChatFlow() {
             </div>
           ))}
         </div>
-      </section>
+        </section>
 
-      {/* Visual Rendering Section */}
+        {/* The Exam Lifecycle (Exam Practice) */}
+        <section className="space-y-12">
+        <div className="flex flex-col gap-6 border-b border-white/5 pb-8 md:flex-row md:items-end md:justify-between">
+          <div className="max-w-xl">
+            <h3 className="text-3xl font-bold text-white mb-4 tracking-tight italic">Summative Performance</h3>
+            <p className="text-slate-400 leading-relaxed text-sm md:text-base">
+              The <strong>Exam Practice Module</strong> (v2.4.5) represents the final stage of the learning journey—transitioning from guided discovery to high-stakes simulation.
+            </p>
+          </div>
+          <div className="flex gap-1.5 pb-2">
+            <div className="h-1.5 w-6 rounded-full bg-white/10" />
+            <div className="h-1.5 w-6 rounded-full bg-white/10" />
+            <div className="h-1.5 w-12 rounded-full bg-indigo-500 shadow-[0_0_10px_rgba(99,102,241,0.5)]" />
+          </div>
+        </div>
+
+        <div className="grid gap-8 md:grid-cols-2">
+          <div className="p-8 rounded-[2rem] bg-indigo-500/5 border border-indigo-500/10 space-y-4">
+            <h4 className="text-indigo-400 font-bold uppercase tracking-widest text-xs">Simulation Phase</h4>
+            <p className="text-sm text-slate-400 leading-relaxed">
+              Real exam conditions: Timed sessions, no live feedback, and lightweight anti-cheat triggers. The goal is to measure retention and reasoning under pressure.
+            </p>
+          </div>
+          <div className="p-8 rounded-[2rem] bg-purple-500/5 border border-purple-500/10 space-y-4">
+            <h4 className="text-purple-400 font-bold uppercase tracking-widest text-xs">Evaluation Phase</h4>
+            <p className="text-sm text-slate-400 leading-relaxed">
+              AI-driven grading using provided mark schemes. We calculate scores, estimate grade boundaries, and map performance back to your learning profile.
+            </p>
+          </div>
+        </div>
+        </section>
+
+        {/* Visual Rendering Section */}
       <section className="space-y-8 py-10">
         <div className="inline-block px-3 py-1 rounded-full bg-white/5 border border-white/10 text-[10px] font-bold text-slate-400 uppercase tracking-[0.3em]">
             Visual Standards

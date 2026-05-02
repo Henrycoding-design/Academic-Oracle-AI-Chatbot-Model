@@ -107,7 +107,28 @@ You don’t just learn faster — you learn *properly*.
 
 ---
 
-### ⚙️ Intelligent Request Routing *(major update v2.4.0)*
+### 🎓 Exam Practice Module *(new v2.4.5)*
+
+- **Full Exam Simulation** — timed conditions, restricted help, and no live feedback to mimic real-world testing environments
+- **Multi-Format Input Support** — process exams from PDF, PNG, TXT, and DOCX with automated text and mark scheme extraction
+- **Tiered Help Level System**
+  - **Level 0:** Strict exam mode (no hints)
+  - **Level 1:** General conceptual hints
+  - **Level 2:** Specific guidance and scaffolding
+  - **Level 3:** Full solutions with detailed explanations
+- **AI-Based Grading & Evaluation**
+  - Instant grading using uploaded mark schemes
+  - Performance breakdown by topic and difficulty
+  - Estimated grade boundary mapping
+- **Review & Learning Integration**
+  - Per-question mistake identification and improvement suggestions
+  - **examMemory** system tracks weak areas and patterns
+  - Results sync with **Oracle Memory** to generate focused revision checklists
+- **Full Analytics Export** — download comprehensive DOCX reports including scores, breakdowns, and model answers
+
+---
+
+### ⚙️ Intelligent Request Routing *(major update v2.4.0, refined v2.4.5)*
 
 - **Gemini-first orchestration pipeline** — Chat / Quiz / Summary / Crons all prioritize Gemini models
 - OpenRouter used strictly as last-resort fallback with validation

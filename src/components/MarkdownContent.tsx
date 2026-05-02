@@ -131,7 +131,7 @@ const CodeBlock: React.FC<{ code: string; language?: string }> = ({
         <button
           onClick={handleCopy}
           className="p-1.5 rounded-md hover:bg-slate-300/50 dark:hover:bg-white/10 text-slate-600 dark:text-slate-400 transition-all duration-200 flex items-center justify-center active:scale-95"
-          aria-label={copied ? "Copied" : "Copy code"}
+          aria-label={copied ? LANGUAGE_DATA[appLanguage].tooltips.copied : LANGUAGE_DATA[appLanguage].tooltips.copyCode}
           title={copied ? LANGUAGE_DATA[appLanguage].tooltips.copied : LANGUAGE_DATA[appLanguage].tooltips.copyCode}
         >
           {copied ? (

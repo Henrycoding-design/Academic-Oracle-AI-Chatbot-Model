@@ -1,6 +1,7 @@
 import { Document, HeadingLevel, Packer, Paragraph, TextRun } from 'docx';
 import { saveAs } from 'file-saver';
 import type { CoreTestPayload } from '../../types';
+import { LANGUAGE_DATA, type AppLanguage } from '../../lang/Language';
 
 type ExportExamResultOptions = {
   payload: CoreTestPayload;
@@ -10,6 +11,7 @@ type ExportExamResultOptions = {
   estimatedGrade: string;
   gradingStyleLabel: string;
   summary: string;
+  language: AppLanguage;
 };
 
 const stripMarkdown = (value: string) =>
@@ -52,41 +54,44 @@ export const exportExamResultDocx = async ({
   estimatedGrade,
   gradingStyleLabel,
   summary,
+  language,
 }: ExportExamResultOptions) => {
+  const lang = LANGUAGE_DATA[language].ui.exam;
+
   const doc = new Document({
     sections: [
       {
         children: [
           new Paragraph({
-            text: 'Academic Oracle - Test Result',
+            text: lang.reportTitle,
             heading: HeadingLevel.TITLE,
           }),
-          metricLine('Title', payload.title || 'Professional Exam Runtime'),
-          metricLine('Score', `${score}/${total}`),
-          metricLine('Percentage', `${percentage}%`),
-          metricLine('Estimated Grade', estimatedGrade),
-          metricLine('Grading Style', gradingStyleLabel),
-          metricLine('Used Mark Scheme', payload.summary?.usedMarkScheme ? 'Yes' : 'No'),
+          metricLine(lang.reportTitle, payload.title || 'Professional Exam Runtime'),
+          metricLine(lang.score, `${score}/${total}`),
+          metricLine(lang.percentage, `${percentage}%`),
+          metricLine(lang.estimatedGrade, estimatedGrade),
+          metricLine(LANGUAGE_DATA[language].ui.examSetup.gradingStyleLabel, gradingStyleLabel),
+          metricLine(lang.reportUsedMarkScheme, payload.summary?.usedMarkScheme ? lang.yes : lang.no),
           new Paragraph({
-            text: 'Analytics Summary',
+            text: lang.reportAnalyticsSummary,
             heading: HeadingLevel.HEADING_1,
             spacing: { before: 320 },
           }),
           new Paragraph(summary),
           ...payload.items.flatMap((item) => [
             new Paragraph({
-              text: `Question ${item.questionNumber}`,
+              text: `${lang.reportQuestion} ${item.questionNumber}`,
               heading: HeadingLevel.HEADING_1,
               spacing: { before: 420 },
             }),
-            metricLine('Score', `${item.score ?? 0}/${item.maxScore ?? 1}`),
-            bodyLine('Question', stripMarkdown(item.prompt)),
-            bodyLine('Your Answer', item.userAnswer || 'No answer submitted.'),
+            metricLine(lang.score, `${item.score ?? 0}/${item.maxScore ?? 1}`),
+            bodyLine(lang.reportQuestion, stripMarkdown(item.prompt)),
+            bodyLine(lang.yourAnswer, item.userAnswer || lang.noAnswerSubmitted),
             bodyLine(
-              'Correct Answer',
-              item.correctAnswer || item.markScheme || 'No official correct answer was available.',
+              lang.correctAnswer,
+              item.correctAnswer || item.markScheme || lang.noOfficialAnswer,
             ),
-            bodyLine('Feedback', item.feedback || 'No additional feedback.'),
+            bodyLine(lang.feedback, item.feedback || lang.noAdditionalFeedback),
           ]),
         ],
       },

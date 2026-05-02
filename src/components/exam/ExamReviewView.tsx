@@ -86,12 +86,12 @@ export const ExamReviewView: React.FC<ExamReviewViewProps> = ({
 
           const badgeText =
             reviewState === 'correct'
-              ? 'Correct'
+              ? LANGUAGE_DATA[language].ui.exam.correct
               : reviewState === 'partial'
-                ? 'Partial'
+                ? LANGUAGE_DATA[language].ui.exam.partial
               : reviewState === 'incorrect'
-                ? 'Incorrect'
-                : 'Unanswered';
+                ? LANGUAGE_DATA[language].ui.exam.incorrect
+                : LANGUAGE_DATA[language].ui.exam.unanswered;
 
           return (
             <article
@@ -104,7 +104,7 @@ export const ExamReviewView: React.FC<ExamReviewViewProps> = ({
                     {LANGUAGE_DATA[language].ui.exam.questionPrefix} {item.questionNumber}
                   </p>
                   <p className="mt-1 text-xs font-medium uppercase tracking-[0.14em] text-slate-400">
-                    {item.type === 'mcq' ? 'Multiple Choice' : 'Open Response'}
+                    {item.type === 'mcq' ? LANGUAGE_DATA[language].ui.exam.multipleChoice : LANGUAGE_DATA[language].ui.exam.openResponse}
                   </p>
                 </div>
                 <div className="flex items-start gap-3">

@@ -1133,7 +1133,7 @@ const App: React.FC = () => {
 
       const safeSummary = normalizeSummary(summary);
 
-      await createSummaryDoc(safeSummary);
+      await createSummaryDoc(safeSummary, language);
     } catch (err) {
       console.error(err);
       alert(LANGUAGE_DATA[language].ui.failedToGenerateSummary);

@@ -10,7 +10,7 @@ export default function AIStudio() {
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
             <span className="relative inline-flex rounded-full h-2 w-2 bg-indigo-500"></span>
           </span>
-          <span className="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-400">Orchestration: Gemini-First (v2.4.0)</span>
+          <span className="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-400">Orchestration: Gemini-First (v2.4.x)</span>
         </div>
         <h1 className="bg-gradient-to-r from-indigo-400 via-purple-400 to-blue-400 bg-clip-text pb-4 text-4xl font-black tracking-tighter text-transparent sm:text-5xl">
           Intelligence Infrastructure

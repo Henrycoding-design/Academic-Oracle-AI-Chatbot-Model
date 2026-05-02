@@ -151,6 +151,31 @@ export const LANGUAGE_DATA: Record<AppLanguage, {
       recommendedFocusNeedsFeynman: string;
       recommendedFocusLowAccuracy: string;
       recommendedFocusDefault: string;
+      reportDocTitle: string;
+      reportLevel: string;
+      reportFocus: string;
+      reportConfidence: string;
+      reportCognitionLevel: string;
+      reportInterests: string;
+      reportSessionOverview: string;
+      reportTopicsCovered: string;
+      reportOverallAccuracy: string;
+      reportAdaptiveInsights: string;
+      reportStudyStyle: string;
+      reportToneRecommendation: string;
+      reportQuestionStyleRecommendation: string;
+      reportTopicTag: string;
+      reportCompletion: string;
+      reportMastered: string;
+      reportNeedsFeynman: string;
+      reportMistakeLog: string;
+      reportQuizPerformance: string;
+      reportFormulas: string;
+      reportTheories: string;
+      reportKeyTakeaways: string;
+      reportPracticalApplications: string;
+      reportOverallSummary: string;
+      reportOverallCompletion: string;
     };
     loadingModeLabels: Record<LoadingModeLabel, string>;
     exam: {
@@ -213,6 +238,12 @@ export const LANGUAGE_DATA: Record<AppLanguage, {
       questionPrefix: string;
       noAdditionalFeedback: string;
       noAnswerSubmittedFeedback: string;
+      reportTitle: string;
+      reportAnalyticsSummary: string;
+      reportUsedMarkScheme: string;
+      yes: string;
+      no: string;
+      reportQuestion: string;
     };
     examSetup: {
       defaultExamTitle: string;
@@ -424,6 +455,31 @@ export const LANGUAGE_DATA: Record<AppLanguage, {
         recommendedFocusNeedsFeynman: "Slow down and restate the concept in your own words before the next quiz.",
         recommendedFocusLowAccuracy: "Review the weak steps and do one focused practice round.",
         recommendedFocusDefault: "Keep reinforcing with short retrieval practice and one harder problem.",
+        reportDocTitle: "Academic Oracle — Session Summary",
+        reportLevel: "Level",
+        reportFocus: "Focus",
+        reportConfidence: "Confidence",
+        reportCognitionLevel: "Cognition Level",
+        reportInterests: "Interests",
+        reportSessionOverview: "Session Overview",
+        reportTopicsCovered: "Topics Covered",
+        reportOverallAccuracy: "Overall Accuracy",
+        reportAdaptiveInsights: "Adaptive Insights",
+        reportStudyStyle: "Study Style",
+        reportToneRecommendation: "Tone Recommendation",
+        reportQuestionStyleRecommendation: "Question Style Recommendation",
+        reportTopicTag: "Topic Tag",
+        reportCompletion: "Completion",
+        reportMastered: "Mastered",
+        reportNeedsFeynman: "Needs Feynman Reinforcement",
+        reportMistakeLog: "Mistake Log",
+        reportQuizPerformance: "Quiz Performance",
+        reportFormulas: "Formulas",
+        reportTheories: "Theories",
+        reportKeyTakeaways: "Key Takeaways",
+        reportPracticalApplications: "Practical Applications",
+        reportOverallSummary: "Overall Summary",
+        reportOverallCompletion: "Overall Completion",
       },
       loadingModeLabels: {
         Agentic: "Agentic",
@@ -492,6 +548,12 @@ export const LANGUAGE_DATA: Record<AppLanguage, {
         questionPrefix: "Question",
         noAdditionalFeedback: "No additional feedback.",
         noAnswerSubmittedFeedback: "No answer was submitted for this question.",
+        reportTitle: "Exam Result Report",
+        reportAnalyticsSummary: "Analytics Summary",
+        reportUsedMarkScheme: "Used Mark Scheme",
+        yes: "Yes",
+        no: "No",
+        reportQuestion: "Question",
       },
       examSetup: {
         defaultExamTitle: 'Professional Exam Runtime',
@@ -703,6 +765,31 @@ export const LANGUAGE_DATA: Record<AppLanguage, {
         recommendedFocusNeedsFeynman: "Ralentissez et reformulez le concept avec vos propres mots avant le prochain quiz.",
         recommendedFocusLowAccuracy: "Revoyez les étapes faibles et faites une série d'exercices ciblés.",
         recommendedFocusDefault: "Continuez à renforcer avec une courte pratique de rappel et un exercice plus difficile.",
+        reportDocTitle: "Oracle Académique — Résumé de session",
+        reportLevel: "Niveau",
+        reportFocus: "Priorité",
+        reportConfidence: "Confiance",
+        reportCognitionLevel: "Niveau de cognition",
+        reportInterests: "Intérêts",
+        reportSessionOverview: "Vue d'ensemble de la session",
+        reportTopicsCovered: "Sujets abordés",
+        reportOverallAccuracy: "Précision globale",
+        reportAdaptiveInsights: "Analyses adaptatives",
+        reportStudyStyle: "Style d'étude",
+        reportToneRecommendation: "Recommandation de ton",
+        reportQuestionStyleRecommendation: "Recommandation de style de question",
+        reportTopicTag: "Étiquette du sujet",
+        reportCompletion: "Complétion",
+        reportMastered: "Maîtrisé",
+        reportNeedsFeynman: "Nécessite un renforcement Feynman",
+        reportMistakeLog: "Journal des erreurs",
+        reportQuizPerformance: "Performance au quiz",
+        reportFormulas: "Formules",
+        reportTheories: "Théories",
+        reportKeyTakeaways: "Points clés",
+        reportPracticalApplications: "Applications pratiques",
+        reportOverallSummary: "Résumé global",
+        reportOverallCompletion: "Complétion globale",
       },
       loadingModeLabels: {
         Agentic: "Agentique",
@@ -771,6 +858,12 @@ export const LANGUAGE_DATA: Record<AppLanguage, {
         questionPrefix: "Question",
         noAdditionalFeedback: "Aucun retour supplémentaire.",
         noAnswerSubmittedFeedback: "Aucune réponse n'a été soumise pour cette question.",
+        reportTitle: "Rapport de résultat d'examen",
+        reportAnalyticsSummary: "Résumé des analyses",
+        reportUsedMarkScheme: "Barème utilisé",
+        yes: "Oui",
+        no: "Non",
+        reportQuestion: "Question",
       },
       examSetup: {
         defaultExamTitle: 'Examen professionnel',
@@ -982,6 +1075,31 @@ export const LANGUAGE_DATA: Record<AppLanguage, {
         recommendedFocusNeedsFeynman: "Baja el ritmo y reformula el concepto con tus propias palabras antes del próximo cuestionario.",
         recommendedFocusLowAccuracy: "Revisa los pasos débiles y haz una ronda de práctica enfocada.",
         recommendedFocusDefault: "Sigue reforzando con práctica breve de recuperación y un problema más difícil.",
+        reportDocTitle: "Oráculo Académico — Resumen de la sesión",
+        reportLevel: "Nivel",
+        reportFocus: "Enfoque",
+        reportConfidence: "Confianza",
+        reportCognitionLevel: "Nivel de cognición",
+        reportInterests: "Intereses",
+        reportSessionOverview: "Resumen de la sesión",
+        reportTopicsCovered: "Temas cubiertos",
+        reportOverallAccuracy: "Precisión general",
+        reportAdaptiveInsights: "Análisis adaptativos",
+        reportStudyStyle: "Estilo de estudio",
+        reportToneRecommendation: "Recomendación de tono",
+        reportQuestionStyleRecommendation: "Recomendación de estilo de pregunta",
+        reportTopicTag: "Etiqueta de tema",
+        reportCompletion: "Cumplimiento",
+        reportMastered: "Dominado",
+        reportNeedsFeynman: "Necesita refuerzo Feynman",
+        reportMistakeLog: "Registro de errores",
+        reportQuizPerformance: "Rendimiento en cuestionarios",
+        reportFormulas: "Fórmulas",
+        reportTheories: "Teorías",
+        reportKeyTakeaways: "Puntos clave",
+        reportPracticalApplications: "Aplicaciones prácticas",
+        reportOverallSummary: "Resumen general",
+        reportOverallCompletion: "Cumplimiento general",
       },
       loadingModeLabels: {
         Agentic: "Agéntico",
@@ -1050,6 +1168,12 @@ export const LANGUAGE_DATA: Record<AppLanguage, {
         questionPrefix: "Pregunta",
         noAdditionalFeedback: "No hay retroalimentación adicional.",
         noAnswerSubmittedFeedback: "No se envió ninguna respuesta para esta pregunta.",
+        reportTitle: "Informe de resultados del examen",
+        reportAnalyticsSummary: "Resumen analítico",
+        reportUsedMarkScheme: "Esquema de puntos usado",
+        yes: "Sí",
+        no: "No",
+        reportQuestion: "Pregunta",
       },
       examSetup: {
         defaultExamTitle: 'Examen profesional',
@@ -1261,6 +1385,31 @@ export const LANGUAGE_DATA: Record<AppLanguage, {
         recommendedFocusNeedsFeynman: "Hãy chậm lại và diễn giải lại khái niệm bằng lời của bạn trước bài kiểm tra tiếp theo.",
         recommendedFocusLowAccuracy: "Ôn lại các bước còn yếu và làm một lượt luyện tập tập trung.",
         recommendedFocusDefault: "Tiếp tục củng cố bằng luyện tập gợi nhớ ngắn và một bài khó hơn.",
+        reportDocTitle: "Academic Oracle — Tóm tắt phiên học",
+        reportLevel: "Cấp độ",
+        reportFocus: "Trọng tâm",
+        reportConfidence: "Độ tự tin",
+        reportCognitionLevel: "Mức độ nhận thức",
+        reportInterests: "Sở thích",
+        reportSessionOverview: "Tổng quan phiên học",
+        reportTopicsCovered: "Các chủ đề đã học",
+        reportOverallAccuracy: "Độ chính xác tổng thể",
+        reportAdaptiveInsights: "Phân tích thích ứng",
+        reportStudyStyle: "Phong cách học tập",
+        reportToneRecommendation: "Đề xuất giọng điệu",
+        reportQuestionStyleRecommendation: "Đề xuất kiểu câu hỏi",
+        reportTopicTag: "Thẻ chủ đề",
+        reportCompletion: "Hoàn thành",
+        reportMastered: "Đã thành thạo",
+        reportNeedsFeynman: "Cần củng cố Feynman",
+        reportMistakeLog: "Nhật ký lỗi",
+        reportQuizPerformance: "Kết quả kiểm tra",
+        reportFormulas: "Công thức",
+        reportTheories: "Lý thuyết",
+        reportKeyTakeaways: "Kiến thức trọng tâm",
+        reportPracticalApplications: "Ứng dụng thực tế",
+        reportOverallSummary: "Tóm tắt tổng thể",
+        reportOverallCompletion: "Hoàn thành tổng thể",
       },
       loadingModeLabels: {
         Agentic: "Tác vụ thông minh",
@@ -1268,7 +1417,8 @@ export const LANGUAGE_DATA: Record<AppLanguage, {
         Balanced: "Cân bằng",
         Standard: "Tiêu chuẩn",
         "Web Search": "Tìm kiếm web",
-      },      exam: {
+      },
+      exam: {
         examInstructions: "Hướng dẫn bài kiểm tra",
         questions: "Câu hỏi",
         estimatedMarks: "Điểm ước tính",
@@ -1328,6 +1478,12 @@ export const LANGUAGE_DATA: Record<AppLanguage, {
         questionPrefix: "Câu hỏi",
         noAdditionalFeedback: "Không có phản hồi bổ sung nào.",
         noAnswerSubmittedFeedback: "Không có câu trả lời nào được nộp cho câu hỏi này.",
+        reportTitle: "Báo cáo kết quả kiểm tra",
+        reportAnalyticsSummary: "Phân tích tổng quan",
+        reportUsedMarkScheme: "Sử dụng đáp án chính thức",
+        yes: "Có",
+        no: "Không",
+        reportQuestion: "Câu hỏi",
       },    
       examSetup: {
         defaultExamTitle: 'Bài kiểm tra chuyên nghiệp',
