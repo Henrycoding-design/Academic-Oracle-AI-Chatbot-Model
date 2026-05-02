@@ -4,6 +4,7 @@ import type { CoreTestItem } from '../../types';
 import type { ExamHelpLevel } from '../../hooks/exam/useExamSession';
 import { ExamErrorBanner } from './ExamErrorBanner';
 import { MarkdownContent } from '../MarkdownContent';
+import { AppLanguage, LANGUAGE_DATA} from '../../lang/Language';
 
 type RuntimeToast = {
   id: string;
@@ -38,6 +39,7 @@ type ExamRuntimeViewProps = {
   isAnswered: (questionId: string) => boolean;
   isFlagged: (questionId: string) => boolean;
   isCurrent: (questionId: string) => boolean;
+  language: AppLanguage;
 };
 
 const formatRemaining = (remainingMs: number) => {
@@ -106,10 +108,10 @@ const getHintContent = (question: CoreTestItem, helpLevel: ExamHelpLevel) => {
   return configuredHint || getFallbackHint(question, helpLevel);
 };
 
-const getHintLabel = (helpLevel: ExamHelpLevel) => {
-  if (helpLevel === 'solution') return 'Solution';
-  if (helpLevel === 'specific') return 'Specific Hint';
-  return 'Hint';
+const getHintLabel = (helpLevel: ExamHelpLevel, languageData: { solution: string; specificHint: string; hint: string }) => {
+  if (helpLevel === 'solution') return languageData.solution;
+  if (helpLevel === 'specific') return languageData.specificHint;
+  return languageData.hint;
 };
 
 export const ExamRuntimeView: React.FC<ExamRuntimeViewProps> = ({
@@ -140,7 +142,9 @@ export const ExamRuntimeView: React.FC<ExamRuntimeViewProps> = ({
   isAnswered,
   isFlagged,
   isCurrent,
+  language = 'en',
 }) => {
+  const languageData = LANGUAGE_DATA[language].ui.exam;
   const [openHintQuestionIds, setOpenHintQuestionIds] = useState<string[]>([]);
   const hintContent = useMemo(
     () => currentQuestion ? getHintContent(currentQuestion, helpLevel) : '',
@@ -168,7 +172,7 @@ export const ExamRuntimeView: React.FC<ExamRuntimeViewProps> = ({
             </div>
             <div>
               <p className="text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">
-                Time Remaining
+                {languageData.timeRemaining}
               </p>
               <p className="text-xl font-semibold text-slate-900 dark:text-slate-100">
                 {formatRemaining(remainingMs)}
@@ -177,7 +181,7 @@ export const ExamRuntimeView: React.FC<ExamRuntimeViewProps> = ({
           </div>
 
           <div className="text-sm font-medium text-slate-600 dark:text-slate-300">
-            Question {Math.min(activeQuestionIndex + 1, items.length)} of {items.length}
+            {languageData.questionOf?.replace('{current}', String(Math.min(activeQuestionIndex + 1, items.length))).replace('{total}', String(items.length)) }
           </div>
 
           <button
@@ -190,7 +194,7 @@ export const ExamRuntimeView: React.FC<ExamRuntimeViewProps> = ({
             ) : (
               <Send className="h-4 w-4" />
             )}
-            {isSubmitting ? 'Submitting...' : 'Submit'}
+            {isSubmitting ? languageData.submitting : languageData.submit}
           </button>
         </div>
       </header>
@@ -198,6 +202,7 @@ export const ExamRuntimeView: React.FC<ExamRuntimeViewProps> = ({
       {error && (
         <div className="mt-4">
           <ExamErrorBanner
+            language={language}
             message={error}
             isRetrying={isRetrying}
             onRetry={onRetryError}
@@ -208,7 +213,7 @@ export const ExamRuntimeView: React.FC<ExamRuntimeViewProps> = ({
       <div className="mt-6 grid gap-6 lg:grid-cols-[260px_minmax(0,1fr)]">
         <aside className="rounded-2xl border border-black/5 bg-white p-4 shadow-sm dark:border-white/10 dark:bg-slate-900">
           <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
-            Navigator
+            {languageData.navigator}
           </h2>
           <div className="mt-4 grid grid-cols-4 gap-2">
             {items.map((item, index) => {
@@ -239,15 +244,15 @@ export const ExamRuntimeView: React.FC<ExamRuntimeViewProps> = ({
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
                   <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">
-                    Question {currentQuestion.questionNumber}
+                    {languageData.questionPrefix || 'Question'} {currentQuestion.questionNumber}
                   </p>
                   <p className="mt-1 text-xs font-medium uppercase tracking-[0.14em] text-slate-400">
-                    {currentQuestion.type === 'mcq' ? 'Multiple Choice' : 'Open Response'}
+                    {currentQuestion.type === 'mcq' ? languageData.multipleChoice : languageData.openResponse}
                   </p>
                 </div>
                 {isFlagged(currentQuestion.id) && (
                   <span className="rounded-full bg-amber-50 px-2.5 py-1 text-xs font-medium text-amber-700 dark:bg-amber-950/20 dark:text-amber-300">
-                    Flagged
+                    {languageData.flagged}
                   </span>
                 )}
               </div>
@@ -263,7 +268,7 @@ export const ExamRuntimeView: React.FC<ExamRuntimeViewProps> = ({
                     className="inline-flex items-center gap-2 rounded-lg border border-indigo-100 bg-indigo-50 px-3 py-2 text-sm font-medium text-indigo-700 transition-colors hover:bg-indigo-100 dark:border-indigo-900/40 dark:bg-indigo-950/20 dark:text-indigo-200 dark:hover:bg-indigo-950/40"
                   >
                     <Lightbulb className="h-4 w-4" />
-                    {isHintOpen ? 'Hide' : 'Show'} {getHintLabel(helpLevel)}
+                    {isHintOpen ? languageData.hideHint : languageData.showHint} {getHintLabel(helpLevel, languageData)}
                   </button>
 
                   {isHintOpen && (
@@ -300,7 +305,7 @@ export const ExamRuntimeView: React.FC<ExamRuntimeViewProps> = ({
                   onChange={(event) =>
                     onAnswerChange(currentQuestion.id, event.target.value)
                   }
-                  placeholder="Type your answer here..."
+                  placeholder={languageData.typeAnswerHere}
                   className="mt-5 min-h-40 w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition-colors focus:border-indigo-400 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
                 />
               )}
@@ -313,14 +318,14 @@ export const ExamRuntimeView: React.FC<ExamRuntimeViewProps> = ({
                     className="inline-flex items-center gap-2 rounded-lg border border-black/5 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-white/10 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
                   >
                     <ChevronLeft className="h-4 w-4" />
-                    Prev
+                    {languageData.prev}
                   </button>
                   <button
                     onClick={onNext}
                     disabled={activeQuestionIndex === items.length - 1}
                     className="inline-flex items-center gap-2 rounded-lg border border-black/5 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-white/10 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
                   >
-                    Next
+                    {languageData.next}
                     <ChevronRight className="h-4 w-4" />
                   </button>
                 </div>
@@ -334,13 +339,13 @@ export const ExamRuntimeView: React.FC<ExamRuntimeViewProps> = ({
                   }`}
                 >
                   <Flag className="h-4 w-4" />
-                  {isFlagged(currentQuestion.id) ? 'Unflag' : 'Flag'}
+                  {isFlagged(currentQuestion.id) ? languageData.unflag : languageData.flag}
                 </button>
               </div>
             </>
           ) : (
             <div className="flex min-h-64 items-center justify-center rounded-xl border border-dashed border-slate-300 text-sm text-slate-500 dark:border-slate-700 dark:text-slate-400">
-              No active question loaded.
+              {languageData.noActiveQuestion}
             </div>
           )}
         </section>
@@ -365,18 +370,18 @@ export const ExamRuntimeView: React.FC<ExamRuntimeViewProps> = ({
             <div className="flex items-center gap-3">
               <AlertTriangle className="h-6 w-6 text-amber-500" />
               <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
-                You left the exam window.
+                {languageData.youLeftExamWindow}
               </h2>
             </div>
             <p className="mt-3 text-sm leading-6 text-slate-600 dark:text-slate-300">
-              The timer was paused while the exam window was hidden. Acknowledge this notice to resume the exam.
+              { languageData.resumeExamNotice }
             </p>
             <div className="mt-5 flex justify-end">
               <button
                 onClick={onDismissResumeModal}
                 className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-indigo-700"
               >
-                Resume Exam
+                {languageData.resumeExam}
               </button>
             </div>
           </div>
@@ -387,28 +392,28 @@ export const ExamRuntimeView: React.FC<ExamRuntimeViewProps> = ({
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/45 px-4 backdrop-blur-sm">
           <div className="w-full max-w-md rounded-2xl border border-black/5 bg-white p-6 shadow-xl dark:border-white/10 dark:bg-slate-900">
             <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
-              Submit Exam?
+              {languageData.submitExam}
             </h2>
             <div className="mt-4 space-y-2 text-sm text-slate-600 dark:text-slate-300">
-              <p>You still have:</p>
+              <p>{ languageData.youStillHave }</p>
               <ul className="list-disc pl-5">
-                <li>{unansweredCount} unanswered questions</li>
-                <li>{flaggedCount} flagged questions</li>
+                <li>{unansweredCount} {languageData.unansweredQuestions}</li>
+                <li>{flaggedCount} {languageData.flaggedQuestions}</li>
               </ul>
-              <p className="pt-2">Submit anyway?</p>
+              <p className="pt-2">{languageData.submitAnyway}</p>
             </div>
             <div className="mt-6 flex flex-wrap justify-end gap-2">
               <button
                 onClick={onCancelSubmitConfirm}
                 className="rounded-lg border border-black/5 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50 dark:border-white/10 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
               >
-                Cancel
+                {languageData.cancel}
               </button>
               <button
                 onClick={onConfirmSubmit}
                 className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-indigo-700"
               >
-                Confirm Submit
+                {languageData.confirmSubmit}
               </button>
             </div>
           </div>

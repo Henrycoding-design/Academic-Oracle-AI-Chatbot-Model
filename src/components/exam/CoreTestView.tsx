@@ -27,29 +27,6 @@ type ToastMessage = {
   message: string;
 };
 
-const HELP_LEVEL_OPTIONS = [
-  { value: 'none', label: 'Level 0 - None' },
-  { value: 'general', label: 'Level 1 - General hint' },
-  { value: 'specific', label: 'Level 2 - Specific hint' },
-  { value: 'solution', label: 'Level 3 - Solution' },
-] as const;
-
-const GRADING_STYLE_OPTIONS: { value: CoreTestGradingStyle; label: string }[] = [
-  { value: 'default', label: 'Default' },
-  { value: 'ap', label: 'AP' },
-  { value: 'ielts', label: 'IELTS' },
-  { value: 'sat', label: 'SAT' },
-  { value: 'act', label: 'ACT' },
-  { value: 'cambridge', label: 'Cambridge' },
-] as const;
-
-const DURATION_OPTIONS = [
-  { value: 15 * 60, label: '15 min' },
-  { value: 30 * 60, label: '30 min' },
-  { value: 45 * 60, label: '45 min' },
-  { value: 60 * 60, label: '60 min' },
-] as const;
-
 const QUESTION_FILE_INPUT_ID = 'core-test-question-input';
 const MARKSCHEME_FILE_INPUT_ID = 'core-test-markscheme-input';
 
@@ -107,14 +84,15 @@ const buildResultSummary = (
   score: number,
   total: number,
   answeredCount: number,
+  lang: typeof LANGUAGE_DATA[AppLanguage]['ui']['examSetup'],
 ) => {
-  if (total === 0) return 'No graded questions are available.';
+  if (total === 0) return lang.resultSummaryNoQuestions;
   if (answeredCount === 0) {
-    return `Test not answered. No responses were submitted, so this attempt was recorded as 0 out of ${total} available marks.`;
+    return lang.resultSummaryNotAnswered.replace('{total}', String(total));
   }
-  if (percentage >= 80) return `Strong performance. You earned ${score} out of ${total} available marks.`;
-  if (percentage >= 60) return `Competent result. You earned ${score} out of ${total} available marks, with some room to tighten consistency.`;
-  return `The runtime is working, but this attempt needs review. You earned ${score} out of ${total} available marks.`;
+  if (percentage >= 80) return lang.resultSummaryStrong.replace('{score}', String(score)).replace('{total}', String(total));
+  if (percentage >= 60) return lang.resultSummaryCompetent.replace('{score}', String(score)).replace('{total}', String(total));
+  return lang.resultSummaryNeedsReview.replace('{score}', String(score)).replace('{total}', String(total));
 };
 
 const buildMemorySummary = (
@@ -145,12 +123,12 @@ const buildMemorySummary = (
   ].filter(Boolean).join('\n');
 };
 
-const buildSetupInstructions = (payloadInstructions: string) => {
+const buildSetupInstructions = (payloadInstructions: string, lang: any) => {
   const base = [
-    '**Exam Runtime Notes**',
-    '- Upload a question paper PDF to structure the exam.',
-    '- Upload a mark scheme PDF if you want grading to prioritize official marking guidance.',
-    '- Choose duration and help level before starting.',
+    `**${lang.examRuntimeNotesTitle}**`,
+    `- ${lang.examRuntimeNote1}`,
+    `- ${lang.examRuntimeNote2}`,
+    `- ${lang.examRuntimeNote3}`,
   ];
 
   if (payloadInstructions.trim()) {
@@ -198,20 +176,41 @@ export const CoreTestView: React.FC<CoreTestViewProps> = ({
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
   const [isSubmitConfirmOpen, setIsSubmitConfirmOpen] = useState(false);
 
+  const lang = LANGUAGE_DATA[language].ui.exam;
+  const setupLang = LANGUAGE_DATA[language].ui.examSetup;
+
+  const HELP_LEVEL_OPTIONS = [
+    { value: 'none', label: setupLang.helpLevelNone },
+    { value: 'general', label: setupLang.helpLevelGeneral },
+    { value: 'specific', label: setupLang.helpLevelSpecific },
+    { value: 'solution', label: setupLang.helpLevelSolution },
+  ] as const;
+
+  const GRADING_STYLE_OPTIONS: { value: CoreTestGradingStyle; label: string }[] = [
+    { value: 'default', label: setupLang.gradingStyleDefault },
+    { value: 'ap', label: 'AP' },
+    { value: 'ielts', label: 'IELTS' },
+    { value: 'sat', label: 'SAT' },
+    { value: 'act', label: 'ACT' },
+    { value: 'cambridge', label: 'Cambridge' },
+  ];
+
+  const DURATION_OPTIONS = [
+    { value: 15 * 60, label: setupLang.duration15 },
+    { value: 30 * 60, label: setupLang.duration30 },
+    { value: 45 * 60, label: setupLang.duration45 },
+    { value: 60 * 60, label: setupLang.duration60 },
+  ] as const;
+
   const currentQuestion = session.payload.items[session.activeQuestionIndex] ?? null;
   const unansweredCount = useMemo(
-    () =>
-      session.payload.items.filter((item) => !item.userAnswer.trim()).length,
+    () => session.payload.items.filter((item) => !item.userAnswer.trim()).length,
     [session.payload.items],
   );
   const answeredCount = session.payload.items.length - unansweredCount;
   const flaggedCount = session.flaggedQuestionIds.length;
   const estimatedMarks = useMemo(
-    () =>
-      session.payload.items.reduce(
-        (sum, item) => sum + (item.maxScore ?? 1),
-        0,
-      ),
+    () => session.payload.items.reduce((sum, item) => sum + (item.maxScore ?? 1), 0),
     [session.payload.items],
   );
 
@@ -255,28 +254,28 @@ export const CoreTestView: React.FC<CoreTestViewProps> = ({
   const total = session.payload.summary?.total ?? session.payload.items.length;
   const percentage = session.payload.summary?.percentage ?? 0;
   const grade = estimateGrade(percentage, gradingStyle);
-  const resultSummary = buildResultSummary(percentage, score, total, answeredCount);
+  const resultSummary = buildResultSummary(percentage, score, total, answeredCount, setupLang);
   const gradingStyleLabel =
-    GRADING_STYLE_OPTIONS.find((option) => option.value === gradingStyle)?.label ?? 'Default';
+    GRADING_STYLE_OPTIONS.find((option) => option.value === gradingStyle)?.label ?? setupLang.gradingStyleDefault;
   const chatLabel = LANGUAGE_DATA[language].ui.chat;
-  const isQuestionPaperLoading =
-    activeJob === 'questions' || activeJob === 'structuring';
+  const isQuestionPaperLoading = activeJob === 'questions' || activeJob === 'structuring';
   const isMarkSchemeLoading = activeJob === 'markscheme';
   const isExamUploadLocked = activeJob !== null;
 
   if (session.stage === 'instructions') {
     return (
       <ExamInstructionView
-        title={session.payload.title || 'Professional Exam Runtime'}
+        title={session.payload.title || setupLang.defaultExamTitle}
         questionCount={session.payload.items.length}
         estimatedMarks={estimatedMarks}
         durationSeconds={session.durationSeconds}
         helpLevel={helpLevel}
-        instructionsText={buildSetupInstructions(session.payload.instructions)}
+        instructionsText={buildSetupInstructions(session.payload.instructions, setupLang)}
         onBack={() => goToStage('setup')}
         onBackToChat={onBack}
         chatLabel={chatLabel}
         onStart={startExam}
+        language={language}
       />
     );
   }
@@ -311,6 +310,7 @@ export const CoreTestView: React.FC<CoreTestViewProps> = ({
         isAnswered={navigation.isAnswered}
         isFlagged={navigation.isFlagged}
         isCurrent={navigation.isCurrent}
+        language={language}
       />
     );
   }
@@ -318,7 +318,7 @@ export const CoreTestView: React.FC<CoreTestViewProps> = ({
   if (session.stage === 'results') {
     return (
       <ExamResultView
-        title={session.payload.title || 'Professional Exam Runtime'}
+        title={session.payload.title || setupLang.defaultExamTitle}
         score={score}
         total={total}
         percentage={percentage}
@@ -349,6 +349,7 @@ export const CoreTestView: React.FC<CoreTestViewProps> = ({
         }
         onRedo={redoExam}
         onReview={() => goToStage('review')}
+        language={language}
       />
     );
   }
@@ -356,12 +357,13 @@ export const CoreTestView: React.FC<CoreTestViewProps> = ({
   if (session.stage === 'review') {
     return (
       <ExamReviewView
-        title={session.payload.title || 'Professional Exam Runtime'}
+        title={session.payload.title || setupLang.defaultExamTitle}
         payload={session.payload}
         onBack={() => goToStage('results')}
         onBackToChat={onBack}
         chatLabel={chatLabel}
         onRedo={redoExam}
+        language={language}
       />
     );
   }
@@ -372,13 +374,13 @@ export const CoreTestView: React.FC<CoreTestViewProps> = ({
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-indigo-500 dark:text-indigo-300">
-            Academic Oracle
+            {setupLang.moduleSupertitle}
           </p>
           <h1 className="mt-1 text-2xl font-semibold text-slate-900 dark:text-slate-100">
-            Professional Exam Module
+            {setupLang.moduleTitle}
           </h1>
           <p className="mt-2 max-w-2xl text-sm text-slate-600 dark:text-slate-300">
-            Upload source PDFs, prepare the exam session, and launch the multi-stage runtime without leaving this view.
+            {setupLang.moduleDescription}
           </p>
         </div>
 
@@ -388,7 +390,7 @@ export const CoreTestView: React.FC<CoreTestViewProps> = ({
             className="inline-flex items-center gap-2 rounded-lg border border-black/5 bg-white px-3 py-2 text-sm text-slate-700 transition-colors hover:bg-slate-50 dark:border-white/10 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
           >
             <RotateCcw className="h-4 w-4" />
-            Reset
+            {setupLang.reset}
           </button>
         </div>
       </div>
@@ -399,14 +401,14 @@ export const CoreTestView: React.FC<CoreTestViewProps> = ({
             <div>
               <div className="flex items-center gap-2 text-slate-900 dark:text-slate-100">
                 <FileText className="h-5 w-5 text-indigo-500" />
-                <h2 className="text-base font-semibold">Question paper</h2>
+                <h2 className="text-base font-semibold">{setupLang.questionPaperTitle}</h2>
               </div>
               <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
-                Required. PDF only.
+                {setupLang.questionPaperSubtitle}
               </p>
             </div>
             <span className="rounded-full bg-indigo-50 px-2.5 py-1 text-xs font-medium text-indigo-600 dark:bg-indigo-950/40 dark:text-indigo-300">
-              Core input
+              {setupLang.questionPaperBadge}
             </span>
           </div>
 
@@ -417,14 +419,14 @@ export const CoreTestView: React.FC<CoreTestViewProps> = ({
               <Upload className="h-5 w-5 text-slate-500 dark:text-slate-400" />
             )}
             <span className="mt-2 text-sm font-medium text-slate-700 dark:text-slate-200">
-              {files.questionPaperName || 'No question paper selected'}
+              {files.questionPaperName || setupLang.noQuestionPaperSelected}
             </span>
             <span className="mt-1 text-xs text-slate-500 dark:text-slate-400">
               {isQuestionPaperLoading
-                ? 'Reading and structuring questions...'
+                ? setupLang.questionPaperLoading
                 : files.questionPaperRaw
-                  ? `${session.payload.items.length} question item(s) loaded`
-                  : 'Raw content is extracted first, then structured with Gemini'}
+                  ? setupLang.questionPaperLoaded.replace('{count}', String(session.payload.items.length))
+                  : setupLang.questionPaperHint}
             </span>
           </div>
 
@@ -437,10 +439,10 @@ export const CoreTestView: React.FC<CoreTestViewProps> = ({
                   : 'cursor-pointer bg-indigo-600 hover:bg-indigo-700'
               }`}
             >
-              Choose question paper
+              {setupLang.chooseQuestionPaper}
             </label>
             <span className="text-sm text-slate-600 dark:text-slate-300">
-              {files.questionPaperName || 'No file chosen'}
+              {files.questionPaperName || setupLang.noFileChosen}
             </span>
           </div>
 
@@ -463,14 +465,14 @@ export const CoreTestView: React.FC<CoreTestViewProps> = ({
             <div>
               <div className="flex items-center gap-2 text-slate-900 dark:text-slate-100">
                 <ClipboardCheck className="h-5 w-5 text-emerald-500" />
-                <h2 className="text-base font-semibold">Mark scheme</h2>
+                <h2 className="text-base font-semibold">{setupLang.markSchemeTitle}</h2>
               </div>
               <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
-                Optional. Used for grading priority.
+                {setupLang.markSchemeSubtitle}
               </p>
             </div>
             <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-300">
-              Optional
+              {setupLang.markSchemeBadge}
             </span>
           </div>
 
@@ -481,14 +483,14 @@ export const CoreTestView: React.FC<CoreTestViewProps> = ({
               <Upload className="h-5 w-5 text-slate-500 dark:text-slate-400" />
             )}
             <span className="mt-2 text-sm font-medium text-slate-700 dark:text-slate-200">
-              {files.markSchemeName || 'No mark scheme selected'}
+              {files.markSchemeName || setupLang.noMarkSchemeSelected}
             </span>
             <span className="mt-1 text-xs text-slate-500 dark:text-slate-400">
               {isMarkSchemeLoading
-                ? 'Reading mark scheme...'
+                ? setupLang.markSchemeLoading
                 : files.markSchemeRaw
-                  ? 'Attached to the structured exam payload'
-                  : 'If missing, grading falls back to model judgment'}
+                  ? setupLang.markSchemeLoaded
+                  : setupLang.markSchemeHint}
             </span>
           </div>
 
@@ -501,10 +503,10 @@ export const CoreTestView: React.FC<CoreTestViewProps> = ({
                   : 'cursor-pointer bg-emerald-600 hover:bg-emerald-700'
               }`}
             >
-              Choose mark scheme
+              {setupLang.chooseMarkScheme}
             </label>
             <span className="text-sm text-slate-600 dark:text-slate-300">
-              {files.markSchemeName || 'No file chosen'}
+              {files.markSchemeName || setupLang.noFileChosen}
             </span>
           </div>
 
@@ -525,6 +527,7 @@ export const CoreTestView: React.FC<CoreTestViewProps> = ({
 
       {error && (
         <ExamErrorBanner
+          language = {language}
           message={error}
           isRetrying={activeJob !== null}
           onRetry={retryLastFailedAction}
@@ -534,16 +537,16 @@ export const CoreTestView: React.FC<CoreTestViewProps> = ({
       <section className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_320px]">
         <div className="rounded-2xl border border-black/5 bg-white p-5 shadow-sm dark:border-white/10 dark:bg-slate-900">
           <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
-            Session Setup
+            {setupLang.sessionSetupTitle}
           </h2>
           <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
-            Prepare the runtime session before entering the instruction and exam stages.
+            {setupLang.sessionSetupDescription}
           </p>
 
           <div className="mt-6 grid gap-5 md:grid-cols-3">
             <div>
               <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">
-                Duration
+                {setupLang.durationLabel}
               </label>
               <div className="mt-3 grid grid-cols-2 gap-2">
                 {DURATION_OPTIONS.map((option) => (
@@ -564,7 +567,7 @@ export const CoreTestView: React.FC<CoreTestViewProps> = ({
 
             <div>
               <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">
-                Help Level
+                {setupLang.helpLevelLabel}
               </label>
               <div className="mt-3 grid grid-cols-1 gap-2">
                 {HELP_LEVEL_OPTIONS.map((option) => (
@@ -585,7 +588,7 @@ export const CoreTestView: React.FC<CoreTestViewProps> = ({
 
             <div>
               <label htmlFor="core-test-grading-style" className="block text-sm font-medium text-slate-700 dark:text-slate-300">
-                Grading Style
+                {setupLang.gradingStyleLabel}
               </label>
               <select
                 id="core-test-grading-style"
@@ -605,31 +608,30 @@ export const CoreTestView: React.FC<CoreTestViewProps> = ({
 
         <div className="rounded-2xl border border-black/5 bg-white p-5 shadow-sm dark:border-white/10 dark:bg-slate-900">
           <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
-            Exam Snapshot
+            {setupLang.snapshotTitle}
           </h2>
           <div className="mt-4 space-y-3 text-sm text-slate-600 dark:text-slate-300">
-            <p><span className="font-medium text-slate-900 dark:text-slate-100">Title:</span> {session.payload.title || 'Pending question paper'}</p>
-            <p><span className="font-medium text-slate-900 dark:text-slate-100">Questions:</span> {session.payload.items.length}</p>
-            <p><span className="font-medium text-slate-900 dark:text-slate-100">Estimated marks:</span> {estimatedMarks}</p>
-            <p><span className="font-medium text-slate-900 dark:text-slate-100">Duration:</span> {Math.round(session.durationSeconds / 60)} minutes</p>
-            <p><span className="font-medium text-slate-900 dark:text-slate-100">Help level:</span> {helpLevel}</p>
-            <p><span className="font-medium text-slate-900 dark:text-slate-100">Grading style:</span> {gradingStyleLabel}</p>
+            <p><span className="font-medium text-slate-900 dark:text-slate-100">{setupLang.snapshotFieldTitle}:</span> {session.payload.title || setupLang.snapshotPendingTitle}</p>
+            <p><span className="font-medium text-slate-900 dark:text-slate-100">{setupLang.snapshotFieldQuestions}:</span> {session.payload.items.length}</p>
+            <p><span className="font-medium text-slate-900 dark:text-slate-100">{setupLang.snapshotFieldMarks}:</span> {estimatedMarks}</p>
+            <p><span className="font-medium text-slate-900 dark:text-slate-100">{setupLang.snapshotFieldDuration}:</span> {Math.round(session.durationSeconds / 60)} {setupLang.snapshotMinutes}</p>
+            <p><span className="font-medium text-slate-900 dark:text-slate-100">{setupLang.snapshotFieldHelpLevel}:</span> {HELP_LEVEL_OPTIONS.find((o) => o.value === helpLevel)?.label}</p>
+            <p><span className="font-medium text-slate-900 dark:text-slate-100">{setupLang.snapshotFieldGradingStyle}:</span> {GRADING_STYLE_OPTIONS.find((o) => o.value === gradingStyle)?.label}</p>
           </div>
 
           <button
             onClick={() => {
               if (!session.payload.items.length) {
-                setError('Upload and structure a question paper before continuing.');
+                setError(setupLang.errorNoQuestionPaper);
                 return;
               }
-
               setError(null);
               goToStage('instructions');
             }}
             disabled={!session.payload.items.length || activeJob !== null}
             className="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-indigo-700 disabled:cursor-not-allowed disabled:bg-slate-400"
           >
-            Continue to Instructions
+            {setupLang.continueToInstructions}
             <ChevronRight className="h-4 w-4" />
           </button>
         </div>

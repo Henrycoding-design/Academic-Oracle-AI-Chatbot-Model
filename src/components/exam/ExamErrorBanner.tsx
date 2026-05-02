@@ -1,9 +1,11 @@
 import React from 'react';
 import { AlertTriangle, LoaderCircle, RotateCcw } from 'lucide-react';
+import { AppLanguage, LANGUAGE_DATA } from '@/src/lang/Language';
 
 type ExamErrorBannerProps = {
   message: string;
   isRetrying?: boolean;
+  language: AppLanguage;
   onRetry: () => void;
 };
 
@@ -11,6 +13,7 @@ export const ExamErrorBanner: React.FC<ExamErrorBannerProps> = ({
   message,
   isRetrying = false,
   onRetry,
+  language,
 }) => (
   <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700 dark:border-rose-900/40 dark:bg-rose-950/20 dark:text-rose-300">
     <div className="flex min-w-0 items-center gap-2">
@@ -28,7 +31,7 @@ export const ExamErrorBanner: React.FC<ExamErrorBannerProps> = ({
       ) : (
         <RotateCcw className="h-3.5 w-3.5" />
       )}
-      Retry
+      {LANGUAGE_DATA[language].ui.retryButton}
     </button>
   </div>
 );

@@ -1141,20 +1141,24 @@ Return JSON:
   };
 };
 
-const resolveOutputLanguage = (language: AppLanguage) =>
-  language === "en" ? "English"
-  : language === "fr" ? "French"
-  : language === "es" ? "Spanish"
-  : "Vietnamese";
+// const resolveOutputLanguage = (language: AppLanguage) =>
+//   language === "en" ? "English"
+//   : language === "fr" ? "French"
+//   : language === "es" ? "Spanish"
+//   : "Vietnamese";
 
+// 5. NEW: Structure Core Test from PDF Text
+// Intentionally not translate the test content into the system app language choosen by the user
+// due to the complexity of the task in preserving the original wording, instructions, and professional terms of the question paper
+// also due to the fact that grading can vary significantly based on the exact wording and structure of the question, which can be lost in translation
 export const structureCoreTestFromPdf = async (
-  language: AppLanguage,
+  language: AppLanguage, // decayed for now, later can be used to prompt in the correct language and return structured content in that language for multilingual support
   questionPaperText: string,
   markSchemeText: string | null,
   encryptedKeyPayload: any
 ): Promise<CoreTestPayload> => {
   const prompt = `
-System Language (FORCED INPUT/OUTPUT CONTENT LANGUAGE): ${resolveOutputLanguage(language)}
+System Language (FORCED INPUT/OUTPUT CONTENT LANGUAGE): INPUT DATA LANGUAGE (QUESTION PAPER 1st PRIORITY)
 
 You are building a minimal exam payload from extracted PDF text.
 
@@ -1235,10 +1239,10 @@ Rules:
 - Return raw JSON only. Do not wrap the response in markdown, code fences, or explanatory text.
 - Markdown syntax is allowed only inside JSON string fields such as "prompt" and "hints" when it improves rendering.
 
-QUESTION PAPER TEXT:
+QUESTION PAPER TEXT (INPUT DATA):
 ${questionPaperText}
 
-MARK SCHEME TEXT:
+MARK SCHEME TEXT (INPUT DATA):
 ${markSchemeText?.trim() ? markSchemeText : "No mark scheme provided."}
 `;
 
@@ -1286,14 +1290,14 @@ ${markSchemeText?.trim() ? markSchemeText : "No mark scheme provided."}
 };
 
 export const enrichCoreTestCorrectAnswers = async (
-  language: AppLanguage,
+  language: AppLanguage, // decayed for now, but can be used in newer features with support for grading in the system language/translation of the paper
   payload: CoreTestPayload,
   questionPaperText: string,
   markSchemeText: string,
   encryptedKeyPayload: any
 ): Promise<Record<string, string>> => {
   const prompt = `
-System Language (FORCED INPUT/OUTPUT CONTENT LANGUAGE): ${resolveOutputLanguage(language)}
+System Language (FORCED INPUT/OUTPUT CONTENT LANGUAGE): INPUT DATA LANGUAGE (QUESTION PAPER 1st PRIORITY)
 
 You are updating an already-structured exam payload after a mark scheme was uploaded.
 
@@ -1320,13 +1324,13 @@ Rules:
 - If the mark scheme does not determine a correct answer for an item, return an empty string for that item.
 - Return raw JSON only. Do not wrap the response in markdown, code fences, or explanatory text.
 
-QUESTION PAPER TEXT:
+QUESTION PAPER TEXT (INPUT DATA):
 ${questionPaperText}
 
-MARK SCHEME TEXT:
+MARK SCHEME TEXT (INPUT DATA):
 ${markSchemeText}
 
-EXISTING STRUCTURED PAYLOAD:
+EXISTING STRUCTURED PAYLOAD (INPUT DATA):
 ${JSON.stringify(payload)}
 `;
 
@@ -1381,7 +1385,7 @@ ${JSON.stringify(payload)}
 };
 
 export const gradeCoreTestPayload = async (
-  language: AppLanguage,
+  language: AppLanguage, // decayed for now, but can be used in newer features with support for grading in the system language/translation of the paper
   payload: CoreTestPayload,
   questionPaperText: string,
   markSchemeText: string | null,
@@ -1403,7 +1407,7 @@ export const gradeCoreTestPayload = async (
               : "Default style: use the mark scheme first, then academic judgment. Award partial marks where the response deserves them.";
 
   const prompt = `
-System Language (FORCED INPUT/OUTPUT CONTENT LANGUAGE): ${resolveOutputLanguage(language)}
+System Language (FORCED INPUT/OUTPUT CONTENT LANGUAGE): INPUT DATA LANGUAGE (QUESTION PAPER 1st PRIORITY)
 
 You are grading a student's exam submission.
 
@@ -1472,13 +1476,13 @@ Rules:
 - Preserve or improve each item's "hints" object. The "solution" hint should match the final correct answer and grading feedback.
 - Return raw JSON only. Do not wrap the response in markdown, code fences, or explanatory text.
 
-QUESTION PAPER TEXT:
+QUESTION PAPER TEXT (INPUT DATA):
 ${questionPaperText}
 
-MARK SCHEME TEXT:
+MARK SCHEME TEXT (INPUT DATA):
 ${markSchemeText?.trim() ? markSchemeText : "No mark scheme provided. Use your own judgment."}
 
-STRUCTURED TEST PAYLOAD:
+STRUCTURED TEST PAYLOAD (INPUT DATA):
 ${JSON.stringify(payload)}
 `;
 

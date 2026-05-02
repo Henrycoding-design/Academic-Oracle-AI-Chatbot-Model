@@ -2,6 +2,7 @@ import React from 'react';
 import type { CoreTestPayload } from '../../types';
 import { ExamBackToChatButton } from './ExamBackToChatButton';
 import { MarkdownContent } from '../MarkdownContent';
+import { AppLanguage, LANGUAGE_DATA} from '../../lang/Language';
 
 type ExamReviewViewProps = {
   title: string;
@@ -10,6 +11,7 @@ type ExamReviewViewProps = {
   onBackToChat: () => void;
   chatLabel: string;
   onRedo: () => void;
+  language: AppLanguage;
 };
 
 export const ExamReviewView: React.FC<ExamReviewViewProps> = ({
@@ -19,6 +21,7 @@ export const ExamReviewView: React.FC<ExamReviewViewProps> = ({
   onBackToChat,
   chatLabel,
   onRedo,
+  language = 'en',
 }) => {
   return (
     <div className="relative mx-auto flex w-full max-w-5xl flex-col gap-6 px-3 pb-6 pt-20 sm:px-4 sm:pb-8 sm:pt-24 md:pt-8">
@@ -26,7 +29,7 @@ export const ExamReviewView: React.FC<ExamReviewViewProps> = ({
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-indigo-500 dark:text-indigo-300">
-            Review Exam
+            {LANGUAGE_DATA[language].ui.exam.reviewExam}
           </p>
           <h1 className="mt-1 text-2xl font-semibold text-slate-900 dark:text-slate-100">
             {title}
@@ -38,13 +41,13 @@ export const ExamReviewView: React.FC<ExamReviewViewProps> = ({
             onClick={onBack}
             className="rounded-lg border border-black/5 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50 dark:border-white/10 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
           >
-            Back to Results
+            {LANGUAGE_DATA[language].ui.exam.backToResults}
           </button>
           <button
             onClick={onRedo}
             className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-indigo-700"
           >
-            Redo Exam
+            {LANGUAGE_DATA[language].ui.exam.redoExam}
           </button>
         </div>
       </div>
@@ -98,7 +101,7 @@ export const ExamReviewView: React.FC<ExamReviewViewProps> = ({
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
                   <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">
-                    Question {item.questionNumber}
+                    {LANGUAGE_DATA[language].ui.exam.questionPrefix} {item.questionNumber}
                   </p>
                   <p className="mt-1 text-xs font-medium uppercase tracking-[0.14em] text-slate-400">
                     {item.type === 'mcq' ? 'Multiple Choice' : 'Open Response'}
@@ -110,7 +113,7 @@ export const ExamReviewView: React.FC<ExamReviewViewProps> = ({
                   </span>
                   <div className="text-right">
                     <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
-                      Score
+                      {LANGUAGE_DATA[language].ui.exam.score}
                     </p>
                     <p className="text-lg font-semibold text-slate-900 dark:text-slate-100">
                       {item.score ?? 0}/{item.maxScore ?? 1}
@@ -126,29 +129,29 @@ export const ExamReviewView: React.FC<ExamReviewViewProps> = ({
               <div className="mt-5 grid gap-4 md:grid-cols-2">
                 <div className="rounded-xl bg-slate-50 p-4 dark:bg-slate-950/60">
                   <p className="text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">
-                    Your Answer
+                    {LANGUAGE_DATA[language].ui.exam.yourAnswer}
                   </p>
                   <p className="mt-2 whitespace-pre-wrap text-sm text-slate-700 dark:text-slate-200">
-                    {item.userAnswer || 'No answer submitted.'}
+                    {item.userAnswer || LANGUAGE_DATA[language].ui.exam.noAnswerSubmitted}
                   </p>
                 </div>
 
                 <div className="rounded-xl bg-slate-50 p-4 dark:bg-slate-950/60">
                   <p className="text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">
-                    Correct Answer
+                    {LANGUAGE_DATA[language].ui.exam.correctAnswer}
                   </p>
                   <p className="mt-2 whitespace-pre-wrap text-sm text-slate-700 dark:text-slate-200">
-                    {item.correctAnswer || item.markScheme || 'No official correct answer was available for this question.'}
+                    {item.correctAnswer || item.markScheme || LANGUAGE_DATA[language].ui.exam.noOfficialAnswer}
                   </p>
                 </div>
               </div>
 
               <div className="mt-4 rounded-xl bg-slate-50 p-4 dark:bg-slate-950/60">
                 <p className="text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">
-                  Feedback
+                  {LANGUAGE_DATA[language].ui.exam.feedback}
                 </p>
                 <p className="mt-2 whitespace-pre-wrap text-sm text-slate-700 dark:text-slate-200">
-                  {item.feedback || 'No additional feedback.'}
+                  {item.feedback || LANGUAGE_DATA[language].ui.exam.noAdditionalFeedback}
                 </p>
               </div>
             </article>

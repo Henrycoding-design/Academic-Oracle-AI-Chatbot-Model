@@ -153,6 +153,125 @@ export const LANGUAGE_DATA: Record<AppLanguage, {
       recommendedFocusDefault: string;
     };
     loadingModeLabels: Record<LoadingModeLabel, string>;
+    exam: {
+      examInstructions: string;
+      questions: string;
+      estimatedMarks: string;
+      duration: string;
+      helpLevel: string;
+      instructions: string;
+      back: string;
+      startExam: string;
+      timeRemaining: string;
+      submit: string;
+      submitting: string;
+      navigator: string;
+      multipleChoice: string;
+      openResponse: string;
+      flagged: string;
+      unflag: string;
+      flag: string;
+      hint: string;
+      showHint: string;
+      hideHint: string;
+      solution: string;
+      specificHint: string;
+      prev: string;
+      next: string;
+      typeAnswerHere: string;
+      noActiveQuestion: string;
+      youLeftExamWindow: string;
+      resumeExam: string;
+      submitExam: string;
+      unansweredQuestions: string;
+      flaggedQuestions: string;
+      submitAnyway: string;
+      cancel: string;
+      confirmSubmit: string;
+      examResults: string;
+      score: string;
+      percentage: string;
+      estimatedGrade: string;
+      summary: string;
+      redoExam: string;
+      exportToDocx: string;
+      addToOracleMemory: string;
+      reviewExam: string;
+      backToResults: string;
+      yourAnswer: string;
+      correctAnswer: string;
+      feedback: string;
+      correct: string;
+      partial: string;
+      incorrect: string;
+      unanswered: string;
+      noAnswerSubmitted: string;
+      noOfficialAnswer: string;
+      resumeExamNotice: string;
+      questionOf: string;
+      youStillHave: string;
+      questionPrefix: string;
+      noAdditionalFeedback: string;
+      noAnswerSubmittedFeedback: string;
+    };
+    examSetup: {
+      defaultExamTitle: string;
+      moduleSupertitle: string;
+      moduleTitle: string;
+      moduleDescription: string;
+      reset: string;
+      questionPaperTitle: string;
+      questionPaperSubtitle: string;
+      questionPaperBadge: string;
+      noQuestionPaperSelected: string;
+      questionPaperLoading: string;
+      questionPaperLoaded: string; // use {count}
+      questionPaperHint: string;
+      chooseQuestionPaper: string;
+      noFileChosen: string;
+      markSchemeTitle: string;
+      markSchemeSubtitle: string;
+      markSchemeBadge: string;
+      noMarkSchemeSelected: string;
+      markSchemeLoading: string;
+      markSchemeLoaded: string;
+      markSchemeHint: string;
+      chooseMarkScheme: string;
+      sessionSetupTitle: string;
+      sessionSetupDescription: string;
+      durationLabel: string;
+      duration15: string;
+      duration30: string;
+      duration45: string;
+      duration60: string;
+      helpLevelLabel: string;
+      helpLevelNone: string;
+      helpLevelGeneral: string;
+      helpLevelSpecific: string;
+      helpLevelSolution: string;
+      gradingStyleLabel: string;
+      gradingStyleDefault: string;
+      snapshotTitle: string;
+      snapshotFieldTitle: string;
+      snapshotPendingTitle: string;
+      snapshotFieldQuestions: string;
+      snapshotFieldMarks: string;
+      snapshotFieldDuration: string;
+      snapshotMinutes: string;
+      snapshotFieldHelpLevel: string;
+      snapshotFieldGradingStyle: string;
+      continueToInstructions: string;
+      errorNoQuestionPaper: string;
+      examRuntimeNotesTitle: string;
+      examRuntimeNote1: string;
+      examRuntimeNote2: string;
+      examRuntimeNote3: string;
+      resultSummaryNoQuestions: string;
+      resultSummaryNotAnswered: string; // use {total}
+      resultSummaryStrong: string; // use {score}, {total}
+      resultSummaryCompetent: string; // use {score}, {total}
+      resultSummaryNeedsReview: string; // use {score}, {total}
+    };
   };
 }> = {
   en: {
@@ -312,6 +431,125 @@ export const LANGUAGE_DATA: Record<AppLanguage, {
         Balanced: "Balanced",
         Standard: "Standard",
         "Web Search": "Web Search",
+      },
+      exam: {
+        examInstructions: "Exam Instructions",
+        questions: "Questions",
+        estimatedMarks: "Estimated Marks",
+        duration: "Duration",
+        helpLevel: "Help Level",
+        instructions: "Instructions",
+        back: "Back",
+        startExam: "Start Exam",
+        timeRemaining: "Time Remaining",
+        submit: "Submit",
+        submitting: "Submitting...",
+        navigator: "Navigator",
+        multipleChoice: "Multiple Choice",
+        openResponse: "Open Response",
+        flagged: "Flagged",
+        unflag: "Unflag",
+        flag: "Flag",
+        hint: "Hint",
+        showHint: "Show",
+        hideHint: "Hide",
+        solution: "Solution",
+        specificHint: "Specific Hint",
+        prev: "Prev",
+        next: "Next",
+        typeAnswerHere: "Type your answer here...",
+        noActiveQuestion: "No active question loaded.",
+        youLeftExamWindow: "You left the exam window.",
+        resumeExam: "Resume Exam",
+        submitExam: "Submit Exam?",
+        unansweredQuestions: "unanswered questions",
+        flaggedQuestions: "flagged questions",
+        submitAnyway: "Submit anyway?",
+        cancel: "Cancel",
+        confirmSubmit: "Confirm Submit",
+        examResults: "Exam Results",
+        score: "Score",
+        percentage: "Percentage",
+        estimatedGrade: "Estimated Grade",
+        summary: "Summary",
+        redoExam: "Redo Exam",
+        exportToDocx: "Export to Docx",
+        addToOracleMemory: "Add to Oracle Memory",
+        reviewExam: "Review Exam",
+        backToResults: "Back to Results",
+        yourAnswer: "Your Answer",
+        correctAnswer: "Correct Answer",
+        feedback: "Feedback",
+        correct: "Correct",
+        partial: "Partial",
+        incorrect: "Incorrect",
+        unanswered: "Unanswered",
+        noAnswerSubmitted: "No answer submitted.",
+        noOfficialAnswer: "No official correct answer was available for this question.",
+        resumeExamNotice: "The timer was paused while the exam window was hidden. Acknowledge this notice to resume the exam.",
+        questionOf: "Question {current} of {total}",
+        youStillHave: "You still have:",
+        questionPrefix: "Question",
+        noAdditionalFeedback: "No additional feedback.",
+        noAnswerSubmittedFeedback: "No answer was submitted for this question.",
+      },
+      examSetup: {
+        defaultExamTitle: 'Professional Exam Runtime',
+        moduleSupertitle: 'Academic Oracle',
+        moduleTitle: 'Professional Exam Module',
+        moduleDescription: 'Upload source PDFs, prepare the exam session, and launch the multi-stage runtime without leaving this view.',
+        reset: 'Reset',
+        questionPaperTitle: 'Question paper',
+        questionPaperSubtitle: 'Required. PDF only.',
+        questionPaperBadge: 'Core input',
+        noQuestionPaperSelected: 'No question paper selected',
+        questionPaperLoading: 'Reading and structuring questions...',
+        questionPaperLoaded: '{count} question item(s) loaded',
+        questionPaperHint: 'Raw content is extracted first, then structured with Gemini',
+        chooseQuestionPaper: 'Choose question paper',
+        noFileChosen: 'No file chosen',
+        markSchemeTitle: 'Mark scheme',
+        markSchemeSubtitle: 'Optional. Used for grading priority.',
+        markSchemeBadge: 'Optional',
+        noMarkSchemeSelected: 'No mark scheme selected',
+        markSchemeLoading: 'Reading mark scheme...',
+        markSchemeLoaded: 'Attached to the structured exam payload',
+        markSchemeHint: 'If missing, grading falls back to model judgment',
+        chooseMarkScheme: 'Choose mark scheme',
+        sessionSetupTitle: 'Session Setup',
+        sessionSetupDescription: 'Prepare the runtime session before entering the instruction and exam stages.',
+        durationLabel: 'Duration',
+        duration15: '15 min',
+        duration30: '30 min',
+        duration45: '45 min',
+        duration60: '60 min',
+        helpLevelLabel: 'Help Level',
+        helpLevelNone: 'Level 0 - None',
+        helpLevelGeneral: 'Level 1 - General hint',
+        helpLevelSpecific: 'Level 2 - Specific hint',
+        helpLevelSolution: 'Level 3 - Solution',
+        gradingStyleLabel: 'Grading Style',
+        gradingStyleDefault: 'Default',
+        snapshotTitle: 'Exam Snapshot',
+        snapshotFieldTitle: 'Title',
+        snapshotPendingTitle: 'Pending question paper',
+        snapshotFieldQuestions: 'Questions',
+        snapshotFieldMarks: 'Estimated marks',
+        snapshotFieldDuration: 'Duration',
+        snapshotMinutes: 'minutes',
+        snapshotFieldHelpLevel: 'Help level',
+        snapshotFieldGradingStyle: 'Grading style',
+        continueToInstructions: 'Continue to Instructions',
+        errorNoQuestionPaper: 'Upload and structure a question paper before continuing.',
+        examRuntimeNotesTitle: 'Exam Runtime Notes',
+        examRuntimeNote1: 'Upload a question paper PDF to structure the exam.',
+        examRuntimeNote2: 'Upload a mark scheme PDF if you want grading to prioritize official marking guidance.',
+        examRuntimeNote3: 'Choose duration and help level before starting.',
+        resultSummaryNoQuestions: 'No graded questions are available.',
+        resultSummaryNotAnswered: 'Test not answered. No responses were submitted, so this attempt was recorded as 0 out of {total} available marks.',
+        resultSummaryStrong: 'Strong performance. You earned {score} out of {total} available marks.',
+        resultSummaryCompetent: 'Competent result. You earned {score} out of {total} available marks, with some room to tighten consistency.',
+        resultSummaryNeedsReview: 'The runtime is working, but this attempt needs review. You earned {score} out of {total} available marks.',
       },
     },
   },
@@ -473,6 +711,125 @@ export const LANGUAGE_DATA: Record<AppLanguage, {
         Standard: "Standard",
         "Web Search": "Recherche Web",
       },
+      exam: {
+        examInstructions: "Instructions de l'examen",
+        questions: "Questions",
+        estimatedMarks: "Points estimés",
+        duration: "Durée",
+        helpLevel: "Niveau d'aide",
+        instructions: "Instructions",
+        back: "Retour",
+        startExam: "Commencer l'examen",
+        timeRemaining: "Temps restant",
+        submit: "Soumettre",
+        submitting: "Soumission...",
+        navigator: "Navigateur",
+        multipleChoice: "Choix multiple",
+        openResponse: "Réponse ouverte",
+        flagged: "Signalé",
+        unflag: "Retirer le signal",
+        flag: "Signaler",
+        hint: "Indice",
+        showHint: "Afficher",
+        hideHint: "Masquer",
+        solution: "Solution",
+        specificHint: "Indice spécifique",
+        prev: "Préc",
+        next: "Suiv",
+        typeAnswerHere: "Tapez votre réponse ici...",
+        noActiveQuestion: "Aucune question active chargée.",
+        youLeftExamWindow: "Vous avez quitté la fenêtre d'examen.",
+        resumeExam: "Reprendre l'examen",
+        submitExam: "Soumettre l'examen ?",
+        unansweredQuestions: "questions sans réponse",
+        flaggedQuestions: "questions signalées",
+        submitAnyway: "Soumettre quand même ?",
+        cancel: "Annuler",
+        confirmSubmit: "Confirmer la soumission",
+        examResults: "Résultats de l'examen",
+        score: "Score",
+        percentage: "Pourcentage",
+        estimatedGrade: "Note estimée",
+        summary: "Résumé",
+        redoExam: "Refaire l'examen",
+        exportToDocx: "Exporter en Docx",
+        addToOracleMemory: "Ajouter à la mémoire Oracle",
+        reviewExam: "Réviser l'examen",
+        backToResults: "Retour aux résultats",
+        yourAnswer: "Votre réponse",
+        correctAnswer: "Bonne réponse",
+        feedback: "Retour",
+        correct: "Correct",
+        partial: "Partiel",
+        incorrect: "Incorrect",
+        unanswered: "Sans réponse",
+        noAnswerSubmitted: "Aucune réponse soumise.",
+        noOfficialAnswer: "Aucune réponse officielle disponible pour cette question.",
+        resumeExamNotice: "Le minuteur a été mis en pause pendant que la fenêtre de l'examen était cachée. Acknowledge this notice to resume the exam.",
+        questionOf: "Question {current} sur {total}",
+        youStillHave: "Il vous reste encore :",
+        questionPrefix: "Question",
+        noAdditionalFeedback: "Aucun retour supplémentaire.",
+        noAnswerSubmittedFeedback: "Aucune réponse n'a été soumise pour cette question.",
+      },
+      examSetup: {
+        defaultExamTitle: 'Examen professionnel',
+        moduleSupertitle: 'Oracle Académique',
+        moduleTitle: 'Module d\'examen professionnel',
+        moduleDescription: 'Téléchargez les PDF sources, préparez la session d\'examen et lancez l\'environnement multi-étapes sans quitter cette vue.',
+        reset: 'Réinitialiser',
+        questionPaperTitle: 'Sujet d\'examen',
+        questionPaperSubtitle: 'Obligatoire. PDF uniquement.',
+        questionPaperBadge: 'Entrée principale',
+        noQuestionPaperSelected: 'Aucun sujet sélectionné',
+        questionPaperLoading: 'Lecture et structuration des questions...',
+        questionPaperLoaded: '{count} question(s) chargée(s)',
+        questionPaperHint: 'Le contenu brut est extrait, puis structuré avec Gemini',
+        chooseQuestionPaper: 'Choisir le sujet',
+        noFileChosen: 'Aucun fichier choisi',
+        markSchemeTitle: 'Barème de correction',
+        markSchemeSubtitle: 'Optionnel. Utilisé pour la priorité de notation.',
+        markSchemeBadge: 'Optionnel',
+        noMarkSchemeSelected: 'Aucun barème sélectionné',
+        markSchemeLoading: 'Lecture du barème...',
+        markSchemeLoaded: 'Associé à la session d\'examen structurée',
+        markSchemeHint: 'Sans barème, la notation repose sur le jugement du modèle',
+        chooseMarkScheme: 'Choisir le barème',
+        sessionSetupTitle: 'Configuration de la session',
+        sessionSetupDescription: 'Préparez la session avant d\'accéder aux étapes d\'instruction et d\'examen.',
+        durationLabel: 'Durée',
+        duration15: '15 min',
+        duration30: '30 min',
+        duration45: '45 min',
+        duration60: '60 min',
+        helpLevelLabel: 'Niveau d\'aide',
+        helpLevelNone: 'Niveau 0 - Aucun',
+        helpLevelGeneral: 'Niveau 1 - Indice général',
+        helpLevelSpecific: 'Niveau 2 - Indice spécifique',
+        helpLevelSolution: 'Niveau 3 - Solution',
+        gradingStyleLabel: 'Style de notation',
+        gradingStyleDefault: 'Par défaut',
+        snapshotTitle: 'Aperçu de l\'examen',
+        snapshotFieldTitle: 'Titre',
+        snapshotPendingTitle: 'En attente du sujet',
+        snapshotFieldQuestions: 'Questions',
+        snapshotFieldMarks: 'Points estimés',
+        snapshotFieldDuration: 'Durée',
+        snapshotMinutes: 'minutes',
+        snapshotFieldHelpLevel: 'Niveau d\'aide',
+        snapshotFieldGradingStyle: 'Style de notation',
+        continueToInstructions: 'Passer aux instructions',
+        errorNoQuestionPaper: 'Veuillez charger et structurer un sujet avant de continuer.',
+        examRuntimeNotesTitle: 'Notes sur l\'environnement d\'examen',
+        examRuntimeNote1: 'Téléchargez un PDF de sujet pour structurer l\'examen.',
+        examRuntimeNote2: 'Téléchargez un PDF de barème si vous souhaitez que la notation privilégie les critères officiels.',
+        examRuntimeNote3: 'Choisissez la durée et le niveau d\'aide avant de commencer.',
+        resultSummaryNoQuestions: 'Aucune question notée n\'est disponible.',
+        resultSummaryNotAnswered: 'Examen non répondu. Aucune réponse n\'a été soumise, cette tentative est enregistrée comme 0 sur {total} points disponibles.',
+        resultSummaryStrong: 'Excellente performance. Vous avez obtenu {score} sur {total} points disponibles.',
+        resultSummaryCompetent: 'Résultat compétent. Vous avez obtenu {score} sur {total} points disponibles, avec quelques marges de progression.',
+        resultSummaryNeedsReview: 'L\'environnement fonctionne, mais cette tentative nécessite une révision. Vous avez obtenu {score} sur {total} points disponibles.',
+      },
     },
   },
   es: {
@@ -633,6 +990,125 @@ export const LANGUAGE_DATA: Record<AppLanguage, {
         Standard: "Estándar",
         "Web Search": "Búsqueda web",
       },
+      exam: {
+        examInstructions: "Instrucciones del examen",
+        questions: "Preguntas",
+        estimatedMarks: "Puntos estimados",
+        duration: "Duración",
+        helpLevel: "Nivel de ayuda",
+        instructions: "Instrucciones",
+        back: "Atrás",
+        startExam: "Iniciar examen",
+        timeRemaining: "Tiempo restante",
+        submit: "Enviar",
+        submitting: "Enviando...",
+        navigator: "Navegador",
+        multipleChoice: "Opción múltiple",
+        openResponse: "Respuesta abierta",
+        flagged: "Marcado",
+        unflag: "Desmarcar",
+        flag: "Marcar",
+        hint: "Pista",
+        showHint: "Mostrar",
+        hideHint: "Ocultar",
+        solution: "Solución",
+        specificHint: "Pista específica",
+        prev: "Ant",
+        next: "Sig",
+        typeAnswerHere: "Escribe tu respuesta aquí...",
+        noActiveQuestion: "No hay pregunta activa cargada.",
+        youLeftExamWindow: "Saliste de la ventana del examen.",
+        resumeExam: "Reanudar examen",
+        submitExam: "¿Enviar examen?",
+        unansweredQuestions: "preguntas sin responder",
+        flaggedQuestions: "preguntas marcadas",
+        submitAnyway: "¿Enviar de todos modos?",
+        cancel: "Cancelar",
+        confirmSubmit: "Confirmar envío",
+        examResults: "Resultados del examen",
+        score: "Puntuación",
+        percentage: "Porcentaje",
+        estimatedGrade: "Calificación estimada",
+        summary: "Resumen",
+        redoExam: "Repetir examen",
+        exportToDocx: "Exportar a Docx",
+        addToOracleMemory: "Agregar a memoria Oracle",
+        reviewExam: "Revisar examen",
+        backToResults: "Volver a resultados",
+        yourAnswer: "Tu respuesta",
+        correctAnswer: "Respuesta correcta",
+        feedback: "Retroalimentación",
+        correct: "Correcto",
+        partial: "Parcial",
+        incorrect: "Incorrecto",
+        unanswered: "Sin responder",
+        noAnswerSubmitted: "No se envió ninguna respuesta.",
+        noOfficialAnswer: "No había respuesta oficial disponible para esta pregunta.",
+        resumeExamNotice: "El temporizador se pausó mientras la ventana del examen estaba oculta. Reconoce este aviso para reanudar el examen.",
+        questionOf: "Pregunta {current} de {total}",
+        youStillHave: "Aún te queda:",
+        questionPrefix: "Pregunta",
+        noAdditionalFeedback: "No hay retroalimentación adicional.",
+        noAnswerSubmittedFeedback: "No se envió ninguna respuesta para esta pregunta.",
+      },
+      examSetup: {
+        defaultExamTitle: 'Examen profesional',
+        moduleSupertitle: 'Oráculo Académico',
+        moduleTitle: 'Módulo de examen profesional',
+        moduleDescription: 'Sube los PDFs fuente, prepara la sesión de examen y lanza el entorno de múltiples etapas sin salir de esta vista.',
+        reset: 'Restablecer',
+        questionPaperTitle: 'Papel de preguntas',
+        questionPaperSubtitle: 'Obligatorio. Solo PDF.',
+        questionPaperBadge: 'Entrada principal',
+        noQuestionPaperSelected: 'Ningún papel de preguntas seleccionado',
+        questionPaperLoading: 'Leyendo y estructurando preguntas...',
+        questionPaperLoaded: '{count} pregunta(s) cargada(s)',
+        questionPaperHint: 'El contenido bruto se extrae primero, luego se estructura con Gemini',
+        chooseQuestionPaper: 'Elegir papel de preguntas',
+        noFileChosen: 'Ningún archivo elegido',
+        markSchemeTitle: 'Esquema de puntuación',
+        markSchemeSubtitle: 'Opcional. Usado para prioridad de calificación.',
+        markSchemeBadge: 'Opcional',
+        noMarkSchemeSelected: 'Ningún esquema de puntuación seleccionado',
+        markSchemeLoading: 'Leyendo esquema de puntuación...',
+        markSchemeLoaded: 'Adjunto a la sesión de examen estructurada',
+        markSchemeHint: 'Sin esquema, la calificación usa el juicio del modelo',
+        chooseMarkScheme: 'Elegir esquema de puntuación',
+        sessionSetupTitle: 'Configuración de sesión',
+        sessionSetupDescription: 'Prepara la sesión antes de acceder a las etapas de instrucción y examen.',
+        durationLabel: 'Duración',
+        duration15: '15 min',
+        duration30: '30 min',
+        duration45: '45 min',
+        duration60: '60 min',
+        helpLevelLabel: 'Nivel de ayuda',
+        helpLevelNone: 'Nivel 0 - Ninguno',
+        helpLevelGeneral: 'Nivel 1 - Pista general',
+        helpLevelSpecific: 'Nivel 2 - Pista específica',
+        helpLevelSolution: 'Nivel 3 - Solución',
+        gradingStyleLabel: 'Estilo de calificación',
+        gradingStyleDefault: 'Predeterminado',
+        snapshotTitle: 'Resumen del examen',
+        snapshotFieldTitle: 'Título',
+        snapshotPendingTitle: 'Esperando papel de preguntas',
+        snapshotFieldQuestions: 'Preguntas',
+        snapshotFieldMarks: 'Puntos estimados',
+        snapshotFieldDuration: 'Duración',
+        snapshotMinutes: 'minutos',
+        snapshotFieldHelpLevel: 'Nivel de ayuda',
+        snapshotFieldGradingStyle: 'Estilo de calificación',
+        continueToInstructions: 'Continuar a instrucciones',
+        errorNoQuestionPaper: 'Sube y estructura un papel de preguntas antes de continuar.',
+        examRuntimeNotesTitle: 'Notas del entorno de examen',
+        examRuntimeNote1: 'Sube un PDF de preguntas para estructurar el examen.',
+        examRuntimeNote2: 'Sube un PDF de esquema de puntuación si quieres que la calificación priorice las guías oficiales.',
+        examRuntimeNote3: 'Elige la duración y el nivel de ayuda antes de comenzar.',
+        resultSummaryNoQuestions: 'No hay preguntas calificadas disponibles.',
+        resultSummaryNotAnswered: 'Examen sin responder. No se enviaron respuestas, este intento se registró como 0 de {total} puntos disponibles.',
+        resultSummaryStrong: 'Rendimiento sólido. Obtuviste {score} de {total} puntos disponibles.',
+        resultSummaryCompetent: 'Resultado competente. Obtuviste {score} de {total} puntos disponibles, con algo de margen para mejorar la consistencia.',
+        resultSummaryNeedsReview: 'El entorno funciona, pero este intento necesita revisión. Obtuviste {score} de {total} puntos disponibles.',
+      },
     },
   },
   vi: {
@@ -792,6 +1268,124 @@ export const LANGUAGE_DATA: Record<AppLanguage, {
         Balanced: "Cân bằng",
         Standard: "Tiêu chuẩn",
         "Web Search": "Tìm kiếm web",
+      },      exam: {
+        examInstructions: "Hướng dẫn bài kiểm tra",
+        questions: "Câu hỏi",
+        estimatedMarks: "Điểm ước tính",
+        duration: "Thời gian",
+        helpLevel: "Mức hỗ trợ",
+        instructions: "Hướng dẫn",
+        back: "Quay lại",
+        startExam: "Bắt đầu bài kiểm tra",
+        timeRemaining: "Thời gian còn lại",
+        submit: "Nộp bài",
+        submitting: "Đang nộp...",
+        navigator: "Điều hướng",
+        multipleChoice: "Trắc nghiệm",
+        openResponse: "Tự luận",
+        flagged: "Đã đánh dấu",
+        unflag: "Bỏ đánh dấu",
+        flag: "Đánh dấu",
+        hint: "Gợi ý",
+        showHint: "Hiện",
+        hideHint: "Ẩn",
+        solution: "Giải pháp",
+        specificHint: "Gợi ý cụ thể",
+        prev: "Trước",
+        next: "Sau",
+        typeAnswerHere: "Nhập câu trả lời của bạn ở đây...",
+        noActiveQuestion: "Không có câu hỏi nào đang hoạt động.",
+        youLeftExamWindow: "Bạn đã rời khỏi cửa sổ bài kiểm tra.",
+        resumeExam: "Tiếp tục bài kiểm tra",
+        submitExam: "Nộp bài kiểm tra?",
+        unansweredQuestions: "câu hỏi chưa trả lời",
+        flaggedQuestions: "câu hỏi đã đánh dấu",
+        submitAnyway: "Nộp bài dù còn câu chưa làm?",
+        cancel: "Hủy",
+        confirmSubmit: "Xác nhận nộp bài",
+        examResults: "Kết quả bài kiểm tra",
+        score: "Điểm",
+        percentage: "Phần trăm",
+        estimatedGrade: "Điểm ước tính",
+        summary: "Tóm tắt",
+        redoExam: "Làm lại bài kiểm tra",
+        exportToDocx: "Xuất ra Docx",
+        addToOracleMemory: "Thêm vào Bộ nhớ Oracle",
+        reviewExam: "Xem lại bài kiểm tra",
+        backToResults: "Quay lại kết quả",
+        yourAnswer: "Câu trả lời của bạn",
+        correctAnswer: "Đáp án đúng",
+        feedback: "Phản hồi",
+        correct: "Đúng",
+        partial: "Một phần",
+        incorrect: "Sai",
+        unanswered: "Chưa trả lời",
+        noAnswerSubmitted: "Không có câu trả lời nào được nộp.",
+        noOfficialAnswer: "Không có đáp án chính thức nào cho câu hỏi này.",
+        resumeExamNotice: "Đồng hồ đã được tạm dừng khi cửa sổ bài kiểm tra bị ẩn. Hãy xác nhận thông báo này để tiếp tục bài kiểm tra.",
+        questionOf: "Câu hỏi {current} trên {total}",
+        youStillHave: "Bạn vẫn còn:",
+        questionPrefix: "Câu hỏi",
+        noAdditionalFeedback: "Không có phản hồi bổ sung nào.",
+        noAnswerSubmittedFeedback: "Không có câu trả lời nào được nộp cho câu hỏi này.",
+      },    
+      examSetup: {
+        defaultExamTitle: 'Bài kiểm tra chuyên nghiệp',
+        moduleSupertitle: 'Academic Oracle',
+        moduleTitle: 'Module kiểm tra chuyên nghiệp',
+        moduleDescription: 'Tải lên các PDF nguồn, chuẩn bị phiên kiểm tra và khởi chạy môi trường đa giai đoạn mà không cần rời khỏi giao diện này.',
+        reset: 'Đặt lại',
+        questionPaperTitle: 'Đề thi',
+        questionPaperSubtitle: 'Bắt buộc. Chỉ PDF.',
+        questionPaperBadge: 'Đầu vào chính',
+        noQuestionPaperSelected: 'Chưa chọn đề thi',
+        questionPaperLoading: 'Đang đọc và cấu trúc câu hỏi...',
+        questionPaperLoaded: 'Đã tải {count} câu hỏi',
+        questionPaperHint: 'Nội dung thô được trích xuất trước, sau đó cấu trúc hóa với Gemini',
+        chooseQuestionPaper: 'Chọn đề thi',
+        noFileChosen: 'Chưa chọn tệp',
+        markSchemeTitle: 'Đáp án / Thang điểm',
+        markSchemeSubtitle: 'Tùy chọn. Dùng để ưu tiên chấm điểm.',
+        markSchemeBadge: 'Tùy chọn',
+        noMarkSchemeSelected: 'Chưa chọn thang điểm',
+        markSchemeLoading: 'Đang đọc thang điểm...',
+        markSchemeLoaded: 'Đã đính kèm vào phiên kiểm tra',
+        markSchemeHint: 'Nếu thiếu, hệ thống sẽ chấm dựa trên phán đoán của mô hình',
+        chooseMarkScheme: 'Chọn thang điểm',
+        sessionSetupTitle: 'Cấu hình phiên',
+        sessionSetupDescription: 'Chuẩn bị phiên trước khi vào giai đoạn hướng dẫn và kiểm tra.',
+        durationLabel: 'Thời gian',
+        duration15: '15 phút',
+        duration30: '30 phút',
+        duration45: '45 phút',
+        duration60: '60 phút',
+        helpLevelLabel: 'Mức hỗ trợ',
+        helpLevelNone: 'Mức 0 - Không có',
+        helpLevelGeneral: 'Mức 1 - Gợi ý chung',
+        helpLevelSpecific: 'Mức 2 - Gợi ý cụ thể',
+        helpLevelSolution: 'Mức 3 - Giải pháp',
+        gradingStyleLabel: 'Kiểu chấm điểm',
+        gradingStyleDefault: 'Mặc định',
+        snapshotTitle: 'Tổng quan bài kiểm tra',
+        snapshotFieldTitle: 'Tiêu đề',
+        snapshotPendingTitle: 'Chờ đề thi',
+        snapshotFieldQuestions: 'Số câu hỏi',
+        snapshotFieldMarks: 'Điểm ước tính',
+        snapshotFieldDuration: 'Thời gian',
+        snapshotMinutes: 'phút',
+        snapshotFieldHelpLevel: 'Mức hỗ trợ',
+        snapshotFieldGradingStyle: 'Kiểu chấm điểm',
+        continueToInstructions: 'Tiếp tục đến hướng dẫn',
+        errorNoQuestionPaper: 'Vui lòng tải lên và cấu trúc đề thi trước khi tiếp tục.',
+        examRuntimeNotesTitle: 'Lưu ý về môi trường kiểm tra',
+        examRuntimeNote1: 'Tải lên PDF đề thi để cấu trúc bài kiểm tra.',
+        examRuntimeNote2: 'Tải lên PDF thang điểm nếu bạn muốn chấm điểm ưu tiên theo hướng dẫn chính thức.',
+        examRuntimeNote3: 'Chọn thời gian và mức hỗ trợ trước khi bắt đầu.',
+        resultSummaryNoQuestions: 'Không có câu hỏi nào được chấm điểm.',
+        resultSummaryNotAnswered: 'Bài kiểm tra chưa được trả lời. Không có câu nào được nộp, lần thử này được ghi nhận là 0 trên {total} điểm.',
+        resultSummaryStrong: 'Kết quả xuất sắc. Bạn đạt {score} trên {total} điểm.',
+        resultSummaryCompetent: 'Kết quả khá. Bạn đạt {score} trên {total} điểm, còn một số chỗ cần cải thiện.',
+        resultSummaryNeedsReview: 'Hệ thống hoạt động, nhưng lần thử này cần xem lại. Bạn đạt {score} trên {total} điểm.',
       },
     },
   },

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { AppLanguage } from '../../lang/Language';
+import { LANGUAGE_DATA } from '../../lang/Language';
 import type { CoreTestGradingStyle, CoreTestPayload } from '../../types';
 import { readFileAsText } from '../../services/fileReader';
 import {
@@ -171,6 +172,7 @@ const resetPayloadForAttempt = (payload: CoreTestPayload): CoreTestPayload => ({
 const buildUnansweredSubmissionPayload = (
   payload: CoreTestPayload,
   gradingStyle: ExamGradingStyle,
+  language: AppLanguage,
 ): CoreTestPayload => ({
   ...payload,
   summary: {
@@ -184,7 +186,7 @@ const buildUnansweredSubmissionPayload = (
     ...item,
     isCorrect: false,
     score: 0,
-    feedback: item.feedback || 'No answer was submitted for this question.',
+    feedback: item.feedback || LANGUAGE_DATA[language].ui.exam.noAnswerSubmittedFeedback,
   })),
 });
 
@@ -464,7 +466,7 @@ export const useExamSession = ({
         stage: 'results',
         status: 'graded',
         submittedAt: Date.now(),
-        payload: buildUnansweredSubmissionPayload(prev.payload, gradingStyle),
+        payload: buildUnansweredSubmissionPayload(prev.payload, gradingStyle, language),
       }));
       return;
     }
