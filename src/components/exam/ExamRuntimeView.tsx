@@ -1,3 +1,15 @@
+/*
+ * Copyright (c) 2026 Vo Tan Binh / Universal Academic Oracle
+ * All Rights Reserved.
+ *
+ * This file is NOT licensed under Apache License 2.0.
+ * No permission is granted to copy, redistribute, modify, reuse,
+ * republish, or sublicense this file outside the official upstream
+ * Universal Academic Oracle repository without prior written permission.
+ *
+ * See NOTICE and TRADEMARK_POLICY.md for additional terms.
+ */
+
 import React, { useMemo, useState } from 'react';
 import { AlertTriangle, ChevronLeft, ChevronRight, Clock3, Flag, Lightbulb, LoaderCircle, Send } from 'lucide-react';
 import type { CoreTestItem } from '../../types';

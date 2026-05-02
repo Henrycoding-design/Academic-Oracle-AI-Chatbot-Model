@@ -18,10 +18,14 @@ Excluded files include:
 - src/services/oracleMemory.ts
 - src/services/chatIntentClassifier.ts
 - src/services/createSummaryDoc.ts
+- src/components/exam/examResultExport.ts
 - src/App.tsx
 - src/components/DashboardView.tsx
 - src/components/QuizView.tsx
 - src/components/MarkdownContent.tsx
+- src/components/exam/CoreTestView.tsx
+- src/components/exam/ExamRuntimeView.tsx
+- src/hooks/exam/useExamSession.ts
 
 Public visibility of excluded files does not grant permission to copy,
 redistribute, modify, reuse, republish, or sublicense them outside the official
