@@ -417,4 +417,5 @@ If Academic Oracle helps your learning:
 
 * ⭐ Star the repository
 
-* ☕ Support via [Buy Me a Coffee](https://buymeacoffee.com/votanbinh)
+* ☕ Support via [Buy Me a Coffee](https://buymeacoffee.com/votanbinh) or 
+  [Kofi](https://ko-fi.com/tanbinhvo)
