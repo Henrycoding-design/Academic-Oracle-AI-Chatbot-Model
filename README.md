@@ -35,13 +35,21 @@
 
 # Universal Academic Oracle
 
-**Academic Oracle** is a learning-focused AI platform designed to maximize understanding, not passive consumption.
+**Academic Oracle** is a learning-focused AI platform designed to maximize understanding, not passive consumption — now extended into a **full exam practice and evaluation system**.
+
+It is no longer just a chatbot.
+
+Academic Oracle operates across two tightly integrated modes:
+- **Learning Mode** — builds deep understanding through guided reasoning
+- **Exam Mode** — trains performance under real exam conditions with structured evaluation
 
 Instead of immediately giving answers, Academic Oracle follows a scientifically grounded flow:
 
-> **Ask → Think → Hint → Attempt → Feedback → Pattern → Insight → Mastery**
+> **Learn Mode:** Ask → Think → Hint → Attempt → Feedback → Pattern → Insight → Mastery  
+> **Exam Mode:** Attempt → Submit → Evaluate → Analyze → Target → Improve
 
-The goal is not memorization — it’s *deep, durable learning*.
+
+The goal is not memorization — it’s *deep, durable learning with real exam performance*.
 
 ---
 
@@ -78,6 +86,12 @@ You don’t just learn faster — you learn *properly*.
   - Max 2 mastery checks per topic
   - Adaptive phrasing after incorrect attempts
   - Smart fallback: explain → user chooses retry or move on
+- **Oracle Memory system**
+  - Tracks understanding, mistakes, and learning progress across sessions
+  - Enables continuity between Learning Mode and Exam Mode
+- **Cross-mode learning loop**
+  - Concepts learned in chat influence exam performance
+  - Exam results feed back into targeted learning and revision
 
 ---
 
@@ -109,22 +123,105 @@ You don’t just learn faster — you learn *properly*.
 
 ### 🎓 Exam Practice Module *(new v2.4.5)*
 
-- **Full Exam Simulation** — timed conditions, restricted help, and no live feedback to mimic real-world testing environments
-- **Multi-Format Input Support** — process exams from PDF, PNG, TXT, and DOCX with automated text and mark scheme extraction
-- **Tiered Help Level System**
-  - **Level 0:** Strict exam mode (no hints)
-  - **Level 1:** General conceptual hints
-  - **Level 2:** Specific guidance and scaffolding
-  - **Level 3:** Full solutions with detailed explanations
-- **AI-Based Grading & Evaluation**
-  - Instant grading using uploaded mark schemes
-  - Performance breakdown by topic and difficulty
-  - Estimated grade boundary mapping
-- **Review & Learning Integration**
-  - Per-question mistake identification and improvement suggestions
-  - **examMemory** system tracks weak areas and patterns
-  - Results sync with **Oracle Memory** to generate focused revision checklists
-- **Full Analytics Export** — download comprehensive DOCX reports including scores, breakdowns, and model answers
+**Transforms Academic Oracle from a learning assistant into a full exam + evaluation system.**
+
+This module is designed not just for practice — but for **training how you perform under real exam conditions**.
+
+---
+
+### 🧪 Real Exam Simulation
+
+- **Full Exam Mode** — timed conditions, restricted help, and no live feedback  
+- Replicates real testing pressure to train focus, discipline, and decision-making  
+- Designed for structured exam systems *(IGCSE, A-Level, AP, SAT-style preparation)*  
+
+---
+
+### 📄 Multi-Format Exam Input
+
+- Process full exams from **PDF, PNG, TXT, DOCX**
+- Automated **question extraction + mark scheme parsing**
+- Supports real past papers and custom teacher-provided materials
+
+---
+
+### 🎚️ Tiered Help System
+
+Control how much assistance is allowed during exam sessions:
+
+- **Level 0:** Strict exam conditions *(no hints, no guidance)*  
+- **Level 1:** Light conceptual nudges  
+- **Level 2:** Guided scaffolding  
+- **Level 3:** Full worked solutions  
+
+Enables a smooth transition from **independent performance → supported improvement**.
+
+---
+
+### 🧠 Examiner-Style AI Grading
+
+- **Mark scheme–aligned evaluation** (not simple answer matching)
+- Step-based marking logic where applicable
+- **Instant scoring with detailed breakdowns**
+- **Estimated grade boundaries** based on performance
+
+> Not just “correct or incorrect” — but *how well you would score in a real exam*.
+
+---
+
+### 📊 Performance Analysis & examMemory
+
+- Per-question mistake identification with targeted improvement suggestions  
+- **examMemory system** tracks:
+  - Weak topics  
+  - Error patterns  
+  - Performance trends across sessions  
+
+- Builds a **persistent exam-performance model** over time
+
+---
+
+### 🔁 Review → Targeted Revision Loop
+
+- Results automatically sync with **Oracle Memory**
+- Generates **focused revision checklists** based on actual mistakes
+- Converts exam performance directly into structured learning paths
+
+> Every exam becomes data for the next improvement cycle.
+
+---
+
+### 📤 Full Analytics Export
+
+- Download comprehensive **DOCX reports** including:
+  - Scores and breakdowns  
+  - Model answers  
+  - Improvement insights  
+
+Ideal for:
+- Self-review  
+- Teacher feedback  
+- Progress tracking over time  
+
+---
+
+### ⚡ Why This Matters
+
+**Before:**
+- Practice questions in isolation  
+- No real timing pressure  
+- Limited or generic feedback  
+- No long-term tracking  
+
+**With Academic Oracle Exam Mode:**
+- Full exam simulation  
+- Examiner-style grading  
+- Weakness tracking across sessions  
+- Automatic conversion of mistakes → revision strategy  
+
+---
+
+> **Don’t just practice exams — train how you perform in them.**
 
 ---
 
