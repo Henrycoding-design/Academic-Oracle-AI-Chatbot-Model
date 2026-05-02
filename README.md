@@ -127,7 +127,6 @@ You don’t just learn faster — you learn *properly*.
 
 This module is designed not just for practice — but for **training how you perform under real exam conditions**.
 
----
 
 ### 🧪 Real Exam Simulation
 
@@ -135,7 +134,6 @@ This module is designed not just for practice — but for **training how you per
 - Replicates real testing pressure to train focus, discipline, and decision-making  
 - Designed for structured exam systems *(IGCSE, A-Level, AP, SAT-style preparation)*  
 
----
 
 ### 📄 Multi-Format Exam Input
 
@@ -143,7 +141,6 @@ This module is designed not just for practice — but for **training how you per
 - Automated **question extraction + mark scheme parsing**
 - Supports real past papers and custom teacher-provided materials
 
----
 
 ### 🎚️ Tiered Help System
 
@@ -156,7 +153,6 @@ Control how much assistance is allowed during exam sessions:
 
 Enables a smooth transition from **independent performance → supported improvement**.
 
----
 
 ### 🧠 Examiner-Style AI Grading
 
@@ -167,7 +163,6 @@ Enables a smooth transition from **independent performance → supported improve
 
 > Not just “correct or incorrect” — but *how well you would score in a real exam*.
 
----
 
 ### 📊 Performance Analysis & examMemory
 
@@ -179,7 +174,6 @@ Enables a smooth transition from **independent performance → supported improve
 
 - Builds a **persistent exam-performance model** over time
 
----
 
 ### 🔁 Review → Targeted Revision Loop
 
@@ -189,7 +183,6 @@ Enables a smooth transition from **independent performance → supported improve
 
 > Every exam becomes data for the next improvement cycle.
 
----
 
 ### 📤 Full Analytics Export
 
@@ -203,7 +196,6 @@ Ideal for:
 - Teacher feedback  
 - Progress tracking over time  
 
----
 
 ### ⚡ Why This Matters
 
@@ -219,7 +211,6 @@ Ideal for:
 - Weakness tracking across sessions  
 - Automatic conversion of mistakes → revision strategy  
 
----
 
 > **Don’t just practice exams — train how you perform in them.**
 
