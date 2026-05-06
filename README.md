@@ -37,15 +37,18 @@
 
 **Academic Oracle** is a learning-focused AI platform designed to maximize understanding, not passive consumption — now extended into a **full exam practice and evaluation system**.
 
+
 > [!IMPORTANT]
 > Academic Oracle is not a traditional chatbot.  
 > It is a **structured learning and evaluation system** designed to guide reasoning, not just provide answers.
+
 
 Academic Oracle operates across two tightly integrated modes:
 - **Learning Mode** — builds deep understanding through guided reasoning
 - **Exam Mode** — trains performance under real exam conditions with structured evaluation
 
 Instead of immediately giving answers, Academic Oracle follows a scientifically grounded flow:
+
 
 > [!IMPORTANT]
 > **Learn Mode:** Ask → Think → Hint → Attempt → Feedback → Pattern → Insight → Mastery  
@@ -68,8 +71,10 @@ Academic Oracle optimizes for **retention, intuition, and reasoning**.
 - Pattern discovery over rote explanation
 - Minimal UI disruption to maintain cognitive flow
 
+
 > [!TIP]
 > You don’t just learn faster — you learn *properly*.
+
 
 ---
 
@@ -128,6 +133,7 @@ Academic Oracle optimizes for **retention, intuition, and reasoning**.
 ### 🎓 Exam Practice Module *(new v2.4.5)*
 
 **Transforms Academic Oracle from a learning assistant into a full exam + evaluation system.**
+
 
 > [!NOTE]
 > Exam Mode is not just for practice — it is designed to **train real exam performance under real conditions**,  
@@ -218,7 +224,9 @@ Ideal for:
 - Automatic conversion of mistakes → revision strategy  
 
 
-> **Don’t just practice exams — train how you perform in them.**
+> [!TIP]
+> **Don’t just practice exams — *train* how you perform in them.**
+
 
 ---
 
@@ -254,9 +262,11 @@ Ideal for:
 
 ### 🔐 Security & Architecture *(major update v2.3.0, reinforced v2.4.0)*
 
+
 > [!IMPORTANT]
 > **All AI interactions are processed through a secured backend.**  
 > **No API keys or sensitive logic are exposed to the client.**
+
 
 - All AI API calls handled via Supabase backend — no direct client exposure of keys
 - Production-grade, secure Edge Function orchestration
@@ -320,12 +330,14 @@ VITE_JIGSAWSTACK_KEY=YOUR_JIGSAWSTACK_API_KEY
 npm run dev
 ```
 
+
 > [!WARNING]
 > This public repository **intentionally excludes** certain backend infrastructure, deployment 
 > configuration, and protected service implementation details.
 > 
 > As a result, some advanced **production features may not be fully reproducible**
 > from the public repository alone.
+
 
 ---
 
@@ -380,9 +392,11 @@ This repository uses a **mixed-license structure**.
 Unless otherwise stated, the public code in this repository is licensed under the
 **Apache License 2.0**.
 
+
 > [!IMPORTANT]
 > **Not all code in this repository is open for reuse.**  
 > Certain core logic and system design components are **explicitly excluded** from the Apache-2.0 license.
+
 
 However, selected files containing core product logic, orchestration behavior,
 service intelligence, and project-defining implementation details are **excluded**
