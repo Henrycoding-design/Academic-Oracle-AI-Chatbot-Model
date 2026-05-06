@@ -255,8 +255,8 @@ Ideal for:
 ### 🔐 Security & Architecture *(major update v2.3.0, reinforced v2.4.0)*
 
 > [!IMPORTANT]
-> All AI interactions are processed through a secured backend.  
-> No API keys or sensitive logic are exposed to the client.
+> **All AI interactions are processed through a secured backend.**  
+> **No API keys or sensitive logic are exposed to the client.**
 
 - All AI API calls handled via Supabase backend — no direct client exposure of keys
 - Production-grade, secure Edge Function orchestration
@@ -321,10 +321,10 @@ npm run dev
 ```
 
 > [!WARNING]
-> This public repository intentionally excludes certain backend infrastructure,
-> deployment configuration, and protected service implementation details.
+> This public repository **intentionally excludes** certain backend infrastructure, deployment 
+> configuration, and protected service implementation details.
 > 
-> As a result, some advanced production features may not be fully reproducible
+> As a result, some advanced **production features may not be fully reproducible**
 > from the public repository alone.
 
 ---
@@ -381,7 +381,7 @@ Unless otherwise stated, the public code in this repository is licensed under th
 **Apache License 2.0**.
 
 > [!IMPORTANT]
-> Not all code in this repository is open for reuse.  
+> **Not all code in this repository is open for reuse.**  
 > Certain core logic and system design components are **explicitly excluded** from the Apache-2.0 license.
 
 However, selected files containing core product logic, orchestration behavior,
