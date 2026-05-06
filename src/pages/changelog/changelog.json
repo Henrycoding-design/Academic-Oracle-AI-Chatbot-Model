@@ -1,5 +1,14 @@
 [
   {
+    "version": "2.4.6",
+    "date": "2026-05-06",
+    "changes": [
+      { "type": "improve", "text": "Added confirmation prompt before chat reset with full language support to prevent accidental data loss." },
+      { "type": "fix", "text": "Expanded chat reset validation to include both chatHistory and oracleMemory for more reliable state handling." },
+      { "type": "improve", "text": "Enhanced Exam Mode performance with model racing between gemini-2.5-flash and gemini-3.1-flash-preview under adaptive trigger conditions." }
+    ]
+  },
+  {
     "version": "2.4.5",
     "date": "2026-05-02",
     "changes": [

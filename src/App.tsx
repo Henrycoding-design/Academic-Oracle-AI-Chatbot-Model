@@ -1004,9 +1004,13 @@ const App: React.FC = () => {
   const resetChat = () => { // for new chat
 
     if (isLoading) return; // prevent reset during loading
-    if (chatHistory.length <= 1) { // no existing chat or profile
+    if (chatHistory.length <= 1 && !oracleMemory) { // no existing chat or profile
       alert(LANGUAGE_DATA[language].ui.noExistingChat);
       return;
+    }
+
+    if (!window.confirm(LANGUAGE_DATA[language].ui.confirmReset)) {
+      return; // user cancelled
     }
 
     // 🧹 wipe persisted chat state

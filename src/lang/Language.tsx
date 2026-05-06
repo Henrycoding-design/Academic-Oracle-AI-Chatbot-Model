@@ -91,6 +91,7 @@ export const LANGUAGE_DATA: Record<AppLanguage, {
     noApiKeySetMessage: string;
     wipeProfile: string;
     wipeProfileConfirm: string;
+    confirmReset: string;
     uploadFile: string;
     placeholderFull: string;
     placeholderMedium: string;
@@ -395,6 +396,7 @@ export const LANGUAGE_DATA: Record<AppLanguage, {
       noApiKeySetMessage: "No API Key set",
       wipeProfile: "Do you want to wipe your student profile as well? Click 'Cancel' to keep it.",
       wipeProfileConfirm: "Wipe Profile",
+      confirmReset: "Are you sure you want to reset the chat?",
       uploadFile: "Upload from computer",
       placeholderFull: "Type your academic inquiry here…",
       placeholderMedium: "Type your academic question…",
@@ -705,6 +707,7 @@ export const LANGUAGE_DATA: Record<AppLanguage, {
       noApiKeySetMessage: "Aucune clé API définie",
       wipeProfile: "Voulez-vous également effacer votre profil étudiant ? Cliquez sur « Annuler » pour le conserver.",
       wipeProfileConfirm: "Effacer le profil",
+      confirmReset: "Êtes-vous sûr de vouloir réinitialiser le chat ?",
       uploadFile: "Télécharger depuis l'ordinateur",
       placeholderFull: "Entrez votre question académique ici…",
       placeholderMedium: "Entrez votre question académique…",
@@ -1015,6 +1018,7 @@ export const LANGUAGE_DATA: Record<AppLanguage, {
       noApiKeySetMessage: "Sin clave API establecida",
       wipeProfile: "¿Deseas borrar también tu perfil de estudiante? Haz clic en 'Cancelar' para mantenerlo.",
       wipeProfileConfirm: "Borrar perfil",
+      confirmReset: "¿Estás seguro de que deseas reiniciar el chat?",
       uploadFile: "Cargar desde la computadora",
       placeholderFull: "Escribe tu pregunta académica aquí…",
       placeholderMedium: "Escribe tu pregunta académica…",
@@ -1325,6 +1329,7 @@ export const LANGUAGE_DATA: Record<AppLanguage, {
       noApiKeySetMessage: "Chưa đặt khóa API",
       wipeProfile: "Bạn có muốn xóa hồ sơ học sinh của mình không? Nhấp vào 'Hủy' để giữ nó.",
       wipeProfileConfirm: "Xóa hồ sơ",
+      confirmReset: "Bạn có chắc chắn muốn đặt lại cuộc trò chuyện không?",
       uploadFile: "Tải lên từ máy tính",
       placeholderFull: "Nhập câu hỏi học tập của bạn tại đây…",
       placeholderMedium: "Nhập câu hỏi học tập của bạn…",

@@ -16,6 +16,7 @@ import { InvalidAIResponseError , InvalidAPIError, GuardResult} from "../types";
 import { AppLanguage } from "../lang/Language";
 import { classifyIntent } from "./chatIntentClassifier";
 import { raceModels } from "./raceModels";
+import { isRushHourUTC } from "./rushHours";
 import {
   formatOracleMemoryForPrompt,
   formatOracleMemoryForQuizConfig,
@@ -46,6 +47,18 @@ const MODEL_FALLBACK_CHAIN = [
   "gemini-3.1-flash-lite-preview", // safer public model
   "gemini-2.5-flash" // last resort due to this model also being use in Quiz generation/validation -> less load balancing
 ] as const;
+
+const shouldUseExamRace = (): boolean => {
+  if (typeof window === "undefined") return false;
+  try {
+    const tailoring = localStorage.getItem("academic-oracle-tailoring") || "standard";
+    if (tailoring === "no") return false;
+    if (tailoring === "always") return true;
+    return isRushHourUTC();
+  } catch {
+    return false;
+  }
+};
 
 // let chatInstance: Chat | null = null;
 // let currentApiKey: string | null = null;
@@ -1151,13 +1164,7 @@ Return JSON:
 // Intentionally not translate the test content into the system app language choosen by the user
 // due to the complexity of the task in preserving the original wording, instructions, and professional terms of the question paper
 // also due to the fact that grading can vary significantly based on the exact wording and structure of the question, which can be lost in translation
-export const structureCoreTestFromPdf = async (
-  language: AppLanguage, // decayed for now, later can be used to prompt in the correct language and return structured content in that language for multilingual support
-  questionPaperText: string,
-  markSchemeText: string | null,
-  encryptedKeyPayload: any
-): Promise<CoreTestPayload> => {
-  const prompt = `
+const STRUCTURE_TEST_PROMPT = `
 System Language (FORCED INPUT/OUTPUT CONTENT LANGUAGE): INPUT DATA LANGUAGE (QUESTION PAPER 1st PRIORITY)
 
 You are building a minimal exam payload from extracted PDF text.
@@ -1240,25 +1247,75 @@ Rules:
 - Markdown syntax is allowed only inside JSON string fields such as "prompt" and "hints" when it improves rendering.
 
 QUESTION PAPER TEXT (INPUT DATA):
-${questionPaperText}
+{questionPaperText}
 
 MARK SCHEME TEXT (INPUT DATA):
-${markSchemeText?.trim() ? markSchemeText : "No mark scheme provided."}
+{markSchemeText}
 `;
 
-  const tryParse = (text: string) => {
+const tryParse = (text: string) => {
+  const parsed = extractAndParseJSONSafe(text);
+  if (!parsed.ok) {
+    throw new InvalidAIResponseError("Invalid core test structure payload");
+  }
+
+  const normalized = normalizeCoreTestPayload(parsed.data);
+  if (!normalized) {
+    throw new InvalidAIResponseError("Malformed core test structure payload");
+  }
+
+  return normalized;
+};
+
+export const structureCoreTestFromPdfRace = async (
+  questionPaperText: string,
+  markSchemeText: string | null,
+  encryptedKeyPayload: any
+): Promise<CoreTestPayload> => {
+
+  const prompt = STRUCTURE_TEST_PROMPT.replace("{questionPaperText}", questionPaperText).replace("{markSchemeText}", markSchemeText ?? "No mark scheme provided.");
+
+  const isValid = ({ text }: { text: string }) => {
     const parsed = extractAndParseJSONSafe(text);
-    if (!parsed.ok) {
-      throw new InvalidAIResponseError("Invalid core test structure payload");
-    }
-
+    if (!parsed.ok) return false;
     const normalized = normalizeCoreTestPayload(parsed.data);
-    if (!normalized) {
-      throw new InvalidAIResponseError("Malformed core test structure payload");
-    }
-
-    return normalized;
+    return !!normalized;
   };
+
+  const raceResult = await raceModels([
+    () => getGeminiTextFromEdge({
+      model: "gemini-2.5-flash",
+      prompt,
+      temp: 0.2,
+      mode: "quiz",
+      responseMimeType: "application/json",
+      encryptedKeyPayload,
+    }).then(text => ({ model: "gemini-2.5-flash", text })),
+    () => getGeminiTextFromEdge({
+      model: "gemini-3.1-flash-lite-preview",
+      prompt,
+      temp: 0.1,
+      mode: "quiz",
+      responseMimeType: "application/json",
+      encryptedKeyPayload,
+    }).then(text => ({ model: "gemini-3.1-flash-lite", text })),
+  ], isValid);
+
+  return tryParse(raceResult.text);
+};
+
+export const structureCoreTestFromPdf = async (
+  language: AppLanguage, // decayed for now, later can be used to prompt in the correct language and return structured content in that language for multilingual support
+  questionPaperText: string,
+  markSchemeText: string | null,
+  encryptedKeyPayload: any
+): Promise<CoreTestPayload> => {
+  if (shouldUseExamRace()) {
+    console.log("Exam structuring RACE");
+    return structureCoreTestFromPdfRace(questionPaperText, markSchemeText, encryptedKeyPayload);
+  }
+
+  const prompt = STRUCTURE_TEST_PROMPT.replace("{questionPaperText}", questionPaperText).replace("{markSchemeText}", markSchemeText ?? "No mark scheme provided.");
 
   try {
     const text = await getGeminiTextFromEdge({
@@ -1384,29 +1441,7 @@ ${JSON.stringify(payload)}
   }
 };
 
-export const gradeCoreTestPayload = async (
-  language: AppLanguage, // decayed for now, but can be used in newer features with support for grading in the system language/translation of the paper
-  payload: CoreTestPayload,
-  questionPaperText: string,
-  markSchemeText: string | null,
-  gradingStyle: CoreTestGradingStyle,
-  encryptedKeyPayload: any
-): Promise<CoreTestPayload> => {
-  const normalizedGradingStyle = normalizeCoreTestGradingStyle(gradingStyle);
-  const stylePolicy =
-    normalizedGradingStyle === "ap"
-      ? "AP style: award rubric points for defensible reasoning, correct method, and required evidence. Use a 1-5 estimated grade from the final percentage."
-      : normalizedGradingStyle === "ielts"
-        ? "IELTS style: grade written responses with band-descriptor thinking for task response, accuracy, coherence, and relevant vocabulary. Convert the final percentage to an estimated 0-9 band."
-        : normalizedGradingStyle === "sat"
-          ? "SAT style: grade objective items strictly, evidence/grammar/math items by accuracy, and convert the final percentage to an estimated SAT section score."
-          : normalizedGradingStyle === "act"
-            ? "ACT style: grade objective items strictly and convert the final percentage to an estimated 1-36 scale score."
-            : normalizedGradingStyle === "cambridge"
-              ? "Cambridge style: follow mark scheme points closely, award partial credit for valid working and required keywords, and convert final percentage to an estimated A*-U grade."
-              : "Default style: use the mark scheme first, then academic judgment. Award partial marks where the response deserves them.";
-
-  const prompt = `
+const GRADING_TEST_PROMPT = `
 System Language (FORCED INPUT/OUTPUT CONTENT LANGUAGE): INPUT DATA LANGUAGE (QUESTION PAPER 1st PRIORITY)
 
 You are grading a student's exam submission.
@@ -1420,8 +1455,8 @@ Grading policy:
 - Use the mark scheme first whenever it is available and relevant.
 - If no mark scheme exists for an item, use your own academic judgment based on the question.
 - Grade strictly but fairly.
-- Selected grading style: ${normalizedGradingStyle.toUpperCase()}.
-- ${stylePolicy}
+- Selected grading style: {normalizedGradingStyleUpperCase}.
+- {stylePolicy}
 - Use maxScore as the available marks for each item.
 - Award partial credit when the selected grading style, mark scheme, or student response quality supports it.
 - For MCQ, score full marks for the correct fixed option and 0 for an incorrect fixed option unless the question explicitly supports multiple selections or partial credit.
@@ -1457,7 +1492,7 @@ Return STRICT JSON ONLY using the SAME schema as the input payload:
     "total": 1,
     "percentage": 50,
     "usedMarkScheme": true,
-    "gradingStyle": "${normalizedGradingStyle}"
+    "gradingStyle": "{normalizedGradingStyle}"
   }
 }
 
@@ -1469,7 +1504,7 @@ Rules:
 - "summary.correct" is total earned marks, not the number of correct questions.
 - "summary.total" is total available marks.
 - "summary.percentage" must be based on earned marks divided by available marks.
-- "summary.gradingStyle" must be "${normalizedGradingStyle}".
+- "summary.gradingStyle" must be "{normalizedGradingStyle}".
 - For MCQ items, determine correctness against the exact fixed response set already implied by the question.
 - MCQ does not have to use A/B/C/D labels and may use any finite option list.
 - For MCQ items, populate "correctAnswer" with the exact correct option text if it can be determined.
@@ -1477,14 +1512,103 @@ Rules:
 - Return raw JSON only. Do not wrap the response in markdown, code fences, or explanatory text.
 
 QUESTION PAPER TEXT (INPUT DATA):
-${questionPaperText}
+{questionPaperText}
 
 MARK SCHEME TEXT (INPUT DATA):
-${markSchemeText?.trim() ? markSchemeText : "No mark scheme provided. Use your own judgment."}
+{markSchemeText}
 
 STRUCTURED TEST PAYLOAD (INPUT DATA):
-${JSON.stringify(payload)}
+{payload}
 `;
+
+export const gradeCoreTestPayloadRace = async (
+  payload: CoreTestPayload,
+  questionPaperText: string,
+  markSchemeText: string | null,
+  gradingStyle: CoreTestGradingStyle,
+  encryptedKeyPayload: any
+): Promise<CoreTestPayload> => {
+  const normalizedGradingStyle = normalizeCoreTestGradingStyle(gradingStyle);
+  const stylePolicy =
+    normalizedGradingStyle === "ap"
+      ? "AP style: award rubric points for defensible reasoning, correct method, and required evidence. Use a 1-5 estimated grade from the final percentage."
+      : normalizedGradingStyle === "ielts"
+        ? "IELTS style: grade written responses with band-descriptor thinking for task response, accuracy, coherence, and relevant vocabulary. Convert the final percentage to an estimated 0-9 band."
+        : normalizedGradingStyle === "sat"
+          ? "SAT style: grade objective items strictly, evidence/grammar/math items by accuracy, and convert the final percentage to an estimated SAT section score."
+          : normalizedGradingStyle === "act"
+            ? "ACT style: grade objective items strictly and convert the final percentage to an estimated 1-36 scale score."
+            : normalizedGradingStyle === "cambridge"
+              ? "Cambridge style: follow mark scheme points closely, award partial credit for valid working and required keywords, and convert final percentage to an estimated A*-U grade."
+              : "Default style: use the mark scheme first, then academic judgment. Award partial marks where the response deserves them.";
+
+  const prompt = GRADING_TEST_PROMPT
+    .replace("{normalizedGradingStyleUpperCase}", normalizedGradingStyle.toUpperCase())
+    .replace("{stylePolicy}", stylePolicy).replace("{questionPaperText}", questionPaperText)
+    .replace("{markSchemeText}", markSchemeText ?? "No mark scheme provided.")
+    .replace("{payload}", JSON.stringify(payload));
+
+  const isValid = ({ text }: { text: string }) => {
+    const parsed = extractAndParseJSONSafe(text);
+    if (!parsed.ok) return false;
+    const normalized = normalizeCoreTestPayload(parsed.data);
+    return !!(normalized && normalized.summary);
+  };
+
+  const raceResult = await raceModels([
+    () => getGeminiTextFromEdge({
+      model: "gemini-2.5-flash",
+      prompt,
+      temp: 0.2,
+      mode: "quiz",
+      responseMimeType: "application/json",
+      encryptedKeyPayload,
+    }).then(text => ({ model: "gemini-2.5-flash", text })),
+    () => getGeminiTextFromEdge({
+      model: "gemini-3.1-flash-lite-preview",
+      prompt,
+      temp: 0.1,
+      mode: "quiz",
+      responseMimeType: "application/json",
+      encryptedKeyPayload,
+    }).then(text => ({ model: "gemini-3.1-flash-lite", text })),
+  ], isValid);
+
+  return tryParse(raceResult.text);
+};
+
+export const gradeCoreTestPayload = async (
+  language: AppLanguage, // decayed for now, but can be used in newer features with support for grading in the system language/translation of the paper
+  payload: CoreTestPayload,
+  questionPaperText: string,
+  markSchemeText: string | null,
+  gradingStyle: CoreTestGradingStyle,
+  encryptedKeyPayload: any
+): Promise<CoreTestPayload> => {
+  if (shouldUseExamRace()) {
+    console.log("Exam grading RACE");
+    return gradeCoreTestPayloadRace(payload, questionPaperText, markSchemeText, gradingStyle, encryptedKeyPayload);
+  }
+
+  const normalizedGradingStyle = normalizeCoreTestGradingStyle(gradingStyle);
+  const stylePolicy =
+    normalizedGradingStyle === "ap"
+      ? "AP style: award rubric points for defensible reasoning, correct method, and required evidence. Use a 1-5 estimated grade from the final percentage."
+      : normalizedGradingStyle === "ielts"
+        ? "IELTS style: grade written responses with band-descriptor thinking for task response, accuracy, coherence, and relevant vocabulary. Convert the final percentage to an estimated 0-9 band."
+        : normalizedGradingStyle === "sat"
+          ? "SAT style: grade objective items strictly, evidence/grammar/math items by accuracy, and convert the final percentage to an estimated SAT section score."
+          : normalizedGradingStyle === "act"
+            ? "ACT style: grade objective items strictly and convert the final percentage to an estimated 1-36 scale score."
+            : normalizedGradingStyle === "cambridge"
+              ? "Cambridge style: follow mark scheme points closely, award partial credit for valid working and required keywords, and convert final percentage to an estimated A*-U grade."
+              : "Default style: use the mark scheme first, then academic judgment. Award partial marks where the response deserves them.";
+
+  const prompt = GRADING_TEST_PROMPT
+    .replace("{normalizedGradingStyleUpperCase}", normalizedGradingStyle.toUpperCase())
+    .replace("{stylePolicy}", stylePolicy).replace("{questionPaperText}", questionPaperText)
+    .replace("{markSchemeText}", markSchemeText ?? "No mark scheme provided.")
+    .replace("{payload}", JSON.stringify(payload));
 
   const tryParse = (text: string) => {
     const parsed = extractAndParseJSONSafe(text);
