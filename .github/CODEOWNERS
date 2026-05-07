@@ -3,9 +3,10 @@
 
 # Frontend / UI
 /src/ @Henrycoding-design
+/public/ @Henrycoding-design
 
 # Backend / API
-/supabase/ @Henrycoding-design
+/src/ @Henrycoding-design
 
 # Documentation
 /docs/ @Henrycoding-design
