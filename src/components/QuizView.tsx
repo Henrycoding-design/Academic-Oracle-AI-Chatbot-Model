@@ -10,11 +10,11 @@
  * See NOTICE and TRADEMARK_POLICY.md for additional terms.
  */
 
-import React, { useState, useEffect } from 'react';
-import { BrainCircuit, CheckCircle2, XCircle, ArrowRight, Settings, Play, RotateCcw, MessageSquarePlus, MessageCircle, MessageSquare } from 'lucide-react';
+import React, { useEffect, useRef, useState } from 'react';
+import { CheckCircle2, XCircle, ArrowRight, Settings, Play, RotateCcw, MessageSquarePlus, MessageSquare, LoaderCircle } from 'lucide-react';
 import type { ChatHistoryItem, QuizConfig, QuizQuestion, QuizResult } from '../types';
 import { generateQuizQuestions, validateOpenAnswer, estimateQuizConfig } from '../services/geminiService';
-import { getCurrentTopicTag } from '../services/oracleMemory';
+import { formatTopicTagForDisplay, getCurrentTopicTag, getVisibleOracleTopics } from '../services/oracleMemory';
 import { AppLanguage, LANGUAGE_DATA } from '../lang/Language';
 import { MarkdownContent } from './MarkdownContent';
 
@@ -26,14 +26,40 @@ interface QuizViewProps {
   onBack: () => void;
   onExplainRequest: (context: string) => void;
   onAddToMemory: (summary: string, topicTag: string | null) => void;
+  forcedTopicSelection?: { id: number; topicTag: string | null } | null;
+  onForcedTopicSelectionApplied?: (id: number) => void;
 }
 
 type QuizState = 'config' | 'loading' | 'active' | 'review';
+type TopicConfigCacheEntry = {
+  config: QuizConfig;
+  contextKey: string;
+};
+
+const DEFAULT_QUIZ_CONFIG: QuizConfig = {
+  level: 'Intermediate',
+  count: 5,
+  mcqRatio: 0.5,
+};
+
+const normalizeTopicConfigKey = (topicTag: string | null | undefined) =>
+  typeof topicTag === 'string' ? topicTag.trim().toLowerCase() : '';
+
+const areQuizConfigsEqual = (left: QuizConfig, right: QuizConfig) =>
+  left.level === right.level &&
+  left.count === right.count &&
+  left.mcqRatio === right.mcqRatio;
 
 export const QuizView: React.FC<QuizViewProps> = ({ 
-  language, history, memory, encryptedApiKey, onBack, onExplainRequest, onAddToMemory 
+  language, history, memory, encryptedApiKey, onBack, onExplainRequest, onAddToMemory, forcedTopicSelection, onForcedTopicSelectionApplied
 }) => {
   const difficultyLevels: QuizConfig["level"][] = ["Fundamental", "Intermediate", "Advanced"];
+  const availableTopics = getVisibleOracleTopics(memory);
+  const rawCurrentTopicTag = getCurrentTopicTag(memory, history);
+  const defaultTopicTag =
+    availableTopics.find((topic) => topic.topic_tag.toLowerCase() === rawCurrentTopicTag?.toLowerCase())?.topic_tag ??
+    availableTopics[availableTopics.length - 1]?.topic_tag ??
+    null;
 
   // --- State ---
   const [viewState, setViewState] = useState<QuizState>('config');
@@ -44,10 +70,27 @@ export const QuizView: React.FC<QuizViewProps> = ({
   const [results, setResults] = useState<Record<string, QuizResult>>({});
   const [isValidating, setIsValidating] = useState(false);
   const [quizTopicTag, setQuizTopicTag] = useState<string | null>(null);
+  const [selectedTopicTag, setSelectedTopicTag] = useState<string | null>(null);
+  const [hasUserSelectedTopic, setHasUserSelectedTopic] = useState(false);
+  const [topicConfigCache, setTopicConfigCache] = useState<Record<string, TopicConfigCacheEntry>>({});
+  const [updatingConfigTopicTag, setUpdatingConfigTopicTag] = useState<string | null>(null);
 
   const [isHydrated, setIsHydrated] = useState(false);
+  const selectedTopicRef = useRef<string | null>(null);
+  const pendingEstimateKeyRef = useRef<string | null>(null);
+  const syncedTopicContextKeysRef = useRef<Record<string, string>>({});
 
   const LD = LANGUAGE_DATA[language];
+  const quizContextKey = JSON.stringify({
+    history,
+    memory: memory ?? null,
+  });
+  const activeConfigTopicTag = selectedTopicTag ?? defaultTopicTag;
+  const currentChatTopicKey = normalizeTopicConfigKey(rawCurrentTopicTag);
+  const activeConfigTopicKey = normalizeTopicConfigKey(activeConfigTopicTag);
+  const isUpdatingSelectedTopicConfig =
+    normalizeTopicConfigKey(updatingConfigTopicTag) !== '' &&
+    normalizeTopicConfigKey(updatingConfigTopicTag) === activeConfigTopicKey;
 
   // --- Session Storage Caching ---
   useEffect(() => {
@@ -61,35 +104,199 @@ export const QuizView: React.FC<QuizViewProps> = ({
       setViewState(parsed.viewState);
       setUserAnswers(parsed.userAnswers ?? {});
       setQuizTopicTag(typeof parsed.quizTopicTag === "string" ? parsed.quizTopicTag : null);
-    } else {
-      // If no cache, try to auto-estimate config based on history
-      estimateConfig(); 
+      setSelectedTopicTag(typeof parsed.selectedTopicTag === "string" ? parsed.selectedTopicTag : null);
+      setHasUserSelectedTopic(Boolean(parsed.hasUserSelectedTopic));
+      setTopicConfigCache(
+        parsed.topicConfigCache && typeof parsed.topicConfigCache === "object"
+          ? parsed.topicConfigCache
+          : {}
+      );
+      if (parsed.topicConfigCache && typeof parsed.topicConfigCache === "object") {
+        const nextSyncedKeys: Record<string, string> = {};
+        for (const [topicKey, entry] of Object.entries(parsed.topicConfigCache)) {
+          if (
+            entry &&
+            typeof entry === "object" &&
+            typeof (entry as TopicConfigCacheEntry).contextKey === "string"
+          ) {
+            nextSyncedKeys[topicKey] = (entry as TopicConfigCacheEntry).contextKey;
+          }
+        }
+        syncedTopicContextKeysRef.current = nextSyncedKeys;
+      }
     }
     setIsHydrated(true);
   }, []);
 
   useEffect(() => {
-    if (!isHydrated) return;
-    if (viewState === 'config') {
-      estimateConfig(); // Re-estimate when going back to config
-    }
-  }, [viewState]);
+    selectedTopicRef.current = activeConfigTopicTag;
+  }, [activeConfigTopicTag]);
 
   useEffect(() => {
     if (!isHydrated) return;
     sessionStorage.setItem('academic-oracle-quiz-state', JSON.stringify({
-      questions, results, config, currentQIndex, viewState,  userAnswers, quizTopicTag
+      questions,
+      results,
+      config,
+      currentQIndex,
+      viewState,
+      userAnswers,
+      quizTopicTag,
+      selectedTopicTag,
+      hasUserSelectedTopic,
+      topicConfigCache,
     }));
-  }, [questions, results, config, currentQIndex, viewState, userAnswers, quizTopicTag]);
+  }, [questions, results, config, currentQIndex, viewState, userAnswers, quizTopicTag, selectedTopicTag, hasUserSelectedTopic, topicConfigCache]);
 
-  const estimateConfig = async () => {
-    if (history.length > 2) {
-      try {
-        const estimated = await estimateQuizConfig(history, memory, encryptedApiKey);
-        setConfig(estimated);
-      } catch (e) { console.error("Auto-config failed", e); }
+  useEffect(() => {
+    if (!isHydrated) return;
+
+    const selectedTopicStillExists = availableTopics.some(
+      (topic) => topic.topic_tag.toLowerCase() === selectedTopicTag?.toLowerCase()
+    );
+
+    if (hasUserSelectedTopic && selectedTopicStillExists) {
+      return;
     }
+
+    const nextTopicTag = selectedTopicStillExists ? selectedTopicTag : defaultTopicTag;
+
+    if (selectedTopicTag !== nextTopicTag) {
+      setSelectedTopicTag(nextTopicTag);
+    }
+
+    if (hasUserSelectedTopic && !selectedTopicStillExists) {
+      setHasUserSelectedTopic(false);
+    }
+  }, [availableTopics, defaultTopicTag, hasUserSelectedTopic, isHydrated, selectedTopicTag]);
+
+  useEffect(() => {
+    if (!isHydrated || !forcedTopicSelection) return;
+
+    const requestedTopicTag =
+      availableTopics.find((topic) => topic.topic_tag.toLowerCase() === forcedTopicSelection.topicTag?.toLowerCase())?.topic_tag ??
+      defaultTopicTag ??
+      null;
+
+    setSelectedTopicTag(requestedTopicTag);
+    setHasUserSelectedTopic(Boolean(requestedTopicTag));
+    setViewState('config');
+    setQuestions([]);
+    setResults({});
+    setCurrentQIndex(0);
+    setUserAnswers({});
+    setQuizTopicTag(null);
+
+    onForcedTopicSelectionApplied?.(forcedTopicSelection.id);
+  }, [availableTopics, defaultTopicTag, forcedTopicSelection, isHydrated, onForcedTopicSelectionApplied]);
+
+  const getTopicConfigCacheEntry = (topicTag: string | null | undefined) => {
+    const topicKey = normalizeTopicConfigKey(topicTag);
+    return topicKey ? topicConfigCache[topicKey] ?? null : null;
   };
+
+  const cacheTopicConfig = (topicTag: string | null, nextConfig: QuizConfig, contextKey = quizContextKey) => {
+    const topicKey = normalizeTopicConfigKey(topicTag);
+    if (!topicKey) return;
+
+    setTopicConfigCache((prev) => {
+      const currentEntry = prev[topicKey];
+      if (
+        currentEntry &&
+        currentEntry.contextKey === contextKey &&
+        areQuizConfigsEqual(currentEntry.config, nextConfig)
+      ) {
+        return prev;
+      }
+
+      return {
+        ...prev,
+        [topicKey]: {
+          config: nextConfig,
+          contextKey,
+        },
+      };
+    });
+  };
+
+  const applyManualConfig = (nextConfig: QuizConfig) => {
+    setConfig(nextConfig);
+    cacheTopicConfig(activeConfigTopicTag, nextConfig);
+  };
+
+  useEffect(() => {
+    if (!isHydrated || viewState !== 'config') return;
+
+    const topicTag = activeConfigTopicTag;
+    if (!topicTag) {
+      if (!areQuizConfigsEqual(config, DEFAULT_QUIZ_CONFIG)) {
+        setConfig(DEFAULT_QUIZ_CONFIG);
+      }
+      return;
+    }
+
+    const cachedEntry = getTopicConfigCacheEntry(topicTag);
+
+    if (cachedEntry && !areQuizConfigsEqual(config, cachedEntry.config)) {
+      setConfig(cachedEntry.config);
+    }
+
+    if (!cachedEntry && !areQuizConfigsEqual(config, DEFAULT_QUIZ_CONFIG)) {
+      setConfig(DEFAULT_QUIZ_CONFIG);
+    }
+
+    const shouldAutoRefreshFromChat = activeConfigTopicKey !== '' && activeConfigTopicKey === currentChatTopicKey;
+    const topicKey = normalizeTopicConfigKey(topicTag);
+    const alreadySyncedContextKey = syncedTopicContextKeysRef.current[topicKey];
+
+    if (cachedEntry?.contextKey === quizContextKey) {
+      syncedTopicContextKeysRef.current[topicKey] = quizContextKey;
+      return;
+    }
+
+    if (!shouldAutoRefreshFromChat || history.length <= 2 || alreadySyncedContextKey === quizContextKey) {
+      return;
+    }
+
+    const pendingEstimateKey = `${topicKey}:${quizContextKey}`;
+
+    if (pendingEstimateKeyRef.current === pendingEstimateKey) {
+      return;
+    }
+
+    pendingEstimateKeyRef.current = pendingEstimateKey;
+    let isCancelled = false;
+
+    const runEstimate = async () => {
+      try {
+        setUpdatingConfigTopicTag(topicTag);
+        const estimated = await estimateQuizConfig(history, memory, encryptedApiKey, topicTag);
+        if (isCancelled) return;
+
+        cacheTopicConfig(topicTag, estimated, quizContextKey);
+        syncedTopicContextKeysRef.current[topicKey] = quizContextKey;
+
+        if (normalizeTopicConfigKey(selectedTopicRef.current) === topicKey) {
+          setConfig((prev) => areQuizConfigsEqual(prev, estimated) ? prev : estimated);
+        }
+      } catch (e) {
+        console.error("Auto-config failed", e);
+      } finally {
+        setUpdatingConfigTopicTag((current) =>
+          normalizeTopicConfigKey(current) === topicKey ? null : current
+        );
+        if (pendingEstimateKeyRef.current === pendingEstimateKey) {
+          pendingEstimateKeyRef.current = null;
+        }
+      }
+    };
+
+    void runEstimate();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [activeConfigTopicTag, config, encryptedApiKey, history, isHydrated, memory, quizContextKey, topicConfigCache, viewState]);
 
   // --- Handlers ---
   const handleStartQuiz = async () => {
@@ -97,10 +304,14 @@ export const QuizView: React.FC<QuizViewProps> = ({
       alert(LD.ui.chatTooShortForQuiz);
       return;
     }
+    if (!selectedTopicTag) {
+      alert(LD.ui.chooseTopicRequired);
+      return;
+    }
     setViewState('loading');
     try {
-      const lockedTopicTag = getCurrentTopicTag(memory, history);
-      const q = await generateQuizQuestions(language, config, history, memory, encryptedApiKey);
+      const lockedTopicTag = selectedTopicTag;
+      const q = await generateQuizQuestions(language, config, history, memory, encryptedApiKey, lockedTopicTag);
       setQuestions(q);
       setResults({});
       setCurrentQIndex(0);
@@ -214,12 +425,41 @@ export const QuizView: React.FC<QuizViewProps> = ({
 
           <div className="space-y-6">
             <div>
+              <label htmlFor="quiz-topic-select" className="block text-sm font-medium mb-2 text-slate-700 dark:text-slate-300">
+                {LD.ui.chooseTopic}
+              </label>
+              <select
+                id="quiz-topic-select"
+                value={selectedTopicTag ?? ''}
+                onChange={(e) => {
+                  const nextTopicTag = e.target.value || null;
+                  setSelectedTopicTag(nextTopicTag);
+                  setHasUserSelectedTopic(Boolean(nextTopicTag));
+                }}
+                disabled={availableTopics.length === 0}
+                className="w-full rounded-xl border border-slate-200 bg-white px-3 py-3 text-sm text-slate-700 outline-none transition-colors focus:border-indigo-400 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:disabled:bg-slate-900 dark:disabled:text-slate-500"
+              >
+                <option value="">{LD.ui.chooseTopicPlaceholder}</option>
+                {availableTopics.map((topic) => (
+                  <option key={topic.topic_tag} value={topic.topic_tag}>
+                    {formatTopicTagForDisplay(topic.topic_tag)}
+                  </option>
+                ))}
+              </select>
+              {availableTopics.length === 0 && (
+                <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
+                  {LD.ui.noQuizTopicsAvailable}
+                </p>
+              )}
+            </div>
+
+            <div>
               <label className="block text-sm font-medium mb-2 text-slate-700 dark:text-slate-300">{LD.ui.difficultyLevel}</label>
               <div className="grid grid-cols-3 gap-2">
                 {difficultyLevels.map((level, index) => (
                   <button
                     key={level}
-                    onClick={() => setConfig({ ...config, level })}
+                    onClick={() => applyManualConfig({ ...config, level })}
                     className={`py-2 px-3 rounded-lg text-sm transition-all ${
                       config.level === level
                         ? 'bg-indigo-600 text-white shadow-md' 
@@ -237,7 +477,7 @@ export const QuizView: React.FC<QuizViewProps> = ({
               <input 
                 type="range" min="1" max="10" 
                 value={config.count} 
-                onChange={(e) => setConfig({ ...config, count: parseInt(e.target.value) })}
+                onChange={(e) => applyManualConfig({ ...config, count: parseInt(e.target.value) })}
                 className="w-full accent-indigo-600 h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer"
               />
             </div>
@@ -249,16 +489,25 @@ export const QuizView: React.FC<QuizViewProps> = ({
               <input 
                 type="range" min="0" max="1" step="0.1"
                 value={config.mcqRatio} 
-                onChange={(e) => setConfig({ ...config, mcqRatio: parseFloat(e.target.value) })}
+                onChange={(e) => applyManualConfig({ ...config, mcqRatio: parseFloat(e.target.value) })}
                 className="w-full accent-indigo-600 h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer"
               />
             </div>
 
             <button 
               onClick={handleStartQuiz}
-              className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-semibold shadow-lg shadow-indigo-500/30 flex items-center justify-center gap-2 transition-transform active:scale-95"
+              disabled={!selectedTopicTag || isUpdatingSelectedTopicConfig}
+              className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 disabled:cursor-not-allowed disabled:bg-slate-400 text-white rounded-xl font-semibold shadow-lg shadow-indigo-500/30 flex items-center justify-center gap-2 transition-transform active:scale-95"
             >
-              <Play className="w-5 h-5 fill-current" /> {LD.ui.startAssessment}
+              {isUpdatingSelectedTopicConfig ? (
+                <>
+                  <LoaderCircle className="w-5 h-5 animate-spin" /> {LD.ui.updatingQuizConfig}
+                </>
+              ) : (
+                <>
+                  <Play className="w-5 h-5 fill-current" /> {LD.ui.startAssessment}
+                </>
+              )}
             </button>
           </div>
         </div>
@@ -452,6 +701,8 @@ export const QuizView: React.FC<QuizViewProps> = ({
                     setResults({});
                     setUserAnswers({});
                     setQuizTopicTag(null);
+                    setQuestions([]);
+                    setCurrentQIndex(0);
                 }}
                 className="w-full py-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700 font-medium flex items-center justify-center gap-2"
             >

@@ -31,6 +31,11 @@ export const LANGUAGE_DATA: Record<AppLanguage, {
     mcqIncorrect: string; // use {answer} and {explanation}
     questionOf: string; // use {current} and {total}
     chatTooShortForQuiz: string;
+    chooseTopic: string;
+    chooseTopicPlaceholder: string;
+    chooseTopicRequired: string;
+    noQuizTopicsAvailable: string;
+    updatingQuizConfig: string;
     answerPlaceholder: string;
     pressEnter: string;
     aiGrading: string;
@@ -142,6 +147,10 @@ export const LANGUAGE_DATA: Record<AppLanguage, {
       noTopicsYet: string;
       currentSummary: string;
       currentSummaryFallback: string;
+      deleteTopic: string;
+      deleteTopicConfirm: string; // use {topic}
+      seeMore: string;
+      seeLess: string;
       confidenceLevel: string;
       masteryStatus: string;
       masteryStatusMastered: string;
@@ -337,6 +346,11 @@ export const LANGUAGE_DATA: Record<AppLanguage, {
       explainContext: "I am taking a quiz about our previous topic.\nQuestion: \"{question}\"\nMy Answer: \"{answer}\"\nResult: {result}\nFeedback received: \"{feedback}\"\n\nCan you explain this concept in more detail?",
       quizSummary: "Quiz Completed. Score: {score}/{total}. Difficulty: {level}.",
       chatTooShortForQuiz: "Not enough chat history or session memory to generate a quiz.",
+      chooseTopic: "Choose Topic",
+      chooseTopicPlaceholder: "Select a tracked topic",
+      chooseTopicRequired: "Choose a topic before starting the quiz.",
+      noQuizTopicsAvailable: "No tracked topics with usable data are available yet.",
+      updatingQuizConfig: "Updating config...",
       questionOf: "Question {current} of {total}",
       answerPlaceholder: "Type your answer here...",
       pressEnter: "Press Enter to submit",
@@ -447,6 +461,10 @@ export const LANGUAGE_DATA: Record<AppLanguage, {
         noTopicsYet: "Start a chat or complete a quiz to populate the dashboard with tracked learning topics.",
         currentSummary: "Current Summary",
         currentSummaryFallback: "Your current learning summary will appear here once Oracle has built enough durable learning memory.",
+        deleteTopic: "Delete topic memory",
+        deleteTopicConfirm: "Delete the stored memory for {topic}? This removes only that topic entry from Oracle Memory.",
+        seeMore: "See more",
+        seeLess: "See less",
         confidenceLevel: "Confidence level",
         masteryStatus: "Mastery status",
         masteryStatusMastered: "Mastered",
@@ -654,6 +672,11 @@ export const LANGUAGE_DATA: Record<AppLanguage, {
       explainContext: "Je fais un quiz sur notre sujet précédent.\nQuestion: \"{question}\"\nMa réponse: \"{answer}\"\nRésultat: {result}\nRetour reçu: \"{feedback}\"\n\nPeux-tu expliquer ce concept plus en détail ?",
       quizSummary: "Quiz terminé. Score : {score}/{total}. Difficulté : {level}.",
       chatTooShortForQuiz: "Historique de discussion ou mémoire de session insuffisant pour générer un quiz.",
+      chooseTopic: "Choisir un sujet",
+      chooseTopicPlaceholder: "Sélectionnez un sujet suivi",
+      chooseTopicRequired: "Choisissez un sujet avant de démarrer le quiz.",
+      noQuizTopicsAvailable: "Aucun sujet suivi avec des données exploitables n'est encore disponible.",
+      updatingQuizConfig: "Mise a jour...",
       explainSelectionButton: "Expliquer davantage",
       followUpSelectionButton: "Suivi",
       explainSelectionPrompt: "Expliquez cette partie plus clairement et simplement :\n\n\"{selection}\"",
@@ -758,6 +781,10 @@ export const LANGUAGE_DATA: Record<AppLanguage, {
         noTopicsYet: "Commencez une discussion ou terminez un quiz pour remplir le tableau de bord avec les sujets suivis.",
         currentSummary: "Résumé actuel",
         currentSummaryFallback: "Votre résumé d'apprentissage actuel apparaîtra ici une fois qu'Oracle aura construit une mémoire d'apprentissage suffisamment durable.",
+        deleteTopic: "Supprimer la mémoire du sujet",
+        deleteTopicConfirm: "Supprimer la mémoire enregistrée pour {topic} ? Cela retire uniquement cette entrée de sujet de la mémoire Oracle.",
+        seeMore: "Voir plus",
+        seeLess: "Voir moins",
         confidenceLevel: "Niveau de confiance",
         masteryStatus: "Statut de maîtrise",
         masteryStatusMastered: "Maîtrisé",
@@ -965,6 +992,11 @@ export const LANGUAGE_DATA: Record<AppLanguage, {
       explainContext: "Estoy haciendo un cuestionario sobre nuestro tema anterior.\nPregunta: \"{question}\"\nMi respuesta: \"{answer}\"\nResultado: {result}\nRetroalimentación recibida: \"{feedback}\"\n\n¿Puedes explicar este concepto con más detalle?",
       quizSummary: "Cuestionario completado. Puntuación: {score}/{total}. Dificultad: {level}.",
       chatTooShortForQuiz: "Historial de chat o memoria de sesión insuficiente para generar un cuestionario.",
+      chooseTopic: "Elegir tema",
+      chooseTopicPlaceholder: "Selecciona un tema registrado",
+      chooseTopicRequired: "Elige un tema antes de iniciar el cuestionario.",
+      noQuizTopicsAvailable: "Todavía no hay temas registrados con datos utilizables.",
+      updatingQuizConfig: "Actualizando configuracion...",
       explainSelectionButton: "Explicar más",
       followUpSelectionButton: "Continuar",
       explainSelectionPrompt: "Explica esta parte con más claridad y sencillez:\n\n\"{selection}\"",
@@ -1069,6 +1101,10 @@ export const LANGUAGE_DATA: Record<AppLanguage, {
         noTopicsYet: "Inicia un chat o completa un cuestionario para llenar el panel con temas de aprendizaje registrados.",
         currentSummary: "Resumen actual",
         currentSummaryFallback: "Tu resumen de aprendizaje actual aparecerá aquí una vez que Oracle haya construido memoria de aprendizaje suficientemente duradera.",
+        deleteTopic: "Eliminar memoria del tema",
+        deleteTopicConfirm: "¿Eliminar la memoria guardada de {topic}? Esto solo quita esa entrada de tema de la memoria de Oracle.",
+        seeMore: "Ver más",
+        seeLess: "Ver menos",
         confidenceLevel: "Nivel de confianza",
         masteryStatus: "Estado de dominio",
         masteryStatusMastered: "Dominado",
@@ -1276,6 +1312,11 @@ export const LANGUAGE_DATA: Record<AppLanguage, {
       explainContext: "Tôi đang làm một bài kiểm tra về chủ đề trước đó.\nCâu hỏi: \"{question}\"\nCâu trả lời của tôi: \"{answer}\"\nKết quả: {result}\nPhản hồi nhận được: \"{feedback}\"\n\nBạn có thể giải thích khái niệm này chi tiết hơn không?",
       quizSummary: "Hoàn thành bài kiểm tra. Điểm: {score}/{total}. Mức độ: {level}.",
       chatTooShortForQuiz: "Lịch sử trò chuyện hoặc bộ nhớ phiên không đủ để tạo bài kiểm tra.",
+      chooseTopic: "Chọn chủ đề",
+      chooseTopicPlaceholder: "Chọn một chủ đề đã được theo dõi",
+      chooseTopicRequired: "Hãy chọn một chủ đề trước khi bắt đầu bài kiểm tra.",
+      noQuizTopicsAvailable: "Chưa có chủ đề nào có đủ dữ liệu để tạo bài kiểm tra.",
+      updatingQuizConfig: "Dang cap nhat cau hinh...",
       explainSelectionButton: "Giải thích thêm",
       followUpSelectionButton: "Hỏi tiếp",
       explainSelectionPrompt: "Giải thích phần này rõ ràng và đơn giản hơn:\n\n\"{selection}\"",
@@ -1380,6 +1421,10 @@ export const LANGUAGE_DATA: Record<AppLanguage, {
         noTopicsYet: "Hãy bắt đầu trò chuyện hoặc hoàn thành một bài kiểm tra để bảng điều khiển hiển thị các chủ đề đã theo dõi.",
         currentSummary: "Tóm tắt hiện tại",
         currentSummaryFallback: "Bản tóm tắt học tập hiện tại sẽ xuất hiện ở đây khi Oracle đã xây dựng đủ bộ nhớ học tập bền vững.",
+        deleteTopic: "Xóa bộ nhớ chủ đề",
+        deleteTopicConfirm: "Xóa bộ nhớ đã lưu cho {topic}? Thao tác này chỉ xóa mục chủ đề đó khỏi Oracle Memory.",
+        seeMore: "Xem thêm",
+        seeLess: "Thu gọn",
         confidenceLevel: "Mức độ tự tin",
         masteryStatus: "Trạng thái thành thạo",
         masteryStatusMastered: "Đã thành thạo",

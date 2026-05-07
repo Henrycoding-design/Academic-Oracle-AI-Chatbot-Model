@@ -76,6 +76,30 @@ const normalizeTopic = (topic: Partial<OracleTopicMemory> | null | undefined): O
   };
 };
 
+const findTopicByTag = (
+  topics: OracleTopicMemory[],
+  topicTag: string | null | undefined
+): OracleTopicMemory | null => {
+  if (typeof topicTag !== "string" || !topicTag.trim()) return null;
+  return topics.find((topic) => topic.topic_tag.toLowerCase() === topicTag.trim().toLowerCase()) ?? null;
+};
+
+export const hasOracleTopicData = (topic: Partial<OracleTopicMemory> | null | undefined): boolean => {
+  const normalized = normalizeTopic(topic);
+  if (!normalized) return false;
+
+  return Boolean(
+    normalized.topic_tag.trim() &&
+    (
+      normalized.mastered ||
+      normalized.quizzes_done > 0 ||
+      normalized.mistake_log.length > 0 ||
+      normalized.quiz_results.length > 0 ||
+      normalized.accuracy !== null
+    )
+  );
+};
+
 export const createEmptyOracleMemory = (): OracleMemory => ({
   version: MEMORY_VERSION,
   profile: { ...DEFAULT_PROFILE },
@@ -263,18 +287,7 @@ export const hasReadyOracleMemory = (raw: string | OracleMemory | null | undefin
     (memory.profile.level_of_cognition && memory.profile.level_of_cognition !== "unknown")
   );
 
-  const hasTopicData = memory.topics.some((topic) => {
-    return Boolean(
-      topic.topic_tag.trim() &&
-      (
-        topic.mastered ||
-        topic.quizzes_done > 0 ||
-        topic.mistake_log.length > 0 ||
-        topic.quiz_results.length > 0 ||
-        topic.accuracy !== null
-      )
-    );
-  });
+  const hasTopicData = memory.topics.some(hasOracleTopicData);
 
   const hasUsefulSummary = memory.raw_summary.trim().length > 0;
 
@@ -303,6 +316,12 @@ export const getCurrentTopicTag = (raw: string | OracleMemory | null | undefined
   if (memory.current_topic_tag) return memory.current_topic_tag;
   if (memory.topics.length > 0) return memory.topics[memory.topics.length - 1].topic_tag;
   return extractTopicHintFromHistory(history);
+};
+
+export const getVisibleOracleTopics = (
+  raw: string | OracleMemory | null | undefined
+): OracleTopicMemory[] => {
+  return parseOracleMemory(raw).topics.filter(hasOracleTopicData);
 };
 
 export const getNewlyMasteredTopicTag = (
@@ -434,15 +453,57 @@ export const recordQuizResultInMemory = (
   return JSON.stringify(memory);
 };
 
-export const formatOracleMemoryForPrompt = (raw: string | null | undefined): string => {
+export const deleteTopicFromOracleMemory = (
+  raw: string | OracleMemory | null | undefined,
+  topicTag: string
+): string => {
+  const normalizedTag = topicTag.trim().toLowerCase();
   const memory = parseOracleMemory(raw);
+
+  if (!normalizedTag) {
+    return JSON.stringify(memory);
+  }
+
+  const nextTopics = memory.topics.filter((topic) => topic.topic_tag.toLowerCase() !== normalizedTag);
+  const visibleRemainingTopics = nextTopics.filter(hasOracleTopicData);
+
+  memory.topics = nextTopics;
+
+  const currentTopicStillExists = findTopicByTag(nextTopics, memory.current_topic_tag);
+  if (!currentTopicStillExists) {
+    memory.current_topic_tag =
+      visibleRemainingTopics[visibleRemainingTopics.length - 1]?.topic_tag ??
+      nextTopics[nextTopics.length - 1]?.topic_tag ??
+      null;
+  }
+
   return JSON.stringify(memory);
 };
 
-export const formatOracleMemoryForQuizConfig = (raw: string | null | undefined): string => {
+export const formatOracleMemoryForPrompt = (
+  raw: string | null | undefined,
+  topicTag?: string | null
+): string => {
   const memory = parseOracleMemory(raw);
+  const selectedTopic = findTopicByTag(memory.topics, topicTag);
+  if (selectedTopic) {
+    memory.current_topic_tag = selectedTopic.topic_tag;
+  }
+  return JSON.stringify(memory);
+};
+
+export const formatOracleMemoryForQuizConfig = (
+  raw: string | null | undefined,
+  topicTag?: string | null
+): string => {
+  const memory = parseOracleMemory(raw);
+  const visibleTopics = memory.topics.filter(hasOracleTopicData);
   const currentTopic =
-    memory.topics.find((topic) => topic.topic_tag === memory.current_topic_tag) ??
+    findTopicByTag(visibleTopics, topicTag) ??
+    findTopicByTag(visibleTopics, memory.current_topic_tag) ??
+    visibleTopics[visibleTopics.length - 1] ??
+    findTopicByTag(memory.topics, topicTag) ??
+    findTopicByTag(memory.topics, memory.current_topic_tag) ??
     memory.topics[memory.topics.length - 1] ??
     null;
 
@@ -452,7 +513,7 @@ export const formatOracleMemoryForQuizConfig = (raw: string | null | undefined):
       confidence_level: memory.profile.confidence_level,
       level_of_cognition: memory.profile.level_of_cognition,
     },
-    current_topic_tag: memory.current_topic_tag,
+    current_topic_tag: currentTopic?.topic_tag ?? memory.current_topic_tag,
     current_topic: currentTopic
       ? {
           topic_tag: currentTopic.topic_tag,
