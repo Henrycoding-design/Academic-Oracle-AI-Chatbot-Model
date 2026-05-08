@@ -403,20 +403,16 @@ export const QuizView: React.FC<QuizViewProps> = ({
 
   if (viewState === 'config') {
     return (
-      <div className="relative flex h-full flex-col items-center justify-center p-4 pt-24 sm:p-6 sm:pt-24 animate-in fade-in zoom-in duration-300">
-        <button
-          onClick={onBack}
-          className="absolute left-4 top-4 z-30 flex items-center gap-2 px-3 py-1.5 sm:left-6 sm:top-6 md:hidden
-                    rounded-full
-                    bg-white/75 dark:bg-slate-900/70
-                    backdrop-blur-md
-                    text-sm text-slate-600 dark:text-slate-300
-                   hover:text-indigo-600 dark:hover:text-indigo-400
-                    transition-all shadow-sm border border-black/5 dark:border-white/10"
-        >
-          ← <MessageSquare className="w-4 h-4" />
-          {LD.ui.chat}
-        </button>
+      <div className="flex h-full flex-col items-center overflow-y-auto p-4 pt-4 sm:p-6 md:justify-center animate-in fade-in zoom-in duration-300">
+        <div className="mb-4 flex w-full max-w-md md:hidden">
+          <button
+            onClick={onBack}
+            className="z-30 flex items-center gap-2 rounded-full border border-black/5 bg-white/75 px-3 py-1.5 text-sm text-slate-600 shadow-sm backdrop-blur-md transition-all hover:text-indigo-600 dark:border-white/10 dark:bg-slate-900/70 dark:text-slate-300 dark:hover:text-indigo-400"
+          >
+            ← <MessageSquare className="w-4 h-4" />
+            {LD.ui.chat}
+          </button>
+        </div>
         <div className="w-full max-w-md rounded-2xl border border-indigo-100 bg-white p-5 shadow-xl dark:border-indigo-900/30 dark:bg-slate-900 sm:p-8 bg-gradient-to-br from-white via-indigo-50/20 to-white dark:from-slate-900 dark:via-indigo-950/10 dark:to-slate-900">
           <div className="flex items-center gap-3 mb-6 text-indigo-600 dark:text-indigo-400">
             <Settings className="w-6 h-6" />
