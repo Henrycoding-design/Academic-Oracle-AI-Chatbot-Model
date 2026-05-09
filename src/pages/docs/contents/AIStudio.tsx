@@ -10,7 +10,7 @@ export default function AIStudio() {
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
             <span className="relative inline-flex rounded-full h-2 w-2 bg-indigo-500"></span>
           </span>
-          <span className="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-400">Orchestration: Gemini-First (v2.4.x)</span>
+          <span className="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-400">Orchestration: Gemini-First (v2.4.8)</span>
         </div>
         <h1 className="bg-gradient-to-r from-indigo-400 via-purple-400 to-blue-400 bg-clip-text pb-4 text-4xl font-black tracking-tighter text-transparent sm:text-5xl">
           Intelligence Infrastructure
@@ -76,7 +76,7 @@ export default function AIStudio() {
             <div key={model.name} className={`p-6 rounded-2xl bg-[#0a0f1a] border ${model.border} hover:bg-white/[0.04] transition-all duration-300 group/card`}>
               <div className="flex justify-between items-start mb-6">
                 <div className={`w-2 h-2 rounded-full bg-current ${model.color} animate-pulse`} />
-                <code className={`text-[10px] ${model.color} font-mono font-black tracking-tighter uppercase`}>v2.4.0.build</code>
+                <code className={`text-[10px] ${model.color} font-mono font-black tracking-tighter uppercase`}>v2.4.8.build</code>
               </div>
               <div>
                 <h5 className="text-white text-sm font-bold mb-1 group-hover/card:text-indigo-300 transition-colors">{model.role}</h5>
@@ -148,7 +148,7 @@ export default function AIStudio() {
           <div className="absolute -left-10 top-0 bottom-0 w-1 bg-gradient-to-b from-indigo-500 to-transparent rounded-full opacity-20" />
           <h3 className="text-3xl font-bold text-white tracking-tight">Backend Orchestration</h3>
           <p className="text-slate-400 leading-relaxed text-lg">
-            API calls are secured via <span className="text-white">Supabase Edge Functions</span>. This eliminates client-side key exposure and centralizes prompt sanitation, jailbreak detection, and routing logic within a hardened environment.
+            API calls are secured via <span className="text-white">Supabase Edge Functions</span>. v2.4.8 extends this by migrating <strong>Core Test exam prompts</strong> to the backend. This eliminates client-side key exposure and centralizes prompt sanitation, jailbreak detection, and routing logic within a hardened environment.
           </p>
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
             <div className="p-4 rounded-xl bg-white/5 border border-white/5">
@@ -168,7 +168,7 @@ export default function AIStudio() {
              Real-time State Visibility
            </h4>
            <p className="text-sm text-slate-400 leading-relaxed">
-             The v2.4.0 update introduces a dynamic Loading Status Bar, providing transparency as the Oracle transitions between Thinking, Searching, and Insight generation.
+             The v2.4.8 updates introduce a dynamic Loading Status Bar and <strong>backend-enforced Oracle Memory constraints</strong>, ensuring that topics are only created upon explicit user intent, significantly reducing model hallucinations.
            </p>
            <div className="h-2 w-full bg-white/5 rounded-full overflow-hidden">
               <div className="h-full w-[94%] bg-indigo-500 shadow-[0_0_15px_rgba(99,102,241,0.5)]" />
@@ -188,7 +188,7 @@ export default function AIStudio() {
             <div className="flex flex-col md:flex-row items-center gap-6">
               <span className="text-indigo-400 font-mono text-sm font-bold flex items-center gap-2 px-4 py-2 bg-indigo-500/10 rounded-full border border-indigo-500/20">
                 <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-ping" />
-                Deployed: v2.4.0-Stable
+                Deployed: v2.4.8-Stable
               </span>
               <a 
                 href="/docs/chatflow"

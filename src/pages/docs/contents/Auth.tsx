@@ -90,6 +90,7 @@ export default function Auth() {
           <div className="flex gap-4">
              <div className="text-[10px] font-mono text-emerald-500/60 font-bold uppercase tracking-tighter">Handshake: Verified</div>
              <div className="text-[10px] font-mono text-blue-500/60 font-bold uppercase tracking-tighter">Session: Ephemeral</div>
+             <div className="text-[10px] font-mono text-slate-500/60 font-bold uppercase tracking-tighter">Logout: State Flush</div>
           </div>
         </div>
       </section>
