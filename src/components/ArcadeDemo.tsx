@@ -1,9 +1,9 @@
-const ArcadeDemo = () => {
+export function ArcadeDemo() {
   return (
-    <div style={{ position: 'relative', paddingBottom: 'calc(43.072916666666664% + 41px)', height: '0', width: '100%' }}>
+    <div style={{ position: 'relative', paddingBottom: 'calc(45.708333333333336% + 41px)', height: '0', width: '100%' }}>
       <iframe
-        src="https://demo.arcade.software/vfQU6Su4Dh6DmjWTNj9m?embed&embed_mobile=tab&embed_desktop=inline&show_copy_link=true"
-        title="Academic Oracle"
+        src="https://demo.arcade.software/FZWtGv6ccHcJ2j5VuRDG?embed&embed_mobile=tab&embed_desktop=inline&show_copy_link=true"
+        title="Academic Oracle Chat"
         frameBorder="0"
         loading="lazy"
         allowFullScreen
@@ -12,6 +12,4 @@ const ArcadeDemo = () => {
       />
     </div>
   )
-};
-
-export default ArcadeDemo;
+}

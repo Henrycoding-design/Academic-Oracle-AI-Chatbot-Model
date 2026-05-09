@@ -1,6 +1,6 @@
 import PageLayout from "@/src/layout/PageLayout";
 import PageHeader from "../ui/PageHeader";
-import ArcadeEmbed from "@/src/components/ArcadeProductDemo";
+import { ArcadeDemo } from "@/src/components/ArcadeDemo";
 import { 
   AppWindow, Brain, Shield, Laptop, 
   Database, BookOpen, Github, Cpu, 
@@ -146,16 +146,16 @@ export default function Developers() {
       >
         <div className="text-center mb-12">
             <h2 className="text-3xl sm:text-4xl font-bold tracking-tight mb-4">
-              Pedagogical Interaction Demo
+              Feature Interaction Demo
             </h2>
             <p className="text-white/60 max-w-2xl mx-auto">
-              Test the integration between our Socratic Engine and the frontend rendering. <br></br>
-              Observe how the Oracle guides without giving away the solution.
+              Explore how Academic Oracle’s core features work together. <br></br>
+              Observe guided responses, deeper explanations, and contextual follow-ups in action.
             </p>
         </div>
 
         <div className="mx-auto max-w-5xl rounded-3xl border border-white/10 overflow-hidden shadow-[0_0_50px_rgba(59,130,246,0.1)] bg-black/50 backdrop-blur-xl">
-            <ArcadeEmbed />
+            <ArcadeDemo />
         </div>
       </section>
 

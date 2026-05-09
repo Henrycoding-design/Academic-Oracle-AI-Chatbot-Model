@@ -20,7 +20,7 @@ import { supabase } from "./services/supabaseClient";
 // import { resetChat } from "./services/geminiService";
 import { readFileAsText } from "./services/fileReader";
 import 'katex/dist/katex.min.css';
-import ArcadeDemo from "./components/ArcadeDemo";
+import { ArcadeDemo } from "./components/ArcadeDemo";
 import { createPortal } from "react-dom";
 import { useClickOutside } from './services/useClickOutside.ts';
 import { generateSessionSummary } from './services/geminiService.ts';
@@ -1249,6 +1249,7 @@ const App: React.FC = () => {
         language={language}
         onLanguageChange={setLanguage}
         onSave={(key) => setEncryptedApiKey(key)}
+        onLogout={handleLogout}
         onBack={() => {
           if (window.history.length > 1) {
             window.history.back();
