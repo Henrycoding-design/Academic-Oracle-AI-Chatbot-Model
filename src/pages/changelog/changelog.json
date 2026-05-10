@@ -1,5 +1,19 @@
 [
   {
+    "version": "2.4.8",
+    "date": "2026-05-10",
+    "changes": [
+      { "type": "security", "text": "Migrated Core Test prompt orchestration to Supabase Edge Functions while preserving compatibility with existing production flows." },
+      { "type": "feature", "text": "Added per-topic memory deletion controls in the dashboard with confirmation prompts and immediate UI refresh." },
+      { "type": "fix", "text": "Tightened Oracle Memory topic creation rules and filtered empty topic entries from dashboard and quiz topic selectors to reduce hallucinated topic noise." },
+      { "type": "improve", "text": "Updated dashboard summaries, strengths, and weaknesses panels to preview the first 5 items with independent see more / see less expansion controls." },
+      { "type": "feature", "text": "Expanded Quiz configuration with topic selection, current-topic defaulting, mastery-popup topic routing, and guarded start behavior when no valid topic is selected." },
+      { "type": "improve", "text": "Implemented per-topic Quiz configuration caching in sessionStorage and added loading-locked start states while quiz configs refresh." },
+      { "type": "fix", "text": "Cleared persisted Core Test and Quiz session state on logout to prevent cross-session carryover." },
+      { "type": "feature", "text": "Added a direct Log out action inside the Profile page." }
+    ]
+  },
+  {
     "version": "2.4.6",
     "date": "2026-05-06",
     "changes": [

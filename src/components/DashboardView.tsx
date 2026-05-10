@@ -18,12 +18,13 @@ import {
   ChevronUp,
   FileDown,
   GraduationCap,
+  Trash2,
   MessageSquare,
   LoaderCircle,
   Trophy,
 } from "lucide-react";
 import type { ChatHistoryItem } from "../types";
-import { formatTopicTagForDisplay, parseOracleMemory } from "../services/oracleMemory";
+import { formatTopicTagForDisplay, getVisibleOracleTopics, parseOracleMemory } from "../services/oracleMemory";
 import { AppLanguage, LANGUAGE_DATA } from '../lang/Language';
 
 interface DashboardViewProps {
@@ -32,6 +33,7 @@ interface DashboardViewProps {
   history: ChatHistoryItem[];
   isGeneratingSummary: boolean;
   onDownloadSummary: () => void;
+  onDeleteTopic: (topicTag: string) => void;
   onBack: () => void;
 }
 
@@ -41,15 +43,20 @@ const DashboardView: React.FC<DashboardViewProps> = ({
   history,
   isGeneratingSummary,
   onDownloadSummary,
+  onDeleteTopic,
   onBack,
 }) => {
   const LD = LANGUAGE_DATA[language];
   const DD = LD.ui.dashboard;
   const loadingMessages = DD.loadingMessages;
   const [loadingMessageIndex, setLoadingMessageIndex] = useState(0);
+  const [showAllStrengths, setShowAllStrengths] = useState(false);
+  const [showAllWeaknesses, setShowAllWeaknesses] = useState(false);
+  const [showAllSummary, setShowAllSummary] = useState(false);
+  const maxVisibleItems = 5;
 
   const parsed = parseOracleMemory(memory);
-  const topics = parsed.topics;
+  const topics = getVisibleOracleTopics(parsed);
   const currentTopic =
     topics.find((topic) => topic.topic_tag === parsed.current_topic_tag) ??
     topics[topics.length - 1] ??
@@ -69,11 +76,16 @@ const DashboardView: React.FC<DashboardViewProps> = ({
   const completedTopics = topics.filter((topic) => topic.mastered).length;
   const progressStroke = 2 * Math.PI * 52;
   const progressOffset = progressStroke - (progressStroke * learningEfficiency) / 100;
-  const currentSummary = parsed.raw_summary
+  const currentSummary = parsed.raw_summary.trim() || DD.currentSummaryFallback;
+  const summaryLines = currentSummary
     .split("\n")
     .map((line) => line.trim())
-    .filter(Boolean)
-    .at(-1) || DD.currentSummaryFallback;
+    .filter(Boolean);
+  const canExpandSummary =
+    currentSummary !== DD.currentSummaryFallback &&
+    (summaryLines.length > maxVisibleItems || currentSummary.length > 320);
+  const visibleStrengths = showAllStrengths ? parsed.strengths : parsed.strengths.slice(0, maxVisibleItems);
+  const visibleWeaknesses = showAllWeaknesses ? parsed.weaknesses : parsed.weaknesses.slice(0, maxVisibleItems);
 
   const getRecommendedFocus = (topic: typeof topics[number]) => {
     if (topic.mastered) return DD.recommendedFocusMastered;
@@ -111,6 +123,25 @@ const DashboardView: React.FC<DashboardViewProps> = ({
 
     return () => window.clearInterval(intervalId);
   }, [isGeneratingSummary]);
+
+  const handleDeleteTopic = (topicTag: string) => {
+    if (window.confirm(DD.deleteTopicConfirm.replace("{topic}", formatTopicTagForDisplay(topicTag)))) {
+      onDeleteTopic(topicTag);
+    }
+  };
+
+  const renderExpandButton = (expanded: boolean, onToggle: () => void) => (
+    <div className="relative mt-4">
+      <div className="pointer-events-none absolute inset-x-0 -top-8 h-8 bg-gradient-to-t from-white via-white/90 to-transparent dark:from-slate-900 dark:via-slate-900/90" />
+      <button
+        type="button"
+        onClick={onToggle}
+        className="w-full rounded-2xl border border-slate-200/80 bg-white/40 px-4 py-2 text-sm font-medium text-slate-700 backdrop-blur-sm transition-colors hover:bg-white/70 dark:border-slate-700 dark:bg-slate-900/40 dark:text-slate-200 dark:hover:bg-slate-900/70"
+      >
+        {expanded ? DD.seeLess : DD.seeMore}
+      </button>
+    </div>
+  );
 
   return (
     <div className="relative mx-auto max-w-6xl px-3 py-6 sm:px-4 sm:py-8">
@@ -259,14 +290,17 @@ const DashboardView: React.FC<DashboardViewProps> = ({
               {DD.strengths}
             </p>
             {parsed.strengths.length > 0 ? (
-              <ul className="mt-4 space-y-3">
-                {parsed.strengths.map((strength) => (
-                  <li key={strength} className="flex items-start gap-2 rounded-2xl bg-emerald-50 dark:bg-emerald-900/20 px-4 py-3 text-sm text-emerald-800 shadow-sm dark:text-emerald-200">
-                    <CheckCircle className="mt-0.5 h-4 w-4 shrink-0" />
-                    {strength}
-                  </li>
-                ))}
-              </ul>
+              <>
+                <ul className="mt-4 space-y-3">
+                  {visibleStrengths.map((strength) => (
+                    <li key={strength} className="flex items-start gap-2 rounded-2xl bg-emerald-50 dark:bg-emerald-900/20 px-4 py-3 text-sm text-emerald-800 shadow-sm dark:text-emerald-200">
+                      <CheckCircle className="mt-0.5 h-4 w-4 shrink-0" />
+                      {strength}
+                    </li>
+                  ))}
+                </ul>
+                {parsed.strengths.length > maxVisibleItems && renderExpandButton(showAllStrengths, () => setShowAllStrengths((prev) => !prev))}
+              </>
             ) : (
               <p className="mt-4 text-sm text-slate-600 dark:text-slate-300">
                 {DD.strengthsEmpty}
@@ -280,13 +314,16 @@ const DashboardView: React.FC<DashboardViewProps> = ({
               {DD.weaknesses}
             </p>
             {parsed.weaknesses.length > 0 ? (
-              <ul className="mt-4 space-y-3">
-                {parsed.weaknesses.map((weakness) => (
-                  <li key={weakness} className="rounded-2xl bg-amber-50 dark:bg-amber-900/20 px-4 py-3 text-sm text-amber-800 dark:text-amber-200">
-                    {weakness}
-                  </li>
-                ))}
-              </ul>
+              <>
+                <ul className="mt-4 space-y-3">
+                  {visibleWeaknesses.map((weakness) => (
+                    <li key={weakness} className="rounded-2xl bg-amber-50 dark:bg-amber-900/20 px-4 py-3 text-sm text-amber-800 dark:text-amber-200">
+                      {weakness}
+                    </li>
+                  ))}
+                </ul>
+                {parsed.weaknesses.length > maxVisibleItems && renderExpandButton(showAllWeaknesses, () => setShowAllWeaknesses((prev) => !prev))}
+              </>
             ) : (
               <p className="mt-4 text-sm text-slate-600 dark:text-slate-300">
                 {DD.weaknessesEmpty}
@@ -331,6 +368,18 @@ const DashboardView: React.FC<DashboardViewProps> = ({
                       </p>
                     </div>
                     <div className="flex shrink-0 items-center gap-2 self-start sm:self-center">
+                      <button
+                        type="button"
+                        aria-label={DD.deleteTopic}
+                        className="rounded-full border border-rose-200 bg-rose-50 p-2 text-rose-600 transition-colors hover:bg-rose-100 dark:border-rose-900/60 dark:bg-rose-950/30 dark:text-rose-300 dark:hover:bg-rose-950/50"
+                        onClick={(event) => {
+                          event.preventDefault();
+                          event.stopPropagation();
+                          handleDeleteTopic(topic.topic_tag);
+                        }}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
                       <span className="rounded-full bg-white dark:bg-slate-900 px-3 py-1 text-xs font-medium text-slate-600 shadow-sm dark:text-slate-300">
                         {DD.openDetails}
                       </span>
@@ -418,9 +467,20 @@ const DashboardView: React.FC<DashboardViewProps> = ({
             <FileDown className="h-4 w-4 text-indigo-500" />
             {DD.currentSummary}
           </p>
-          <p className="mt-4 whitespace-pre-wrap text-sm leading-7 text-slate-700 dark:text-slate-200">
-            {currentSummary}
-          </p>
+          <div className="relative mt-4">
+            <p
+              className="whitespace-pre-wrap text-sm leading-7 text-slate-700 dark:text-slate-200"
+              style={showAllSummary || !canExpandSummary ? undefined : {
+                display: "-webkit-box",
+                WebkitLineClamp: 5,
+                WebkitBoxOrient: "vertical",
+                overflow: "hidden",
+              }}
+            >
+              {currentSummary}
+            </p>
+            {canExpandSummary && renderExpandButton(showAllSummary, () => setShowAllSummary((prev) => !prev))}
+          </div>
         </section>
       </div>
     </div>

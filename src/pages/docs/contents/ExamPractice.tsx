@@ -75,7 +75,7 @@ export default function ExamPractice() {
           <h3 className="text-purple-400 text-sm font-black uppercase tracking-widest">Evaluation Layer</h3>
           <h2 className="text-3xl font-bold tracking-tight text-white">AI-Based <br/>Grading & Analysis</h2>
           <p className="text-slate-400 leading-relaxed">
-            By uploading a mark scheme alongside your exam, the AI performs a granular evaluation of your responses. It identifies not just if you are wrong, but <strong>why</strong> you are wrong—identifying patterns in calculation errors, conceptual gaps, or phrasing issues.
+            By uploading a mark scheme alongside your exam, the AI performs a granular evaluation of your responses. v2.4.8 migrates the <strong>Core Test prompt orchestration</strong> to Supabase Edge Functions for enhanced security and tighter backend-controlled evaluation.
           </p>
           <ul className="space-y-3">
             {[
@@ -109,4 +109,4 @@ export default function ExamPractice() {
       </section>
     </div>
   );
-}
+};

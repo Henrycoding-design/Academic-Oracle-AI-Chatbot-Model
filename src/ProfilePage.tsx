@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Pencil, Save , ArrowBigLeftIcon, Plus, Info} from "lucide-react";
+import { Pencil, Save , ArrowBigLeftIcon, Plus, Info, LogOut } from "lucide-react";
 import { decryptApiKey, encryptApiKey} from './services/edgeCrypto.ts';
 import { supabase } from "./services/supabaseClient";
 import { AppLanguage, LANGUAGE_DATA } from "./lang/Language.tsx";
@@ -12,6 +12,7 @@ interface ProfilePageProps {
   onLanguageChange: (lang: AppLanguage) => void;
   onSave: (encrypted: any) => void;
   onBack: () => void;
+  onLogout: () => void;
 }
 
 const ProfilePage: React.FC<ProfilePageProps> = ({
@@ -20,7 +21,8 @@ const ProfilePage: React.FC<ProfilePageProps> = ({
   language,
   onLanguageChange,
   onSave,
-  onBack
+  onBack,
+  onLogout
 }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [apiKeyPlain, setApiKeyPlain] = useState("");
@@ -312,6 +314,14 @@ const ProfilePage: React.FC<ProfilePageProps> = ({
 
         </div>
       </div>
+
+      <button
+        onClick={onLogout}
+        className="inline-flex items-center gap-2 rounded-full border border-rose-200 px-5 py-2 mb-5 mt-0 text-sm font-medium text-rose-600 transition-colors hover:bg-rose-50 dark:border-rose-900/40 dark:text-rose-400 dark:hover:bg-rose-950/20"
+      >
+        <LogOut size={16} />
+        {LANGUAGE_DATA[language].ui.logOut}
+      </button>
 
     </div>
   </div>

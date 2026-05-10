@@ -4,7 +4,7 @@ import Navbar from "../ui/Navbar";
 import Footer from "../ui/Footer";
 import InfiniteRail from "./InfiniteRail";
 import FeatureGrid from "../ui/FeatureCard";
-import ArcadeDemov2_3 from "@/src/components/ArcadeProductDemov2.3";
+import { ArcadeDemo } from "@/src/components/ArcadeDemo";
 import { Mail, Github, MessageSquare} from "lucide-react";
 import {motion , useReducedMotion, Variants} from "framer-motion";
 
@@ -73,7 +73,7 @@ export default function Home() {
         </h2>
 
         <div className="mx-auto max-w-5xl rounded-2xl overflow-hidden shadow-[0_0_40px_rgba(59,130,246,0.15)]">
-            <ArcadeDemov2_3 />
+            <ArcadeDemo />
         </div>
       </motion.section>
 

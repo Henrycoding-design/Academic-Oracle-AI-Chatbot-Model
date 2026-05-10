@@ -115,7 +115,7 @@ export default function ChatFlow() {
           <div className="max-w-xl">
             <h3 className="text-3xl font-bold text-white mb-4 tracking-tight">Mastery Checks</h3>
             <p className="text-slate-400 leading-relaxed text-sm md:text-base">
-              Once pattern extraction is confirmed, the Oracle triggers an <strong>adaptive checkpoint</strong>. v2.4.0 features Gemini-first quiz generation for faster, more consistent testing cycles.
+              Once pattern extraction is confirmed, the Oracle triggers an <strong>adaptive checkpoint</strong>. v2.4.8 introduces <strong>Topic Selection</strong>, allowing you to choose specific focus areas for quizzes. Redirection from mastery checkpoints now automatically pre-selects the relevant topic with per-topic configuration caching for a seamless study flow.
             </p>
           </div>
           <div className="flex gap-1.5 pb-2">
@@ -201,7 +201,7 @@ export default function ChatFlow() {
             <span className="text-[10px] bg-blue-500/20 px-2 py-0.5 rounded text-blue-300 border border-blue-500/20 font-bold uppercase">v2.3.5+</span>
           </div>
           <p className="text-base leading-relaxed text-slate-400 sm:text-lg">
-            Directly from your <span className="text-white font-semibold">Learning Dashboard</span>, download a structured summary. It surfaces strengths, weaknesses, and key formulas generated through the session's discovery loops.
+            Directly from your <span className="text-white font-semibold">Learning Dashboard</span>, download a structured summary. v2.4.8 adds <strong>granular memory control</strong>—delete specific topics directly from the UI—and optimized summary views with "See More" expansion toggles.
           </p>
           <ul className="grid grid-cols-1 gap-4 text-sm text-white/70 sm:grid-cols-2">
             <li className="flex items-center gap-2 font-medium"><span className="text-blue-400">✦</span> Learning Efficiency Index</li>

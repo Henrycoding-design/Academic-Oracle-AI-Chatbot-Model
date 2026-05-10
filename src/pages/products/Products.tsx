@@ -1,6 +1,6 @@
 import PageLayout from "@/src/layout/PageLayout";
 import PageHeader from "../ui/PageHeader";
-import ArcadeEmbedv2_3 from "@/src/components/ArcadeProductDemov2.3";
+import { ArcadeDemo } from "@/src/components/ArcadeDemo";
 import { AppWindow, Brain, Shield, Layout, X, BookOpen, Github, Zap , MessageCircleIcon , PackageCheckIcon, ClipboardCheck, RefreshCw, MessageSquare, ArrowRight, Database, TrendingUp, LayoutDashboard, FileText } from "lucide-react";
 
 export default function Products() {
@@ -158,15 +158,15 @@ export default function Products() {
       >
         <div className="text-center mb-12">
           <h2 className="text-3xl sm:text-4xl font-bold tracking-tight mb-4">
-            Experience Guided Reasoning
+            Explore the Features
           </h2>
           <p className="text-white/60 max-w-2xl mx-auto md:text-nowrap">
-            Try a real Socratic session below and see how understanding grows when the path is guided, not given.
+            See how Academic Oracle guides your learning through interactions.
           </p>
         </div>
 
         <div className="mx-auto max-w-5xl rounded-3xl border border-white/10 overflow-hidden shadow-[0_0_50px_rgba(59,130,246,0.1)] bg-black/50 backdrop-blur-xl">
-            <ArcadeEmbedv2_3 />
+            <ArcadeDemo />
         </div>
       </section>
 

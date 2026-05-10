@@ -509,9 +509,10 @@ type EdgeCallParams = {
   prompt: string;
   temp?: number;
   systemInstruction?: string;
-  mode?: "chat" | "quiz" | "summary";
+  mode?: "chat" | "quiz" | "summary" | "exam-structure" | "exam-enrich" | "exam-grade";
   language?: string;
   responseMimeType?: string;
+  promptVariables?: Record<string, string>;
   encryptedKeyPayload?: any;
 };
 
@@ -978,14 +979,19 @@ export const estimateQuizConfig = async (
   history: ChatHistoryItem[], 
   memory: string | null,
   encryptedKeyPayload: any,
+  topicTag?: string | null,
 ): Promise<QuizConfig> => {
-  const lightMemory = formatOracleMemoryForQuizConfig(memory);
+  const lightMemory = formatOracleMemoryForQuizConfig(memory, topicTag);
+  const topicScope = topicTag?.trim()
+    ? `Focus only on this topic when estimating the quiz: "${topicTag.trim()}".`
+    : "Focus on the current tracked topic in memory.";
   
   const prompt = `
   System Language (FORCED INPUT/OUTPUT CONTENT LANGUAGE): English
 
   You are an expert educational content analyzer.
   Analyze this chat history and lightweight structured memory. Recommend a quiz configuration.
+  ${topicScope}
   Return JSON only:
   {
     "level": "Fundamental" | "Intermediate" | "Advanced",
@@ -1032,9 +1038,13 @@ export const generateQuizQuestions = async (
   config: QuizConfig,
   history: ChatHistoryItem[],
   memory: string | null,
-  encryptedKeyPayload: any
+  encryptedKeyPayload: any,
+  topicTag?: string | null
 ): Promise<QuizQuestion[]> => {
-  const formattedMemory = formatOracleMemoryForPrompt(memory);
+  const formattedMemory = formatOracleMemoryForPrompt(memory, topicTag);
+  const selectedTopicInstruction = topicTag?.trim()
+    ? `Generate the quiz ONLY for this selected topic: "${topicTag.trim()}". Ignore other tracked topics except as background context.`
+    : "Generate the quiz for the current tracked topic.";
   const prompt = `
   System Language (FORCED INPUT/OUTPUT CONTENT LANGUAGE): ${language === "en" ? "English"
     : language === "fr" ? "French"
@@ -1044,6 +1054,7 @@ export const generateQuizQuestions = async (
   You are an expert quiz generator.
   Generate a quiz based on this structured student memory: ${formattedMemory}
   and recent chat history: "${JSON.stringify(history)}".
+  ${selectedTopicInstruction}
 
   Quiz Configuration:
   - Difficulty: ${config.level}
@@ -1164,95 +1175,6 @@ Return JSON:
 // Intentionally not translate the test content into the system app language choosen by the user
 // due to the complexity of the task in preserving the original wording, instructions, and professional terms of the question paper
 // also due to the fact that grading can vary significantly based on the exact wording and structure of the question, which can be lost in translation
-const STRUCTURE_TEST_PROMPT = `
-System Language (FORCED INPUT/OUTPUT CONTENT LANGUAGE): INPUT DATA LANGUAGE (QUESTION PAPER 1st PRIORITY)
-
-You are building a minimal exam payload from extracted PDF text.
-
-Task:
-1. Read the question paper text.
-2. Split it into the actual exam questions or sub-questions that a student should answer.
-3. If mark scheme text is provided, attach the most relevant marking reference to each item in the "markScheme" field.
-4. Do not invent questions that are not grounded in the provided text.
-5. Keep the output concise and structured for UI rendering.
-6. Rewrite each extracted question into its fullest clear exam-ready form without omitting any original requirement, constraint, instruction, or context.
-7. Return question and hint text in markdown-friendly form so the UI can render emphasis, lists, tables, and math clearly.
-
-Return STRICT JSON ONLY with this exact schema:
-{
-  "title": "string",
-  "instructions": "string",
-  "items": [
-    {
-      "id": "q1",
-      "questionNumber": "1",
-      "type": "open" | "mcq",
-      "prompt": "full question text",
-      "options": ["A", "B", "C", "D"],
-      "correctAnswer": "exact correct option text for MCQ, empty string if unknown or if open response",
-      "markScheme": "relevant marking points or expected answer, empty string if unavailable",
-      "hints": {
-        "general": "broad strategy clue without giving away the answer",
-        "specific": "targeted clue about what concept or evidence to use without directly stating the final answer",
-        "solution": "full solution or expected response with concise explanation"
-      },
-      "userAnswer": "",
-      "isCorrect": null,
-      "score": null,
-      "maxScore": 1,
-      "feedback": ""
-    }
-  ],
-  "summary": null
-}
-
-Rules:
-- Preserve the question wording as closely as possible.
-- Do not cut, shorten, or drop any part of the question.
-- Present each question in the clearest and most professional full form for a student.
-- If the original question includes context before the ask, keep that context with the question.
-- If the paper uses sub-questions such as '9(a)', '9(b)', '10(c)', or similar sequel notation, treat each sub-question as its own separate item when the paper presents them separately.
-- For a sub-question item, include only the shared parent context needed to understand that specific sub-question.
-- Do not rewrite one sub-question so that it also includes sibling parts like '9(b)' or '9(c)'.
-- Example: if '9(a)', '9(b)', and '9(c)' are separate asks, the '9(a)' item must contain only the content needed for '9(a)'.
-- Preserve bullet points, numbering, sub-parts, and line breaks in the "prompt" field.
-- Use markdown standards inside "prompt" and "hints" string fields when they improve readability:
-  - **bold** for important labels, headings, or emphasis
-  - *italic* for softer emphasis or named terms when appropriate
-  - Bullet lists or numbered lists for multi-step instructions, grouped evidence, or answer requirements.
-  - Markdown tables for source tables, datasets, option matrices, matching questions, or values that need row/column alignment.
-  - Inline math with \\(...\\) for short formulas, symbols, units, variables, or equations inside a sentence.
-  - Block math with \\[...\\] for standalone equations, derivations, or calculation setups.
-  - Use clean line breaks between context, data, and the actual question ask.
-- Preserve tables from the source as markdown tables whenever the row/column relationship matters.
-- Preserve mathematical notation faithfully. Do not flatten fractions, powers, roots, subscripts, functions, units, or inequalities into ambiguous plain text.
-- In "hints", use the same formatting standards when a hint includes formulas, steps, mini tables, or a worked solution.
-- Preserve bold and italic emphasis using markdown formatting when it is clearly implied by the source.
-- If a question has multiple requirements, keep all of them together in the same item unless the paper clearly separates them into sub-questions.
-- If the paper contains numbered sections, keep that numbering in "questionNumber".
-- Decide whether each item is "mcq" or "open" based on the question context.
-- Use "mcq" only when the question clearly provides or implies a fixed answer choice set whose possible responses can be determined before the student answers.
-- MCQ does not have to use A/B/C/D labels.
-- The choice set may use letters, numbers, statements, symbols, or any fixed response list.
-- The number of options may be 2, 4, 6, 10, or any other finite count.
-- For "mcq", extract the answer choices into "options".
-- For "mcq", set "correctAnswer" to the exact option text when it can be determined from the paper or mark scheme context.
-- For "open", return an empty array for "options".
-- If a question has no mark scheme match, keep "markScheme" as an empty string.
-- Always include "hints":
-  - "general" gives a broad approach, command-word reminder, formula family, or topic clue.
-  - "specific" points to the key concept, method, evidence, or first useful step without directly stating the final answer.
-  - "solution" gives the answer or solved method with a concise explanation. Use the mark scheme when available; otherwise use careful academic judgment.
-- Return raw JSON only. Do not wrap the response in markdown, code fences, or explanatory text.
-- Markdown syntax is allowed only inside JSON string fields such as "prompt" and "hints" when it improves rendering.
-
-QUESTION PAPER TEXT (INPUT DATA):
-{questionPaperText}
-
-MARK SCHEME TEXT (INPUT DATA):
-{markSchemeText}
-`;
-
 const tryParse = (text: string) => {
   const parsed = extractAndParseJSONSafe(text);
   if (!parsed.ok) {
@@ -1273,7 +1195,13 @@ export const structureCoreTestFromPdfRace = async (
   encryptedKeyPayload: any
 ): Promise<CoreTestPayload> => {
 
-  const prompt = STRUCTURE_TEST_PROMPT.replace("{questionPaperText}", questionPaperText).replace("{markSchemeText}", markSchemeText ?? "No mark scheme provided.");
+  const prompt = `
+QUESTION PAPER TEXT (INPUT DATA):
+${questionPaperText}
+
+MARK SCHEME TEXT (INPUT DATA):
+${markSchemeText ?? "No mark scheme provided."}
+`;
 
   const isValid = ({ text }: { text: string }) => {
     const parsed = extractAndParseJSONSafe(text);
@@ -1287,7 +1215,7 @@ export const structureCoreTestFromPdfRace = async (
       model: "gemini-2.5-flash",
       prompt,
       temp: 0.2,
-      mode: "quiz",
+      mode: "exam-structure",
       responseMimeType: "application/json",
       encryptedKeyPayload,
     }).then(text => ({ model: "gemini-2.5-flash", text })),
@@ -1295,7 +1223,7 @@ export const structureCoreTestFromPdfRace = async (
       model: "gemini-3.1-flash-lite-preview",
       prompt,
       temp: 0.1,
-      mode: "quiz",
+      mode: "exam-structure",
       responseMimeType: "application/json",
       encryptedKeyPayload,
     }).then(text => ({ model: "gemini-3.1-flash-lite", text })),
@@ -1315,14 +1243,20 @@ export const structureCoreTestFromPdf = async (
     return structureCoreTestFromPdfRace(questionPaperText, markSchemeText, encryptedKeyPayload);
   }
 
-  const prompt = STRUCTURE_TEST_PROMPT.replace("{questionPaperText}", questionPaperText).replace("{markSchemeText}", markSchemeText ?? "No mark scheme provided.");
+  const prompt = `
+QUESTION PAPER TEXT (INPUT DATA):
+${questionPaperText}
+
+MARK SCHEME TEXT (INPUT DATA):
+${markSchemeText ?? "No mark scheme provided."}
+`;
 
   try {
     const text = await getGeminiTextFromEdge({
       model: "gemini-2.5-flash",
       prompt,
       temp: 0.2,
-      mode: "quiz",
+      mode: "exam-structure",
       responseMimeType: "application/json",
       encryptedKeyPayload,
     });
@@ -1334,7 +1268,7 @@ export const structureCoreTestFromPdf = async (
         model: "gemini-3.1-flash-lite-preview",
         prompt,
         temp: 0.1,
-        mode: "quiz",
+        mode: "exam-structure",
         responseMimeType: "application/json",
         encryptedKeyPayload,
       });
@@ -1354,33 +1288,6 @@ export const enrichCoreTestCorrectAnswers = async (
   encryptedKeyPayload: any
 ): Promise<Record<string, string>> => {
   const prompt = `
-System Language (FORCED INPUT/OUTPUT CONTENT LANGUAGE): INPUT DATA LANGUAGE (QUESTION PAPER 1st PRIORITY)
-
-You are updating an already-structured exam payload after a mark scheme was uploaded.
-
-Your job:
-- Do NOT rebuild, rewrite, reorder, split, merge, or reclassify the questions.
-- Do NOT change prompt text, options, type, numbering, user answers, score fields, or feedback fields.
-- Only determine and return the best available "correctAnswer" for each existing item using the mark scheme first.
-
-Return STRICT JSON ONLY in this exact shape:
-{
-  "items": [
-    {
-      "id": "q1",
-      "correctAnswer": "exact correct answer text, or empty string if it still cannot be determined"
-    }
-  ]
-}
-
-Rules:
-- Preserve the same item ids from the input payload.
-- Return one output entry for every input item.
-- For MCQ, return the exact correct option text.
-- For open response, return the clearest concise correct answer or expected answer text if the mark scheme provides one.
-- If the mark scheme does not determine a correct answer for an item, return an empty string for that item.
-- Return raw JSON only. Do not wrap the response in markdown, code fences, or explanatory text.
-
 QUESTION PAPER TEXT (INPUT DATA):
 ${questionPaperText}
 
@@ -1417,7 +1324,7 @@ ${JSON.stringify(payload)}
       model: "gemini-2.5-flash",
       prompt,
       temp: 0.1,
-      mode: "quiz",
+      mode: "exam-enrich",
       responseMimeType: "application/json",
       encryptedKeyPayload,
     });
@@ -1429,7 +1336,7 @@ ${JSON.stringify(payload)}
         model: "gemini-2.5-flash-lite",
         prompt,
         temp: 0.1,
-        mode: "quiz",
+        mode: "exam-enrich",
         responseMimeType: "application/json",
         encryptedKeyPayload,
       });
@@ -1440,86 +1347,6 @@ ${JSON.stringify(payload)}
     throw err;
   }
 };
-
-const GRADING_TEST_PROMPT = `
-System Language (FORCED INPUT/OUTPUT CONTENT LANGUAGE): INPUT DATA LANGUAGE (QUESTION PAPER 1st PRIORITY)
-
-You are grading a student's exam submission.
-
-You will receive:
-- The original question paper text.
-- The optional mark scheme text.
-- A structured JSON payload with questions and student answers.
-
-Grading policy:
-- Use the mark scheme first whenever it is available and relevant.
-- If no mark scheme exists for an item, use your own academic judgment based on the question.
-- Grade strictly but fairly.
-- Selected grading style: {normalizedGradingStyleUpperCase}.
-- {stylePolicy}
-- Use maxScore as the available marks for each item.
-- Award partial credit when the selected grading style, mark scheme, or student response quality supports it.
-- For MCQ, score full marks for the correct fixed option and 0 for an incorrect fixed option unless the question explicitly supports multiple selections or partial credit.
-- For open responses, score from 0 to maxScore.
-
-Return STRICT JSON ONLY using the SAME schema as the input payload:
-{
-  "title": "string",
-  "instructions": "string",
-  "items": [
-    {
-      "id": "q1",
-      "questionNumber": "1",
-      "type": "open" | "mcq",
-      "prompt": "full question text",
-      "options": ["A", "B", "C", "D"],
-      "correctAnswer": "exact correct option text for MCQ, empty string if unknown or if open response",
-      "markScheme": "relevant marking points or expected answer, empty string if unavailable",
-      "hints": {
-        "general": "broad strategy clue",
-        "specific": "targeted clue",
-        "solution": "full solution with concise explanation"
-      },
-      "userAnswer": "student answer",
-      "isCorrect": true,
-      "score": 0.5,
-      "maxScore": 1,
-      "feedback": "brief grading note"
-    }
-  ],
-  "summary": {
-    "correct": 0.5,
-    "total": 1,
-    "percentage": 50,
-    "usedMarkScheme": true,
-    "gradingStyle": "{normalizedGradingStyle}"
-  }
-}
-
-Rules:
-- Preserve item order and ids.
-- Preserve item type and options.
-- Every item must include feedback.
-- "usedMarkScheme" must be true if any grading used the provided mark scheme.
-- "summary.correct" is total earned marks, not the number of correct questions.
-- "summary.total" is total available marks.
-- "summary.percentage" must be based on earned marks divided by available marks.
-- "summary.gradingStyle" must be "{normalizedGradingStyle}".
-- For MCQ items, determine correctness against the exact fixed response set already implied by the question.
-- MCQ does not have to use A/B/C/D labels and may use any finite option list.
-- For MCQ items, populate "correctAnswer" with the exact correct option text if it can be determined.
-- Preserve or improve each item's "hints" object. The "solution" hint should match the final correct answer and grading feedback.
-- Return raw JSON only. Do not wrap the response in markdown, code fences, or explanatory text.
-
-QUESTION PAPER TEXT (INPUT DATA):
-{questionPaperText}
-
-MARK SCHEME TEXT (INPUT DATA):
-{markSchemeText}
-
-STRUCTURED TEST PAYLOAD (INPUT DATA):
-{payload}
-`;
 
 export const gradeCoreTestPayloadRace = async (
   payload: CoreTestPayload,
@@ -1542,11 +1369,16 @@ export const gradeCoreTestPayloadRace = async (
               ? "Cambridge style: follow mark scheme points closely, award partial credit for valid working and required keywords, and convert final percentage to an estimated A*-U grade."
               : "Default style: use the mark scheme first, then academic judgment. Award partial marks where the response deserves them.";
 
-  const prompt = GRADING_TEST_PROMPT
-    .replace("{normalizedGradingStyleUpperCase}", normalizedGradingStyle.toUpperCase())
-    .replace("{stylePolicy}", stylePolicy).replace("{questionPaperText}", questionPaperText)
-    .replace("{markSchemeText}", markSchemeText ?? "No mark scheme provided.")
-    .replace("{payload}", JSON.stringify(payload));
+  const prompt = `
+QUESTION PAPER TEXT (INPUT DATA):
+${questionPaperText}
+
+MARK SCHEME TEXT (INPUT DATA):
+${markSchemeText ?? "No mark scheme provided."}
+
+STRUCTURED TEST PAYLOAD (INPUT DATA):
+${JSON.stringify(payload)}
+`;
 
   const isValid = ({ text }: { text: string }) => {
     const parsed = extractAndParseJSONSafe(text);
@@ -1560,16 +1392,26 @@ export const gradeCoreTestPayloadRace = async (
       model: "gemini-2.5-flash",
       prompt,
       temp: 0.2,
-      mode: "quiz",
+      mode: "exam-grade",
       responseMimeType: "application/json",
+      promptVariables: {
+        normalizedGradingStyle,
+        normalizedGradingStyleUpperCase: normalizedGradingStyle.toUpperCase(),
+        stylePolicy,
+      },
       encryptedKeyPayload,
     }).then(text => ({ model: "gemini-2.5-flash", text })),
     () => getGeminiTextFromEdge({
       model: "gemini-3.1-flash-lite-preview",
       prompt,
       temp: 0.1,
-      mode: "quiz",
+      mode: "exam-grade",
       responseMimeType: "application/json",
+      promptVariables: {
+        normalizedGradingStyle,
+        normalizedGradingStyleUpperCase: normalizedGradingStyle.toUpperCase(),
+        stylePolicy,
+      },
       encryptedKeyPayload,
     }).then(text => ({ model: "gemini-3.1-flash-lite", text })),
   ], isValid);
@@ -1604,11 +1446,16 @@ export const gradeCoreTestPayload = async (
               ? "Cambridge style: follow mark scheme points closely, award partial credit for valid working and required keywords, and convert final percentage to an estimated A*-U grade."
               : "Default style: use the mark scheme first, then academic judgment. Award partial marks where the response deserves them.";
 
-  const prompt = GRADING_TEST_PROMPT
-    .replace("{normalizedGradingStyleUpperCase}", normalizedGradingStyle.toUpperCase())
-    .replace("{stylePolicy}", stylePolicy).replace("{questionPaperText}", questionPaperText)
-    .replace("{markSchemeText}", markSchemeText ?? "No mark scheme provided.")
-    .replace("{payload}", JSON.stringify(payload));
+  const prompt = `
+QUESTION PAPER TEXT (INPUT DATA):
+${questionPaperText}
+
+MARK SCHEME TEXT (INPUT DATA):
+${markSchemeText ?? "No mark scheme provided."}
+
+STRUCTURED TEST PAYLOAD (INPUT DATA):
+${JSON.stringify(payload)}
+`;
 
   const tryParse = (text: string) => {
     const parsed = extractAndParseJSONSafe(text);
@@ -1629,8 +1476,13 @@ export const gradeCoreTestPayload = async (
       model: "gemini-2.5-flash",
       prompt,
       temp: 0.2,
-      mode: "quiz",
+      mode: "exam-grade",
       responseMimeType: "application/json",
+      promptVariables: {
+        normalizedGradingStyle,
+        normalizedGradingStyleUpperCase: normalizedGradingStyle.toUpperCase(),
+        stylePolicy,
+      },
       encryptedKeyPayload,
     });
 
@@ -1641,8 +1493,13 @@ export const gradeCoreTestPayload = async (
         model: "gemini-3.1-flash-lite-preview",
         prompt,
         temp: 0.1,
-        mode: "quiz",
+        mode: "exam-grade",
         responseMimeType: "application/json",
+        promptVariables: {
+          normalizedGradingStyle,
+          normalizedGradingStyleUpperCase: normalizedGradingStyle.toUpperCase(),
+          stylePolicy,
+        },
         encryptedKeyPayload,
       });
 

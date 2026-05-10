@@ -2,7 +2,7 @@
 
   <img src="bg_img.png" alt="Academic Oracle Logo" width="100%" style="max-width: 1000px;" /> 
 
-  <p><strong>Clarity for Every Concept. Where Knowledge Becomes Insight.</strong></p>
+  <p><strong>Clarity for Every Concept. <br />Where Knowledge Becomes Insight.</strong></p>
 
   <p>
     <a href="#features">Features</a> •
@@ -80,7 +80,7 @@ Academic Oracle optimizes for **retention, intuition, and reasoning**.
 
 ## Features
 
-### 🧠 Learning Engine
+### 🧠 Learning Engine *(updated v2.4.8)*
 
 - **Hint-based reasoning flow** — ask first, reveal progressively
 - **Structured thinking prompts** with richer Oracle Memory JSON returns
@@ -104,7 +104,7 @@ Academic Oracle optimizes for **retention, intuition, and reasoning**.
 
 ---
 
-### 📝 Integrated Quiz Platform
+### 📝 Integrated Quiz Platform *(updated v2.4.8)*
 
 - Auto-generated concept-specific quizzes
 - Multi-question adaptive testing
@@ -112,6 +112,16 @@ Academic Oracle optimizes for **retention, intuition, and reasoning**.
 - Reinforcement-based correction
 - Mid-session language switching
 - Unified Chat + Quiz UI system
+- **Topic-aware quiz configuration** *(new v2.4.8)*
+  - Choose from tracked Oracle Memory topics with usable data only
+  - Defaults to the current topic, while preserving manual topic selection across tab switches
+  - Mastery popup can now jump directly into Quiz with the relevant topic preselected
+- **Safer quiz start flow** *(new v2.4.8)*
+  - Start button stays disabled until a valid topic is selected
+  - Config refresh now shows a locked loading state to prevent stale quiz launches
+- **Per-topic config persistence** *(new v2.4.8)*
+  - Quiz settings cache independently per topic in `sessionStorage`
+  - Cached configs refresh only when learning memory or chat context changes for the active topic
 - Short-query routing can jump directly into Balanced race mode
 - **Gemini-first execution** *(updated v2.4.0)*
   - Faster and more consistent quiz generation
@@ -119,7 +129,7 @@ Academic Oracle optimizes for **retention, intuition, and reasoning**.
 
 ---
 
-### 📊 Learning Dashboard *(new v2.3.5)*
+### 📊 Learning Dashboard *(updated v2.4.8)*
 
 - Dedicated dashboard tab for learner overview and progress reflection
 - Displays user profile, academic level, current topic, and learning level
@@ -127,10 +137,16 @@ Academic Oracle optimizes for **retention, intuition, and reasoning**.
 - Expandable topic panels with key notes, formulas/cues, quiz attempts, and recommended next focus
 - Surfaces strengths, weaknesses, and overall session summary in one place
 - Integrated **Download Session Summary** action from the dashboard
+- **Cleaner topic management** *(new v2.4.8)*
+  - Empty or hallucinated topic shells are skipped in dashboard rendering
+  - Each topic toggle now supports direct deletion with confirmation
+- **Focused summary previews** *(new v2.4.8)*
+  - Strengths, weaknesses, and overall summary sections show the first 5 items by default
+  - Independent see more / see less controls expand each section without affecting the others
 
 ---
 
-### 🎓 Exam Practice Module *(new v2.4.5)*
+### 🎓 Exam Practice Module *(updated v2.4.8)*
 
 **Transforms Academic Oracle from a learning assistant into a full exam + evaluation system.**
 
@@ -172,6 +188,7 @@ Enables a smooth transition from **independent performance → supported improve
 - Step-based marking logic where applicable
 - **Instant scoring with detailed breakdowns**
 - **Estimated grade boundaries** based on performance
+- Core Test prompt orchestration now runs through Supabase Edge Functions for tighter backend control while remaining compatible with older production flows
 
 > Not just “correct or incorrect” — but *how well you would score in a real exam*.
 
@@ -271,6 +288,9 @@ Ideal for:
 - All AI API calls handled via Supabase backend — no direct client exposure of keys
 - Production-grade, secure Edge Function orchestration
 - Core prompt logic centralized in backend
+- **Expanded backend control** *(v2.4.8)*
+  - Core Test exam prompts were moved further into Supabase Edge Functions
+  - Oracle Memory topic creation constraints were tightened to avoid unsupported topic creation
 - Encrypted handling of sensitive internal data
 - Supabase-backed session continuity
 - **Reliability enhancements** *(v2.4.0)*
@@ -297,6 +317,9 @@ Ideal for:
 - **UI improvements** *(v2.4.0)*
   - File uploads now stack above input (fixes mobile layout issues)
   - Follow-up container UI with dynamic spacing (no overlap bugs)
+- **UI improvements** *(v2.4.8)*
+  - Added a direct `Log out` action in the Profile page
+  - Logout now clears persisted Quiz and Core Test runtime session state
 - **Non-blocking UI architecture** — failures never crash the interface; graceful degradation on errors
 
 ---
@@ -389,14 +412,13 @@ https://academicoracle.onrender.com
 This repository uses a **mixed-license structure**.
 
 ### Code License
-Unless otherwise stated, the public code in this repository is licensed under the
-**Apache License 2.0**.
-
 
 > [!IMPORTANT]
 > **Not all code in this repository is open for reuse.**  
 > Certain core logic and system design components are **explicitly excluded** from the Apache-2.0 license.
 
+Unless otherwise stated, the public code in this repository is licensed under the
+**Apache License 2.0**.
 
 However, selected files containing core product logic, orchestration behavior,
 service intelligence, and project-defining implementation details are **excluded**

@@ -11,7 +11,7 @@ export default function GettingStarted() {
       {/* Intro Header */}
       <header className="pt-10">
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 mb-6">
-          <span className="text-[10px] font-black uppercase tracking-[0.2em] text-blue-400">Documentation v2.4</span>
+          <span className="text-[10px] font-black uppercase tracking-[0.2em] text-blue-400">Documentation v2.4.8</span>
         </div>
         <h1 className="mb-6 text-4xl font-black tracking-tighter sm:text-5xl lg:text-6xl">
           The <span className="bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text text-transparent">Academic Oracle</span>

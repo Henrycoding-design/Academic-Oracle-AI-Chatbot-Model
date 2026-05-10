@@ -20,7 +20,7 @@ import { supabase } from "./services/supabaseClient";
 // import { resetChat } from "./services/geminiService";
 import { readFileAsText } from "./services/fileReader";
 import 'katex/dist/katex.min.css';
-import ArcadeDemo from "./components/ArcadeDemo";
+import { ArcadeDemo } from "./components/ArcadeDemo";
 import { createPortal } from "react-dom";
 import { useClickOutside } from './services/useClickOutside.ts';
 import { generateSessionSummary } from './services/geminiService.ts';
@@ -39,7 +39,14 @@ import { analyzePrompt } from './services/promptGuard.ts';
 import { runQuotaSafeSearch } from './services/webSearchSafe.ts';
 import { isWebSearchLimitReached, incrementWebSearch } from './services/webSearchQuota.ts';
 import { classifyIntent } from './services/chatIntentClassifier.ts';
-import { getNewlyMasteredTopicTag, hasReadyOracleMemory, recordQuizResultInMemory, serializeOracleMemory } from './services/oracleMemory.ts';
+import {
+  deleteTopicFromOracleMemory,
+  getCurrentTopicTag,
+  getNewlyMasteredTopicTag,
+  hasReadyOracleMemory,
+  recordQuizResultInMemory,
+  serializeOracleMemory
+} from './services/oracleMemory.ts';
 
 const SunIcon = (props: React.SVGProps<SVGSVGElement>) => (
   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
@@ -138,6 +145,7 @@ const App: React.FC = () => {
   const [showMasteryPopup, setShowMasteryPopup] = useState(false);
   // NEW STATE: Pending Explanation from Quiz
   const [pendingExplanation, setPendingExplanation] = useState<string | null>(null);
+  const [forcedQuizTopicSelection, setForcedQuizTopicSelection] = useState<{ id: number; topicTag: string | null } | null>(null);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
@@ -1070,6 +1078,7 @@ const App: React.FC = () => {
     sessionStorage.removeItem("oracle-api-key");
     sessionStorage.removeItem("academic-oracle-memory"); //wipe profile
     sessionStorage.removeItem("academic-oracle-quiz-state"); // Clear quiz cache on logout
+    sessionStorage.removeItem("academic-oracle-professional-exam-state"); // Clear Core Test session on logout
     localStorage.removeItem("chat_input_draft"); // clear draft
     setOracleMemory(null);
 
@@ -1166,6 +1175,10 @@ const App: React.FC = () => {
     alert(LANGUAGE_DATA[language].ui.memoryAdded);
   };
 
+  const handleDeleteTopicMemory = (topicTag: string) => {
+    setOracleMemory((prev) => deleteTopicFromOracleMemory(prev, topicTag));
+  };
+
 
   if (showDemo) {
     return <ArcadeDemo />;
@@ -1236,6 +1249,7 @@ const App: React.FC = () => {
         language={language}
         onLanguageChange={setLanguage}
         onSave={(key) => setEncryptedApiKey(key)}
+        onLogout={handleLogout}
         onBack={() => {
           if (window.history.length > 1) {
             window.history.back();
@@ -1509,6 +1523,10 @@ const App: React.FC = () => {
                           <div className="flex gap-3">
                             <button 
                               onClick={() => {
+                                setForcedQuizTopicSelection({
+                                  id: Date.now(),
+                                  topicTag: getCurrentTopicTag(oracleMemory, chatHistory),
+                                });
                                 navigate("/quiz");
                                 setShowMasteryPopup(false);
                               }}
@@ -1542,6 +1560,7 @@ const App: React.FC = () => {
                 history={chatHistory}
                 isGeneratingSummary={isGeneratingSummary}
                 onDownloadSummary={handleGenerateSummary}
+                onDeleteTopic={handleDeleteTopicMemory}
                 onBack={() => navigate("/")}
               />
             ) : currentView === 'test' ? null : (
@@ -1554,6 +1573,10 @@ const App: React.FC = () => {
                 onBack={() => navigate("/")} // back to chat view
                 onExplainRequest={handleExplainRequest}
                 onAddToMemory={handleAddToMemory}
+                forcedTopicSelection={forcedQuizTopicSelection}
+                onForcedTopicSelectionApplied={(id) => {
+                  setForcedQuizTopicSelection((current) => current?.id === id ? null : current);
+                }}
               />
             )}
             {(currentView === 'test' || isCoreTestBusy) && (
