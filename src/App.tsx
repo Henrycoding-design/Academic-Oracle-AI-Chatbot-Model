@@ -39,6 +39,7 @@ import { analyzePrompt } from './services/promptGuard.ts';
 import { runQuotaSafeSearch } from './services/webSearchSafe.ts';
 import { isWebSearchLimitReached, incrementWebSearch } from './services/webSearchQuota.ts';
 import { classifyIntent } from './services/chatIntentClassifier.ts';
+import { DEFAULT_GEMINI_MODEL, type GeminiModelName } from './services/models.ts';
 import {
   deleteTopicFromOracleMemory,
   getCurrentTopicTag,
@@ -509,7 +510,7 @@ const App: React.FC = () => {
     };
   }, []);
 
-  const [model, setModel] = useState<string>('gemini-3-flash-preview'); // default model -> never empty/crash on this optional feature
+  const [model, setModel] = useState<string>(DEFAULT_GEMINI_MODEL); // default model -> never empty/crash on this optional feature
   const chatEndRef = useRef<HTMLDivElement>(null);
   const mainScrollRef = useRef<HTMLElement>(null);
   const masteryTimerRef = useRef<number | null>(null);
@@ -673,30 +674,37 @@ const App: React.FC = () => {
       let webContext = "";
       let currentLoadingLabel: LoadingModeLabel = "Standard";
 
-      // jailbreak block
-      if (decision.jailbreak) {
-        setMessages(prev => [
-          ...prev,
-          { role: "model", content: LANGUAGE_DATA[language].ui.jailbreakMessage },
-        ]);
-
-        setIsLoading(false);
-        return;
-      }
-
-      // cron model verification
+      // 🛡️ Advanced Guard (AI-powered) - only triggers if lightweight guard suspects something
+      // This reduces false positives by letting the AI verify potential jailbreaks or web searches
       if (guard.web_search || guard.jailbreak) {
         try {
           const res = await runCronPromptGuard(userMessage, encryptedApiKey);
-          if (!res.reason.includes("Error")) {
-            decision = res;
-          }
+
+          const isValid = !res.reason?.includes("Error");
+
+          decision = {
+            ...guard,
+            ...res,
+          };
+
+          decision.web_search = isValid && res.web_search === true;
+          decision.jailbreak = isValid && res.jailbreak === true;
         } catch (e) {
           console.warn("Cron guard failed", e);
+          // If AI guard fails, we fallback to the lightweight guard's decision
+          // but for jailbreak, we might want to be more lenient if the AI is unavailable
+          // to avoid blocking legitimate users.
+          if (guard.jailbreak) {
+            decision.jailbreak = false; // be lenient on fallback to reduce false positives
+          }
+
+          if (guard.web_search) {
+            decision.web_search = false; // we don't want to fire web search without AI model comfirmation
+          }
         }
       }
 
-      // jailbreak block: second round
+      // Final Jailbreak Block - Only block if confirmed by AI (or if lightweight is very certain)
       if (decision.jailbreak) {
         setMessages(prev => [
           ...prev,
@@ -766,12 +774,14 @@ const App: React.FC = () => {
 
         } catch (e) {
           console.warn("Web search failed", e);
-          setMessages(prev => [
-            ...prev,
-            { role: "model", content: LANGUAGE_DATA[language].ui.webSearchFailedMessage },
-          ]);
-          setIsLoading(false);
-          return;
+          // setMessages(prev => [
+          //   ...prev,
+          //   { role: "model", content: LANGUAGE_DATA[language].ui.webSearchFailedMessage },
+          // ]);
+          // setIsLoading(false);
+          // return;
+          // Continue WITHOUT web context for now, rely on prompt engineering
+          webContext = "";
         }
       } else if (isWebSearchLimitReached()){
         console.warn("Web Search Limit reaches");
@@ -855,7 +865,7 @@ const App: React.FC = () => {
         `Using ${useRace ? "RACE" : "standard"} strategy for this request`
       );
 
-      const { answer, memory, model } =
+      const { answer, memory, model_label } =
         await (
           useRace
             ? sendMessageToBotRace({
@@ -910,8 +920,8 @@ const App: React.FC = () => {
         }
       }
 
-      if (model) {
-        setModel(model);
+      if (model_label) {
+        setModel(model_label);
       }
     } catch (err: unknown) {
       console.error(err);

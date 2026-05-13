@@ -1,5 +1,27 @@
 [
   {
+    "version": "2.4.8.5",
+    "date": "2026-05-13",
+    "changes": [
+      {
+        "type": "fix",
+        "text": "Updated deprecated Gemini preview model to GA endpoint to prevent API failures after May 25, 2026."
+      },
+      {
+        "type": "internal",
+        "text": "Refactored model handling to use abstract flags (agentic, fast, smart, balanced) with backend-based resolution."
+      },
+      {
+        "type": "improve",
+        "text": "Added strict typing, validation, and documentation for model flags to improve reliability and prevent invalid usage."
+      },
+      {
+        "type": "improve",
+        "text": "Enhanced guard and web search fallback logic, allowing responses to continue safely when web search fails."
+      }
+    ]
+  },
+  {
     "version": "2.4.8",
     "date": "2026-05-10",
     "changes": [

@@ -14,6 +14,7 @@
 
 import { supabase } from "./supabaseClient";
 import { ChatIntent } from "../types";
+import type { GeminiModelFlag } from "./models";
 
 export const classifyIntent = async (
   encryptedKeyPayload: any,
@@ -38,11 +39,13 @@ ${prompt}
 `;
 
   try {
+    const model: GeminiModelFlag = "fast";
+
     const { data, error } = await supabase.functions.invoke("call-ai-response", {
       method: "POST",
       body: {
         provider: "gemini",
-        model: "gemini-2.5-flash-lite",
+        model,
         prompt: classificationPrompt,
         temp: 0.1,
         encryptedKeyPayload,

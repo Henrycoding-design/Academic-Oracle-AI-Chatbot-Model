@@ -1,4 +1,6 @@
 
+import type { ClientModelLabel } from "./services/models";
+
 export interface AttachmentMeta {
   name: string;
   type: string;   // mime or extension
@@ -51,7 +53,8 @@ export interface OracleMemory {
 export type OracleResponse = {
   answer: string;
   memory: string;
-  model: string;
+  model: ClientModelLabel;
+  model_label?: string;
 };
 
 export class InvalidAIResponseError extends Error {
