@@ -280,28 +280,16 @@ const JAILBREAK_REGEX_BY_LANG: Record<AppLanguage, RegExp[]> = {
 };
 
 export function analyzePrompt(prompt: string, language: AppLanguage = "en"): GuardResult {
-
-  let webScore = 0;
   let jailbreakScore = 0;
 
   const lower = prompt.toLowerCase();
 
   const lang = WEB_KEYWORDS_BY_LANG[language] ? language : "en";
-  const webKeywords = WEB_KEYWORDS_BY_LANG[lang];
   const jailbreakKeywords = JAILBREAK_KEYWORDS_BY_LANG[lang];
-  const webRegex = WEB_REGEX_BY_LANG[lang];
   const jailbreakRegex = JAILBREAK_REGEX_BY_LANG[lang];
-
-  for (const kw of webKeywords) {
-    if (lower.includes(kw)) webScore+=1;
-  }
 
   for (const kw of jailbreakKeywords) {
     if (lower.includes(kw)) jailbreakScore+=1;
-  }
-
-  for (const r of webRegex) {
-    if (r.test(prompt)) webScore += 2;
   }
 
   for (const r of jailbreakRegex) {
@@ -309,9 +297,9 @@ export function analyzePrompt(prompt: string, language: AppLanguage = "en"): Gua
   }
 
   return {
-    web_search: webScore >= 2,
+    web_search: false,
     jailbreak: jailbreakScore >= 4, // Increased threshold from 2 to 4 to reduce false positives
-    reason: "regex_trigger",
-    web_search_topic: webScore >= 2 ? "general" : null,
+    reason: "heuristic_jailbreak_only",
+    web_search_topic: null,
   };
 }

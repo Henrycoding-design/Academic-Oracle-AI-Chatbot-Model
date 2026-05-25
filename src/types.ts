@@ -7,11 +7,24 @@ export interface AttachmentMeta {
   size: number;
 }
 
+export interface UserMessageSelectionContext {
+  targetMessageId: string;
+  actionLabel: string;
+  selectionText: string;
+}
+
+export interface UserMessageUiMeta {
+  displayContent?: string;
+  selectionContext?: UserMessageSelectionContext;
+}
+
 export interface Message {
+  id?: string;
   role: "user" | "model";
   content: string;
   attachment?: AttachmentMeta;
   attachments?: AttachmentMeta[];
+  selectionContext?: UserMessageSelectionContext;
 }
 
 export interface ChatHistoryItem {

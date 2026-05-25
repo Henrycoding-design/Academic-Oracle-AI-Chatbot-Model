@@ -1,12 +1,14 @@
 import React, { useLayoutEffect, useRef, useState, useEffect} from 'react';
 import {CornerDownRight} from 'lucide-react';
 import { LANGUAGE_DATA, AppLanguage } from '../lang/Language.tsx';
+import type { UserMessageUiMeta } from '../types';
 
 interface ChatInputProps {
-  onSendMessage: (message: string, files?: File[]) => void;
+  onSendMessage: (message: string, files?: File[], uiMeta?: UserMessageUiMeta) => void;
   isLoading: boolean;
   language: AppLanguage;
   followUpSelectionText?: string | null;
+  followUpSelectionTargetId?: string | null;
   onClearFollowUpSelection?: () => void;
 }
 
@@ -30,6 +32,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
   isLoading,
   language,
   followUpSelectionText,
+  followUpSelectionTargetId,
   onClearFollowUpSelection,
 }) => {
   const PLACEHOLDERS = {
@@ -70,13 +73,25 @@ export const ChatInput: React.FC<ChatInputProps> = ({
     if (!inputValue.trim() && attachedFiles.length === 0) return;
     if (isLoading) return;
 
+    const selectionContext = followUpSelectionText
+      && followUpSelectionTargetId
+      ? {
+          targetMessageId: followUpSelectionTargetId,
+          actionLabel: LANGUAGE_DATA[language].ui.followUpSelectionButton,
+          selectionText: followUpSelectionText,
+        }
+      : undefined;
+
     const nextMessage = followUpSelectionText
       ? LANGUAGE_DATA[language].ui.followUpSelectionPrompt
           .replace("{selection}", followUpSelectionText)
           .replace("{message}", inputValue)
       : inputValue;
 
-    onSendMessage(nextMessage, attachedFiles);
+    onSendMessage(nextMessage, attachedFiles, {
+      displayContent: followUpSelectionText ? inputValue : nextMessage,
+      selectionContext,
+    });
     setAttachedFiles([]);
     setInputValue('');
     onClearFollowUpSelection?.();

@@ -11,7 +11,7 @@
  */
 
 import React, { useState, useRef, useEffect } from 'react';
-import type { Message, ChatHistoryItem, ChatTailoringMode } from './types';
+import type { Message, ChatHistoryItem, ChatTailoringMode, UserMessageUiMeta } from './types';
 import { sendMessageToBot, sendMessageToBotRace, runCronPromptGuard} from './services/geminiService';
 import { ChatInput } from './components/ChatInput';
 import { ChatMessage } from './components/ChatMessage';
@@ -136,6 +136,48 @@ function countWords(text: string) {
   return text.trim().split(/\s+/).filter(Boolean).length;
 }
 
+function createMessageId() {
+  return `message-${crypto.randomUUID()}`;
+}
+
+function normalizeMessages(messages: Message[]): Message[] {
+  return messages.map((message) => {
+    const legacySelectionContext = message.selectionContext as
+      | (Message["selectionContext"] & { id?: string })
+      | undefined;
+
+    return {
+      ...message,
+      id: message.id ?? createMessageId(),
+      selectionContext: legacySelectionContext
+        ? {
+            ...legacySelectionContext,
+            targetMessageId:
+              legacySelectionContext.targetMessageId ??
+              legacySelectionContext.id ??
+              "",
+          }
+        : undefined,
+    };
+  });
+}
+
+function buildSelectionUiMeta(
+  actionLabel: string,
+  selectionText: string,
+  targetMessageId: string,
+  displayContent = ""
+): UserMessageUiMeta {
+  return {
+    displayContent,
+    selectionContext: {
+      targetMessageId,
+      actionLabel,
+      selectionText,
+    },
+  };
+}
+
 const App: React.FC = () => {
   const [session, setSession] = useState<any | null>(null);
 
@@ -239,15 +281,15 @@ const App: React.FC = () => {
     if (typeof window === "undefined") return [];
 
     const saved = sessionStorage.getItem("academic-oracle-chat");
-    if (saved) return JSON.parse(saved);
+    if (saved) return normalizeMessages(JSON.parse(saved));
 
-    return [
+    return normalizeMessages([
       {
         role: "model",
         content:
           LANGUAGE_DATA[language].greeting,
       },
-    ];
+    ]);
   });
 
   const lastRequestRef = useRef<{ // for retry
@@ -387,6 +429,8 @@ const App: React.FC = () => {
   // UX mouse select tools
   const [selectedText, setSelectedText] = useState<string | null>(null);
   const [followUpSelectionText, setFollowUpSelectionText] = useState<string | null>(null);
+  const [selectedModelMessageId, setSelectedModelMessageId] = useState<string | null>(null);
+  const [followUpSelectionTargetId, setFollowUpSelectionTargetId] = useState<string | null>(null);
   const [selectionPos, setSelectionPos] = useState<{
     x:number,
     y:number,
@@ -454,6 +498,7 @@ const App: React.FC = () => {
       // we want the button to vanish instantly, not after a delay.
       if (!selection || selection.isCollapsed || !selection.toString().trim()) {
         setSelectedText(null);
+        setSelectedModelMessageId(null);
         setSelectionPos(null);
         return;
       }
@@ -467,6 +512,8 @@ const App: React.FC = () => {
           ?.parentElement
           ?.closest(".model-message");
         if (!container) return;
+        const targetMessageId = container.getAttribute("id");
+        if (!targetMessageId) return;
 
         const text = selectionToLatexText();
         const range = selection.getRangeAt(0);
@@ -476,6 +523,7 @@ const App: React.FC = () => {
           if (prev === text) return prev;
           return text;
         });
+        setSelectedModelMessageId(targetMessageId);
 
         const PADDING = 6;
         const APPROX_BUTTON_H = 32;
@@ -602,7 +650,7 @@ const App: React.FC = () => {
   }, [currentView, route]);
 
   useEffect(() => {
-    if (currentView === "dashboard") {
+    if (currentView === "dashboard" || currentView === "test") {
       mainScrollRef.current?.scrollTo({
         top: 0,
         behavior: "auto",
@@ -636,7 +684,8 @@ const App: React.FC = () => {
   const handleSendMessage = async (
     userMessage: string,
     files: File[] = [],
-    isRetry = false
+    isRetry = false,
+    uiMeta?: UserMessageUiMeta
   ) => {
     if (!session?.access_token) { handleLogout(); return; }
 
@@ -649,8 +698,9 @@ const App: React.FC = () => {
         setMessages(prev => [
           ...prev,
           {
+            id: createMessageId(),
             role: "user",
-            content: userMessage,
+            content: uiMeta?.displayContent ?? userMessage,
             attachments: files.length > 0
               ? files.map((file) => ({
                   name: file.name,
@@ -658,6 +708,7 @@ const App: React.FC = () => {
                   size: file.size,
                 }))
               : undefined,
+            selectionContext: uiMeta?.selectionContext,
           },
         ]);
 
@@ -670,41 +721,37 @@ const App: React.FC = () => {
       }
       
       const guard = analyzePrompt(userMessage, language);
-      let decision = guard;
+      let decision = { ...guard };
       let webContext = "";
+      let webSearchFailed = false;
       let currentLoadingLabel: LoadingModeLabel = "Standard";
 
-      // 🛡️ Advanced Guard (AI-powered) - only triggers if lightweight guard suspects something
-      // This reduces false positives by letting the AI verify potential jailbreaks or web searches
-      if (guard.web_search || guard.jailbreak) {
-        try {
-          const res = await runCronPromptGuard(userMessage, encryptedApiKey);
+      if (guard.jailbreak) {
+        setMessages(prev => [
+          ...prev,
+          { role: "model", content: LANGUAGE_DATA[language].ui.jailbreakMessage },
+        ]);
 
-          const isValid = !res.reason?.includes("Error");
+        setIsLoading(false);
+        return;
+      }
 
+      try {
+        const res = await runCronPromptGuard(userMessage, encryptedApiKey);
+        const isValid = !res.reason?.includes("Error");
+
+        if (isValid) {
           decision = {
             ...guard,
             ...res,
+            jailbreak: res.jailbreak === true,
+            web_search: res.jailbreak ? false : res.web_search === true,
           };
-
-          decision.web_search = isValid && res.web_search === true;
-          decision.jailbreak = isValid && res.jailbreak === true;
-        } catch (e) {
-          console.warn("Cron guard failed", e);
-          // If AI guard fails, we fallback to the lightweight guard's decision
-          // but for jailbreak, we might want to be more lenient if the AI is unavailable
-          // to avoid blocking legitimate users.
-          if (guard.jailbreak) {
-            decision.jailbreak = false; // be lenient on fallback to reduce false positives
-          }
-
-          if (guard.web_search) {
-            decision.web_search = false; // we don't want to fire web search without AI model comfirmation
-          }
         }
+      } catch (e) {
+        console.warn("Cron guard failed", e);
       }
 
-      // Final Jailbreak Block - Only block if confirmed by AI (or if lightweight is very certain)
       if (decision.jailbreak) {
         setMessages(prev => [
           ...prev,
@@ -727,20 +774,36 @@ const App: React.FC = () => {
       }
 
       // web search
-      if (decision.web_search && !isWebSearchLimitReached()) {
+      const webSearchLimitReached = decision.web_search && isWebSearchLimitReached();
+
+      if (webSearchLimitReached) {
+        console.warn("Web Search Limit reaches");
+        setMessages(prev => [
+          ...prev,
+          { role: "model", content: LANGUAGE_DATA[language].ui.webSearchQuotaReachedMessage },
+        ]);
+        setIsLoading(false);
+        return;
+      }
+
+      // web search
+      if (decision.web_search) {
         try {
           console.log("running web search");
           currentLoadingLabel = "Web Search";
           setLoadingModeLabel("Web Search");
-          incrementWebSearch();
 
-          const webResults = await runQuotaSafeSearch(
+          const searchOutcome = await runQuotaSafeSearch(
             userMessage,
             encryptedApiKey,
             decision.web_search_topic ?? "general"
           );
 
-          if (webResults && webResults.length > 0) {
+          const webResults = searchOutcome.results;
+          webSearchFailed = searchOutcome.failed;
+
+          if (!webSearchFailed && webResults.length > 0) {
+            incrementWebSearch(); // increments quota only if web search context is successfully retrieved
 
             const overview = webResults
               .map(w => w.overview)
@@ -756,42 +819,26 @@ const App: React.FC = () => {
                 seen.add(r.link);
                 return true;
               })
-              .slice(0, 3); // limit total results
+              .slice(0, 3);
 
             webContext = `
-          --- WEB SEARCH RESULTS ---
-          ${overview}
+      --- WEB SEARCH RESULTS ---
+      ${overview}
 
-          ${results.map((r: any) =>
-          `${r.title}
-          ${r.snippet}
-          ${r.link}`
-          ).join("\n\n")}
+      ${results.map((r: any) => `${r.title}
+      ${r.snippet}
+      ${r.link}`).join("\n\n")}
 
-          --- END WEB SEARCH ---
-          `;
+      --- END WEB SEARCH ---
+      `;
+          } else {
+            webContext = "";
           }
-
         } catch (e) {
           console.warn("Web search failed", e);
-          // setMessages(prev => [
-          //   ...prev,
-          //   { role: "model", content: LANGUAGE_DATA[language].ui.webSearchFailedMessage },
-          // ]);
-          // setIsLoading(false);
-          // return;
-          // Continue WITHOUT web context for now, rely on prompt engineering
           webContext = "";
+          webSearchFailed = true;
         }
-      } else if (isWebSearchLimitReached()){
-        console.warn("Web Search Limit reaches");
-        // alert(LANGUAGE_DATA[language].ui.webSearchQuotaReached); remove alert, use in-chat message for better UX
-        setMessages(prev => [
-          ...prev,
-          { role: "model", content: LANGUAGE_DATA[language].ui.webSearchQuotaReachedMessage },
-        ]);
-        setIsLoading(false);
-        return;
       }
 
       let fileContext = "";
@@ -874,19 +921,21 @@ const App: React.FC = () => {
                 encryptedKeyPayload: encryptedApiKey,
                 language: language,
                 intent: raceIntent ?? "balance",
+                webSearchFailed,
               })
             : sendMessageToBot({
                 history: outgoingHistory,
                 memory: oracleMemory,
                 encryptedKeyPayload: encryptedApiKey,
                 language: language,
+                webSearchFailed,
               })
         );
 
       // 🖼️ UI response
       setMessages(prev => [
         ...prev,
-        { role: "model", content: answer },
+        { id: createMessageId(), role: "model", content: answer },
       ]);
 
       // 🧠 AI memory response (trimmed)
@@ -1049,13 +1098,13 @@ const App: React.FC = () => {
     navigate("/"); // navigate back to chat
 
     // 🖼️ reset UI messages
-    setMessages([
+    setMessages(normalizeMessages([
       {
         role: "model",
         content:
           LANGUAGE_DATA[language].greeting,
       },
-    ]);
+    ]));
 
     // 🧠 reset model context
     setChatHistory([
@@ -1070,6 +1119,10 @@ const App: React.FC = () => {
     // setOracleMemory(null); //no need to wipe profile on new chat
 
     // clean UI state
+    setSelectedText(null);
+    setSelectedModelMessageId(null);
+    setFollowUpSelectionText(null);
+    setFollowUpSelectionTargetId(null);
     setError(null);
     setIsLoading(false);
   };
@@ -1099,13 +1152,13 @@ const App: React.FC = () => {
     navigate("/"); // redirect to home/login page
 
     // reset chat UI
-    setMessages([
+    setMessages(normalizeMessages([
       {
         role: 'model',
         content:
           "Welcome to the Universal Academic Oracle. From SATs and IELTS to University research and Industrial practices, I am here to guide your journey. \n\nBefore we begin, what should I call you, and what academic challenge are we tackling today?",
       },
-    ]);
+    ]));
 
     // reset chat history for model
     setChatHistory([
@@ -1115,6 +1168,11 @@ const App: React.FC = () => {
           "Welcome to the Universal Academic Oracle. From SATs and IELTS to University research and Industrial practices, I am here to guide your journey.",
       },
     ]);
+
+    setSelectedText(null);
+    setSelectedModelMessageId(null);
+    setFollowUpSelectionText(null);
+    setFollowUpSelectionTargetId(null);
 
   };
 
@@ -1485,7 +1543,7 @@ const App: React.FC = () => {
 
                   return (
                     <ChatMessage
-                      key={index}
+                      key={msg.id ?? index}
                       message={msg}
                       scrollRef={isLast && isUser ? chatEndRef : undefined}
                     />
@@ -1596,6 +1654,12 @@ const App: React.FC = () => {
                   encryptedApiKey={encryptedApiKey}
                   onBack={() => navigate("/")}
                   isViewActive={currentView === 'test'}
+                  onRequestScrollTop={() => {
+                    mainScrollRef.current?.scrollTo({
+                      top: 0,
+                      behavior: "auto",
+                    });
+                  }}
                   onBusyChange={setIsCoreTestBusy}
                   onAddToMemory={handleAddToMemory}
                 />
@@ -1633,10 +1697,22 @@ const App: React.FC = () => {
                         selectedText
                       );
 
-                      handleSendMessage(prompt);
+                      handleSendMessage(
+                        prompt,
+                        [],
+                        false,
+                        selectedModelMessageId
+                          ? buildSelectionUiMeta(
+                              LANGUAGE_DATA[language].ui.explainSelectionButton,
+                              selectedText,
+                              selectedModelMessageId
+                            )
+                          : undefined
+                      );
 
                       window.getSelection()?.removeAllRanges();
                       setSelectedText(null);
+                      setSelectedModelMessageId(null);
                       setSelectionPos(null);
                     }}
                   >
@@ -1654,8 +1730,10 @@ const App: React.FC = () => {
                       // if (isLoading) return;
 
                       setFollowUpSelectionText(selectedText);
+                      setFollowUpSelectionTargetId(selectedModelMessageId);
                       window.getSelection()?.removeAllRanges();
                       setSelectedText(null);
+                      setSelectedModelMessageId(null);
                       setSelectionPos(null);
                     }}
                   >
@@ -1673,11 +1751,17 @@ const App: React.FC = () => {
             <footer className="absolute bottom-0 left-0 right-0 z-30 pointer-events-none">
               <div className="pointer-events-auto bg-gradient-to-t from-slate-50 dark:from-slate-950 via-slate-50/90 to-transparent">
                 <ChatInput
-                  onSendMessage={handleSendMessage}
+                  onSendMessage={(message, files, uiMeta) =>
+                    handleSendMessage(message, files ?? [], false, uiMeta)
+                  }
                   isLoading={isLoading}
                   language={language}
                   followUpSelectionText={followUpSelectionText}
-                  onClearFollowUpSelection={() => setFollowUpSelectionText(null)}
+                  followUpSelectionTargetId={followUpSelectionTargetId}
+                  onClearFollowUpSelection={() => {
+                    setFollowUpSelectionText(null);
+                    setFollowUpSelectionTargetId(null);
+                  }}
                 />
               </div>
             </footer>

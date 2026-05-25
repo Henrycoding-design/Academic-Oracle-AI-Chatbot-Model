@@ -30,6 +30,7 @@ interface CoreTestViewProps {
   encryptedApiKey: any;
   onBack: () => void;
   isViewActive?: boolean;
+  onRequestScrollTop?: () => void;
   onBusyChange?: (isBusy: boolean) => void;
   onAddToMemory?: (summary: string, topicTag: string | null) => void;
 }
@@ -155,6 +156,7 @@ export const CoreTestView: React.FC<CoreTestViewProps> = ({
   encryptedApiKey,
   onBack,
   isViewActive = true,
+  onRequestScrollTop,
   onBusyChange,
   onAddToMemory,
 }) => {
@@ -256,6 +258,11 @@ export const CoreTestView: React.FC<CoreTestViewProps> = ({
       setIsSubmitConfirmOpen(false);
     }
   }, [session.stage]);
+
+  useEffect(() => {
+    if (!isViewActive) return;
+    onRequestScrollTop?.();
+  }, [isViewActive, onRequestScrollTop, session.stage]);
 
   const handleConfirmSubmit = () => {
     setIsSubmitConfirmOpen(false);
