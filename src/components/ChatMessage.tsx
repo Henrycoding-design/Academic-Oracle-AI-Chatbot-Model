@@ -44,6 +44,8 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({ message, scrollRef }) 
   const attachments = message.attachments ?? (message.attachment ? [message.attachment] : []);
   const hasUserText = !isModel && message.content.trim().length > 0;
   const bubbleId = message.id ?? undefined;
+  const selectionContext = message.selectionContext;
+  const hasInteractiveSelectionContext = Boolean(selectionContext?.targetMessageId);
 
   return (
     <div 
@@ -89,27 +91,39 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({ message, scrollRef }) 
           </div>
         )}
 
-        {!isModel && message.selectionContext?.targetMessageId && (
+        {!isModel && selectionContext && (
           <div className="mb-3">
-            <a
-              href={`#${message.selectionContext.targetMessageId}`}
-              className="flex items-start gap-2 rounded-xl bg-white/15 px-3 py-2 text-left text-sm text-white/95 transition hover:bg-white/20"
-              onClick={(event) => {
-                event.preventDefault();
-                flashSelectionGlow(
-                  message.selectionContext!.targetMessageId,
-                  message.selectionContext!.selectionText
-                );
-              }}
-            >
-              <CornerDownRight className="mt-0.5 h-4 w-4 shrink-0" />
-              <div className="min-w-0">
-                <div className="font-medium">{message.selectionContext.actionLabel}</div>
-                <div className="truncate text-xs text-white/80">
-                  "{message.selectionContext.selectionText}"
+            {hasInteractiveSelectionContext ? (
+              <a
+                href={`#${selectionContext.targetMessageId}`}
+                className="flex items-start gap-2 rounded-xl bg-white/15 px-3 py-2 text-left text-sm text-white/95 transition hover:bg-white/20"
+                onClick={(event) => {
+                  event.preventDefault();
+                  flashSelectionGlow(
+                    selectionContext.targetMessageId!,
+                    selectionContext.selectionText
+                  );
+                }}
+              >
+                <CornerDownRight className="mt-0.5 h-4 w-4 shrink-0" />
+                <div className="min-w-0">
+                  <div className="font-medium">{selectionContext.actionLabel}</div>
+                  <div className="truncate text-xs text-white/80">
+                    "{selectionContext.selectionText}"
+                  </div>
+                </div>
+              </a>
+            ) : (
+              <div className="flex items-start gap-2 rounded-xl bg-white/15 px-3 py-2 text-left text-sm text-white/95">
+                <CornerDownRight className="mt-0.5 h-4 w-4 shrink-0" />
+                <div className="min-w-0">
+                  <div className="font-medium">{selectionContext.actionLabel}</div>
+                  <div className="truncate text-xs text-white/80">
+                    "{selectionContext.selectionText}"
+                  </div>
                 </div>
               </div>
-            </a>
+            )}
           </div>
         )}
 
@@ -127,4 +141,3 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({ message, scrollRef }) 
     </div>
   );
 };
-

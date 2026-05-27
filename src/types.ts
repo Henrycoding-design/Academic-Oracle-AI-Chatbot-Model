@@ -8,7 +8,7 @@ export interface AttachmentMeta {
 }
 
 export interface UserMessageSelectionContext {
-  targetMessageId: string;
+  targetMessageId?: string;
   actionLabel: string;
   selectionText: string;
 }

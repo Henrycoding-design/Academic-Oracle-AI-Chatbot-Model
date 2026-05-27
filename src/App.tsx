@@ -128,6 +128,11 @@ const LoadingIndicator: React.FC<{ statusLabel: string }> = ({ statusLabel }) =>
 const MAX_HISTORY = 10;
 const HANDLED_MASTERY_TOPICS_KEY = "academic-oracle-handled-mastery-topics";
 
+type PendingExplanationRequest = {
+  prompt: string;
+  uiMeta?: UserMessageUiMeta;
+};
+
 function trimHistory(history: ChatHistoryItem[]) {
   return history.slice(-MAX_HISTORY);
 }
@@ -187,7 +192,7 @@ const App: React.FC = () => {
   // NEW STATE: Mastery Popup
   const [showMasteryPopup, setShowMasteryPopup] = useState(false);
   // NEW STATE: Pending Explanation from Quiz
-  const [pendingExplanation, setPendingExplanation] = useState<string | null>(null);
+  const [pendingExplanation, setPendingExplanation] = useState<PendingExplanationRequest | null>(null);
   const [forcedQuizTopicSelection, setForcedQuizTopicSelection] = useState<{ id: number; topicTag: string | null } | null>(null);
 
   useEffect(() => {
@@ -1224,8 +1229,8 @@ const App: React.FC = () => {
   };
 
   // --- QUIZ HANDLERS ---
-  const handleExplainRequest = (context: string) => {
-    setPendingExplanation(context);
+  const handleExplainRequest = (request: PendingExplanationRequest) => {
+    setPendingExplanation(request);
     navigate("/chat"); // switch to chat view, which will trigger the effect to send the explanation request
   };
 
@@ -1233,7 +1238,7 @@ const App: React.FC = () => {
   useEffect(() => {
     if (pendingExplanation && currentView === 'chat') {
       // We essentially "mock" the user sending this message
-      handleSendMessage(pendingExplanation);
+      handleSendMessage(pendingExplanation.prompt, [], false, pendingExplanation.uiMeta);
       setPendingExplanation(null);
     }
   }, [pendingExplanation, currentView]);

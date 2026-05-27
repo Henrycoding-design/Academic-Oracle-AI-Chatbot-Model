@@ -12,11 +12,16 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import { CheckCircle2, XCircle, ArrowRight, Settings, Play, RotateCcw, MessageSquarePlus, MessageSquare, LoaderCircle } from 'lucide-react';
-import type { ChatHistoryItem, QuizConfig, QuizQuestion, QuizResult } from '../types';
+import type { ChatHistoryItem, QuizConfig, QuizQuestion, QuizResult, UserMessageUiMeta } from '../types';
 import { generateQuizQuestions, validateOpenAnswer, estimateQuizConfig } from '../services/geminiService';
 import { formatTopicTagForDisplay, getCurrentTopicTag, getVisibleOracleTopics } from '../services/oracleMemory';
 import { AppLanguage, LANGUAGE_DATA } from '../lang/Language';
 import { MarkdownContent } from './MarkdownContent';
+
+interface ExplainRequestPayload {
+  prompt: string;
+  uiMeta: UserMessageUiMeta;
+}
 
 interface QuizViewProps {
   language: AppLanguage;
@@ -24,7 +29,7 @@ interface QuizViewProps {
   memory: string | null;
   encryptedApiKey: any;
   onBack: () => void;
-  onExplainRequest: (context: string) => void;
+  onExplainRequest: (payload: ExplainRequestPayload) => void;
   onAddToMemory: (summary: string, topicTag: string | null) => void;
   forcedTopicSelection?: { id: number; topicTag: string | null } | null;
   onForcedTopicSelectionApplied?: (id: number) => void;
@@ -49,6 +54,12 @@ const areQuizConfigsEqual = (left: QuizConfig, right: QuizConfig) =>
   left.level === right.level &&
   left.count === right.count &&
   left.mcqRatio === right.mcqRatio;
+
+const buildQuestionPreview = (question: string, maxLength = 96) => {
+  const normalized = question.replace(/\s+/g, ' ').trim();
+  if (normalized.length <= maxLength) return normalized;
+  return `${normalized.slice(0, maxLength).trimEnd()}...`;
+};
 
 export const QuizView: React.FC<QuizViewProps> = ({ 
   language, history, memory, encryptedApiKey, onBack, onExplainRequest, onAddToMemory, forcedTopicSelection, onForcedTopicSelectionApplied
@@ -379,13 +390,28 @@ export const QuizView: React.FC<QuizViewProps> = ({
 
   const handleExplainInChat = (q: QuizQuestion, r: QuizResult) => {
     const resultText = r.isCorrect ? LD.ui.correctLabel : LD.ui.notQuite;
-    const context = LD.ui.explainContext
+    const prompt = LD.ui.explainContext
       .replace('{question}', q.question)
       .replace('{answer}', r.userAnswer ?? '')
       .replace('{result}', resultText)
       .replace('{feedback}', r.feedback ?? '');
 
-    onExplainRequest(context);
+    const questionLabel = LD.ui.questionOf
+      .replace('{current}', String(currentQIndex + 1))
+      .replace('{total}', String(questions.length));
+    const topicLabel = formatTopicTagForDisplay(quizTopicTag ?? selectedTopicTag ?? "");
+    const chipLabel = topicLabel ? `${questionLabel} • ${topicLabel}` : questionLabel;
+
+    onExplainRequest({
+      prompt,
+      uiMeta: {
+        displayContent: LD.ui.askExplain,
+        selectionContext: {
+          actionLabel: chipLabel,
+          selectionText: buildQuestionPreview(q.question),
+        },
+      },
+    });
   };
 
   const handleFinish = () => {
