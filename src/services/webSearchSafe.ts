@@ -6,8 +6,15 @@ export const runQuotaSafeSearch = async (
   encryptedApiKey: any,
   topic: "news" | "general" | "finance" = "general"
 ) => {
-
-  const queries = await generateSearchQueries(userPrompt, encryptedApiKey);
+  let queries: string[];
+  try {
+    queries = await generateSearchQueries(userPrompt, encryptedApiKey);
+  } catch {
+    return {
+      results: [],
+      failed: true,
+    };
+  }
 
   const results = [];
 
@@ -18,5 +25,8 @@ export const runQuotaSafeSearch = async (
     } catch {}
   }
 
-  return results;
+  return {
+    results,
+    failed: queries.length === 0 || results.length === 0,
+  };
 };

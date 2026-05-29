@@ -1,6 +1,7 @@
-
 import React from 'react';
+import { CornerDownRight } from 'lucide-react';
 import type { Message } from '../types';
+import { flashSelectionGlow } from '../services/selectionGlow';
 import { MarkdownContent } from './MarkdownContent';
 
 interface ChatMessageProps {
@@ -38,10 +39,13 @@ const fileIconFor = (type?: string, name?: string) => {
   return "📎";
 };
 
-
 export const ChatMessage: React.FC<ChatMessageProps> = ({ message, scrollRef }) => {
   const isModel = message.role === 'model';
   const attachments = message.attachments ?? (message.attachment ? [message.attachment] : []);
+  const hasUserText = !isModel && message.content.trim().length > 0;
+  const bubbleId = message.id ?? undefined;
+  const selectionContext = message.selectionContext;
+  const hasInteractiveSelectionContext = Boolean(selectionContext?.targetMessageId);
 
   return (
     <div 
@@ -53,6 +57,7 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({ message, scrollRef }) 
       {isModel && <BotAvatar />}
 
       <div
+        id={bubbleId}
         className={`max-w-[85%] sm:max-w-xl px-5 py-3.5 rounded-2xl shadow-sm border ${
           isModel
             ? 'model-message bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 rounded-tl-none border-slate-100 dark:border-slate-800'
@@ -86,18 +91,53 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({ message, scrollRef }) 
           </div>
         )}
 
+        {!isModel && selectionContext && (
+          <div className="mb-3">
+            {hasInteractiveSelectionContext ? (
+              <a
+                href={`#${selectionContext.targetMessageId}`}
+                className="flex items-start gap-2 rounded-xl bg-white/15 px-3 py-2 text-left text-sm text-white/95 transition hover:bg-white/20"
+                onClick={(event) => {
+                  event.preventDefault();
+                  flashSelectionGlow(
+                    selectionContext.targetMessageId!,
+                    selectionContext.selectionText
+                  );
+                }}
+              >
+                <CornerDownRight className="mt-0.5 h-4 w-4 shrink-0" />
+                <div className="min-w-0">
+                  <div className="font-medium">{selectionContext.actionLabel}</div>
+                  <div className="truncate text-xs text-white/80">
+                    "{selectionContext.selectionText}"
+                  </div>
+                </div>
+              </a>
+            ) : (
+              <div className="flex items-start gap-2 rounded-xl bg-white/15 px-3 py-2 text-left text-sm text-white/95">
+                <CornerDownRight className="mt-0.5 h-4 w-4 shrink-0" />
+                <div className="min-w-0">
+                  <div className="font-medium">{selectionContext.actionLabel}</div>
+                  <div className="truncate text-xs text-white/80">
+                    "{selectionContext.selectionText}"
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
         {/* 💬 Message content */}
         {isModel ? (
           <MarkdownContent content={message.content} />
-        ) : (
+        ) : hasUserText ? (
           <p className="whitespace-pre-wrap leading-relaxed text-[15px]">
             {message.content}
           </p>
-        )}
+        ) : null}
       </div>
 
       {!isModel && <UserAvatar />}
     </div>
   );
 };
-

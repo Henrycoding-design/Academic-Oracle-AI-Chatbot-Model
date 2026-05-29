@@ -1,12 +1,15 @@
 import React, { useLayoutEffect, useRef, useState, useEffect} from 'react';
 import {CornerDownRight} from 'lucide-react';
 import { LANGUAGE_DATA, AppLanguage } from '../lang/Language.tsx';
+import { flashSelectionGlow } from '../services/selectionGlow';
+import type { UserMessageUiMeta } from '../types';
 
 interface ChatInputProps {
-  onSendMessage: (message: string, files?: File[]) => void;
+  onSendMessage: (message: string, files?: File[], uiMeta?: UserMessageUiMeta) => void;
   isLoading: boolean;
   language: AppLanguage;
   followUpSelectionText?: string | null;
+  followUpSelectionTargetId?: string | null;
   onClearFollowUpSelection?: () => void;
 }
 
@@ -30,6 +33,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
   isLoading,
   language,
   followUpSelectionText,
+  followUpSelectionTargetId,
   onClearFollowUpSelection,
 }) => {
   const PLACEHOLDERS = {
@@ -70,13 +74,25 @@ export const ChatInput: React.FC<ChatInputProps> = ({
     if (!inputValue.trim() && attachedFiles.length === 0) return;
     if (isLoading) return;
 
+    const selectionContext = followUpSelectionText
+      && followUpSelectionTargetId
+      ? {
+          targetMessageId: followUpSelectionTargetId,
+          actionLabel: LANGUAGE_DATA[language].ui.followUpSelectionButton,
+          selectionText: followUpSelectionText,
+        }
+      : undefined;
+
     const nextMessage = followUpSelectionText
       ? LANGUAGE_DATA[language].ui.followUpSelectionPrompt
           .replace("{selection}", followUpSelectionText)
           .replace("{message}", inputValue)
       : inputValue;
 
-    onSendMessage(nextMessage, attachedFiles);
+    onSendMessage(nextMessage, attachedFiles, {
+      displayContent: followUpSelectionText ? inputValue : nextMessage,
+      selectionContext,
+    });
     setAttachedFiles([]);
     setInputValue('');
     onClearFollowUpSelection?.();
@@ -219,12 +235,19 @@ export const ChatInput: React.FC<ChatInputProps> = ({
           {followUpSelectionText && (
             <div className="px-3 pt-3">
               <div className="flex items-start gap-3 rounded-2xl border border-indigo-200/80 bg-indigo-50/90 px-3 py-2.5 text-sm text-slate-700 dark:border-indigo-500/30 dark:bg-indigo-500/10 dark:text-slate-200">
-                <div className="min-w-0 flex flex-1 items-start gap-2.5">
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (!followUpSelectionTargetId) return;
+                    flashSelectionGlow(followUpSelectionTargetId, followUpSelectionText);
+                  }}
+                  className="min-w-0 flex flex-1 items-start gap-2.5 rounded-xl text-left transition hover:bg-white/40 dark:hover:bg-slate-800/30"
+                >
                   <CornerDownRight className="mt-0.5 h-4 w-4 shrink-0 text-indigo-700 dark:text-indigo-300" />
                   <div className="min-w-0 max-h-12 overflow-hidden text-sm leading-5 text-slate-600 dark:text-slate-300">
                     "{followUpSelectionText}"
                   </div>
-                </div>
+                </button>
                 <button
                   type="button"
                   onClick={onClearFollowUpSelection}
