@@ -80,16 +80,18 @@ Academic Oracle optimizes for **retention, intuition, and reasoning**.
 
 ## Features
 
-### 🧠 Learning Engine *(updated v2.4.8)*
+### 🧠 Learning Engine *(updated v2.4.9)*
 
 - **Hint-based reasoning flow** — ask first, reveal progressively
 - **Structured thinking prompts** with richer Oracle Memory JSON returns
 - **Feynman-technique reinforcement** when understanding needs rebuilding from first principles
 - **Exam-style adaptation** and wider mastery branching for context-aware coaching
 - **Pattern extraction** instead of answer dumping
-- **Follow-up suggestion system** *(updated v2.4.0)*
+- **Follow-up suggestion system** *(updated v2.4.9)*
   - Context-aware follow-up buttons on text selection
   - New "Follow up" mode with input container (no auto-send)
+  - Selection actions now render linked UI containers instead of raw selected-question text
+  - Follow-up chips can highlight and jump back to the selected section
   - Reduces friction between curiosity → action
 - **Improved mastery check system**
   - Max 2 mastery checks per topic
@@ -104,7 +106,7 @@ Academic Oracle optimizes for **retention, intuition, and reasoning**.
 
 ---
 
-### 📝 Integrated Quiz Platform *(updated v2.4.8)*
+### 📝 Integrated Quiz Platform *(updated v2.4.9)*
 
 - Auto-generated concept-specific quizzes
 - Multi-question adaptive testing
@@ -112,6 +114,9 @@ Academic Oracle optimizes for **retention, intuition, and reasoning**.
 - Reinforcement-based correction
 - Mid-session language switching
 - Unified Chat + Quiz UI system
+- **Wrong-answer follow-up chips** *(new v2.4.9)*
+  - Quiz-to-chat follow-ups now render clean UI chips instead of raw text injection
+  - Backend quiz and chat flows remain unchanged for compatibility
 - **Topic-aware quiz configuration** *(new v2.4.8)*
   - Choose from tracked Oracle Memory topics with usable data only
   - Defaults to the current topic, while preserving manual topic selection across tab switches
@@ -247,7 +252,7 @@ Ideal for:
 
 ---
 
-### ⚙️ Intelligent Request Routing *(major update v2.4.0, refined v2.4.5)*
+### ⚙️ Intelligent Request Routing *(major update v2.4.0, refined v2.4.9)*
 
 - **Gemini-first orchestration pipeline** — Chat / Quiz / Summary / Crons all prioritize Gemini models
 - OpenRouter used strictly as last-resort fallback with validation
@@ -259,6 +264,9 @@ Ideal for:
   - Web Search
 - **Upgraded racing logic** — from "first response wins" → "first *valid* response wins"
 - **Dynamic routing** based on query complexity, latency conditions, and system load
+- **Non-blocking web search fallback** *(new v2.4.9)*
+  - Failed web search no longer blocks the full chat request
+  - Backend receives a fallback flag so responses stay cautious when live data is unavailable
 - **Real-time system state visibility** via Loading Status Text Bar
   - Displays current processing stage
   - Improves transparency of AI behavior
@@ -267,17 +275,19 @@ Ideal for:
 
 ---
 
-### 🌐 Web Search Integration *(updated v2.4.0)*
+### 🌐 Web Search Integration *(updated v2.4.9)*
 
 - **Tavily** as primary search provider; **JigsawStack** as fallback
 - Designed for real-time knowledge retrieval and SPA / dynamic site parsing
 - Activated only when needed (cost-efficient routing)
+- **Graceful search failure path** *(new v2.4.9)* — failed retrieval continues the chat request with an explicit uncertainty flag for backend prompt injection
+- **Quota accuracy** *(new v2.4.9)* — web search quota is counted only after search results are successfully retrieved
 - **Improved hallucination safety** — if search quota is exceeded, system returns a controlled response (no model call), preventing outdated answers being framed as current
 - **Hybrid reasoning** — AI + live data synthesis
 
 ---
 
-### 🔐 Security & Architecture *(major update v2.3.0, reinforced v2.4.0)*
+### 🔐 Security & Architecture *(major update v2.3.0, reinforced v2.4.9)*
 
 
 > [!IMPORTANT]
@@ -301,6 +311,10 @@ Ideal for:
 
 - Jailbreak detection & filtering system
 - Prompt sanitation before model execution
+- **Prompt guard flow** *(updated v2.4.9)*
+  - Heuristics now stop only clear jailbreak attempts
+  - Model guard handles inappropriate content, sophisticated jailbreaks, and web-search decisions
+  - Jailbreak-risk prompts always disable web search before any normal routing continues
 - Updated prompt constraints to reduce answering beyond knowledge cutoff
 - Controlled response shaping to prevent misuse
 
@@ -320,6 +334,9 @@ Ideal for:
 - **UI improvements** *(v2.4.8)*
   - Added a direct `Log out` action in the Profile page
   - Logout now clears persisted Quiz and Core Test runtime session state
+- **UI improvements** *(v2.4.9)*
+  - Follow-up, explain-further, and quiz wrong-answer actions now render chips instead of raw injected text
+  - Selection chips can highlight the referenced source section on click
 - **Non-blocking UI architecture** — failures never crash the interface; graceful degradation on errors
 
 ---

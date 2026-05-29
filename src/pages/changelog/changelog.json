@@ -1,5 +1,35 @@
 [
   {
+    "version": "2.4.9",
+    "date": "2026-05-29",
+    "changes": [
+      {
+        "type": "improve",
+        "text": "Updated follow-up and explain-further selection actions to render linked UI containers instead of raw selected-question text while preserving existing backend flows."
+      },
+      {
+        "type": "improve",
+        "text": "Added selection-section highlighting when users click the new follow-up UI chips."
+      },
+      {
+        "type": "improve",
+        "text": "Made web search failures non-blocking so chat requests continue with a backend prompt flag for uncertainty-aware responses."
+      },
+      {
+        "type": "security",
+        "text": "Refined prompt guard routing so heuristics only stop jailbreak attempts, model detection handles advanced guard and web-search decisions, and jailbreak candidates always disable web search."
+      },
+      {
+        "type": "fix",
+        "text": "Updated web search quota counting so quota is consumed only after search results are successfully retrieved."
+      },
+      {
+        "type": "improve",
+        "text": "Updated quiz-to-chat follow-ups for wrong answers to render UI chips instead of raw text injection while keeping backend behavior unchanged."
+      }
+    ]
+  },
+  {
     "version": "2.4.8.5",
     "date": "2026-05-13",
     "changes": [
