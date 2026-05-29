@@ -19,7 +19,7 @@
       <img src="https://img.shields.io/badge/code-Apache--2.0%20with%20exceptions-blue.svg" alt="Code: Apache-2.0 with exceptions" />
     </a>
     <img src="https://img.shields.io/badge/status-deployed-brightgreen.svg" />
-    <img src="https://img.shields.io/github/stars/Henrycoding-design/Academic-Oracle-AI-Chatbot-Model" />
+    <img src="https://img.shields.io/github/stars/Henrycoding-design/Academic-Oracle-AI-Chatbot-Model?cacheSeconds=3600" />
     <img src="https://img.shields.io/github/last-commit/Henrycoding-design/Academic-Oracle-AI-Chatbot-Model" />
   </p>
 
