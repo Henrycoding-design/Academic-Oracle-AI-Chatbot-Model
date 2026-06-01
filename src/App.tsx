@@ -25,6 +25,7 @@ import { createPortal } from "react-dom";
 import { useClickOutside } from './services/useClickOutside.ts';
 import { generateSessionSummary } from './services/geminiService.ts';
 import { createSummaryDoc } from './services/createSummaryDoc.ts';
+import { shouldForceRaceFromRoutingMemory } from './services/modelRoutingMemory';
 import { Sparkles, SquarePen, ChevronDown, BrainCircuit, LogOut, User, LayoutDashboard, Menu, X, FileText, MessageSquare } from 'lucide-react';
 import ProfilePage from './ProfilePage.tsx';
 import { QuizView } from './components/QuizView'; // Added QuizView
@@ -358,6 +359,7 @@ const App: React.FC = () => {
   }, [chatTailoring]);
 
   const shouldUseRace = (): boolean => {
+    if (shouldForceRaceFromRoutingMemory()) return true;
     if (chatTailoring === "no") return false;
     if (chatTailoring === "always") return true;
 

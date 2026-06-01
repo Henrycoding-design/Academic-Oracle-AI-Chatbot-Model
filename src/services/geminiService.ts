@@ -30,6 +30,13 @@ import {
   parseOracleMemory,
 } from "./oracleMemory";
 import { encryptApiKey } from "./edgeCrypto";
+import {
+  type ModelFailureType,
+  recordStandardModelAttempt,
+  recordStandardModelFailure,
+  recordStandardModelSuccess,
+  shouldSkipStandardModel,
+} from "./modelRoutingMemory";
 
 // const SYSTEM_INSTRUCTION = `You are the 'Academic Oracle', a world-class polymath and supportive mentor. 
 // Your scope is UNLIMITED: from primary education and competitive exams (IGCSE, SAT, AP, IELTS) to University-level research and professional Industrial practices.
@@ -422,6 +429,14 @@ const isInvalidApiKeyError = (err: unknown): boolean => {
   }
 };
 
+const getStandardRoutingFailureType = (err: unknown): ModelFailureType => {
+  if (isRateLimitError(err)) return "rate_limited";
+  if (isUnavailableError(err)) return "unavailable";
+  if (err instanceof InvalidAIResponseError || err instanceof SyntaxError) return "wrong_format";
+  if (isRetryableAIError(err)) return "retriable";
+  return "unretriable";
+};
+
 function extractBalancedJSON(text: string): string {
   let depth = 0;
   let start = -1;
@@ -673,6 +688,20 @@ const openRouterFallback = async (params: {
   }
 };
 
+const runOpenRouterFallback = async (
+  params: Parameters<typeof openRouterFallback>[0],
+  context: string,
+  originalError: unknown
+): Promise<OracleResponse> => {
+  try {
+    return await openRouterFallback(params);
+  } catch (fallbackError) {
+    console.error(`${context} OpenRouter fallback failed:`, fallbackError);
+    if (isInvalidApiKeyError(fallbackError)) throw new InvalidAPIError();
+    throw fallbackError ?? originalError;
+  }
+};
+
 export const sendMessageToBotRace = async (params: {
   history: { role: "user" | "model"; content: string }[];
   memory?: string | null;
@@ -780,24 +809,24 @@ export const sendMessageToBotRace = async (params: {
     return parseOracleChatResponse(raceResult.text, memory, history, raceResult.model);
   } catch (err: any) {
     if (err.message && err.message.includes("Race timeout")) {
-      return openRouterFallback({
+      return runOpenRouterFallback({
         prompt,
         temp,
         language: resolvedLanguage,
         memory,
         history,
         webSearchFailed,
-      });
+      }, "Race", err);
     }
     if (err.message && err.message.includes("All models in race failed")) { // fail fast if all models responsed with errors
-      return openRouterFallback({
+      return runOpenRouterFallback({
         prompt,
         temp,
         language: resolvedLanguage,
         memory,
         history,
         webSearchFailed,
-      });
+      }, "Race", err);
     }
     if (isInvalidApiKeyError(err)) throw new InvalidAPIError();
     throw err;
@@ -864,7 +893,13 @@ export const sendMessageToBot = async (params: {
   // }
   let lastError: any = null;
   for (const model of MODEL_FALLBACK_CHAIN) {
+    if (shouldSkipStandardModel(model)) {
+      console.warn(`Skipping ${model} in standard routing due to session failure telemetry`);
+      continue;
+    }
+
     try {
+      recordStandardModelAttempt(model);
       // const ai = new GoogleGenAI({ apiKey: api_key });
       // const chat = ai.chats.create({
       //   model,
@@ -902,32 +937,41 @@ export const sendMessageToBot = async (params: {
       // Debug Only
       // console.log(`Response from model ${model}:`, text);
 
-      return parseOracleChatResponse(text, memory, history, model);
+      const parsedResponse = parseOracleChatResponse(text, memory, history, model);
+      recordStandardModelSuccess(model);
+      return parsedResponse;
     } catch (err: any) {
       lastError = err;
+      if (isInvalidApiKeyError(err)) throw new InvalidAPIError();
+
+      const failureType = getStandardRoutingFailureType(err);
+      recordStandardModelFailure(model, failureType);
+
       // If it's a rate limit, try the next model in the chain
-      if (isRateLimitError(err) || isUnavailableError(err) || isRetryableAIError(err)) {
+      if (
+        failureType === "rate_limited" ||
+        failureType === "unavailable" ||
+        failureType === "wrong_format" ||
+        failureType === "retriable" ||
+        shouldSkipStandardModel(model)
+      ) {
         await sleep(200 + Math.random() * 300); // small random backoff to reduce thundering herd
         continue;
       }
-      if (isInvalidApiKeyError(err)) throw new InvalidAPIError();
-      throw err;
+
+      console.warn(`Standard routing model ${model} failed with ${failureType}; trying next fallback model`, err);
+      continue;
     }
   }
   // last resort for openrouter/free fallback
-  try {
-    return await openRouterFallback({
-      prompt,
-      temp,
-      language: resolvedLanguage,
-      memory,
-      history,
-      webSearchFailed,
-    });
-  } catch (fallbackError) {
-    if (isInvalidApiKeyError(fallbackError)) throw new InvalidAPIError();
-    throw fallbackError ?? lastError;
-  }
+  return runOpenRouterFallback({
+    prompt,
+    temp,
+    language: resolvedLanguage,
+    memory,
+    history,
+    webSearchFailed,
+  }, "Standard", lastError);
 };
 
 
