@@ -102,7 +102,8 @@ export interface QuizConfig {
 export interface QuizResult {
   questionId: string;
   userAnswer: string;
-  isCorrect: boolean;
+  isCorrect: boolean | null;
+  isModelFailure?: boolean;
   feedback: string;
 }
 

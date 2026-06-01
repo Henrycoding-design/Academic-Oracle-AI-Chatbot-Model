@@ -41,6 +41,7 @@ export const LANGUAGE_DATA: Record<AppLanguage, {
     aiGrading: string;
     correctExclaim: string;
     notQuite: string;
+    modelGradingUnavailable: string;
     explainSelectionButton: string;
     followUpSelectionButton: string;
     explainSelectionPrompt: string;
@@ -357,6 +358,7 @@ export const LANGUAGE_DATA: Record<AppLanguage, {
       aiGrading: "AI is grading your answer...",
       correctExclaim: "Correct!",
       notQuite: "Not quite right",
+      modelGradingUnavailable: "Unable to grade this answer",
       explainSelectionButton: "Explain further",
       followUpSelectionButton: "Follow up",
       explainSelectionPrompt: "Explain this part more clearly and simply:\n\n\"{selection}\"",
@@ -669,6 +671,7 @@ export const LANGUAGE_DATA: Record<AppLanguage, {
       aiGrading: "L'IA évalue votre réponse...",
       correctExclaim: "Correct !",
       notQuite: "Pas tout à fait correct",
+      modelGradingUnavailable: "Impossible de noter cette réponse",
       explainContext: "Je fais un quiz sur notre sujet précédent.\nQuestion: \"{question}\"\nMa réponse: \"{answer}\"\nRésultat: {result}\nRetour reçu: \"{feedback}\"\n\nPeux-tu expliquer ce concept plus en détail ?",
       quizSummary: "Quiz terminé. Score : {score}/{total}. Difficulté : {level}.",
       chatTooShortForQuiz: "Historique de discussion ou mémoire de session insuffisant pour générer un quiz.",
@@ -989,6 +992,7 @@ export const LANGUAGE_DATA: Record<AppLanguage, {
       aiGrading: "La IA está calificando tu respuesta...",
       correctExclaim: "¡Correcto!",
       notQuite: "No es del todo correcto",
+      modelGradingUnavailable: "No se pudo calificar esta respuesta",
       explainContext: "Estoy haciendo un cuestionario sobre nuestro tema anterior.\nPregunta: \"{question}\"\nMi respuesta: \"{answer}\"\nResultado: {result}\nRetroalimentación recibida: \"{feedback}\"\n\n¿Puedes explicar este concepto con más detalle?",
       quizSummary: "Cuestionario completado. Puntuación: {score}/{total}. Dificultad: {level}.",
       chatTooShortForQuiz: "Historial de chat o memoria de sesión insuficiente para generar un cuestionario.",
@@ -1309,6 +1313,7 @@ export const LANGUAGE_DATA: Record<AppLanguage, {
       aiGrading: "AI đang chấm đáp án...",
       correctExclaim: "Đúng!",
       notQuite: "Chưa chính xác",
+      modelGradingUnavailable: "Chưa thể chấm câu trả lời này",
       explainContext: "Tôi đang làm một bài kiểm tra về chủ đề trước đó.\nCâu hỏi: \"{question}\"\nCâu trả lời của tôi: \"{answer}\"\nKết quả: {result}\nPhản hồi nhận được: \"{feedback}\"\n\nBạn có thể giải thích khái niệm này chi tiết hơn không?",
       quizSummary: "Hoàn thành bài kiểm tra. Điểm: {score}/{total}. Mức độ: {level}.",
       chatTooShortForQuiz: "Lịch sử trò chuyện hoặc bộ nhớ phiên không đủ để tạo bài kiểm tra.",
