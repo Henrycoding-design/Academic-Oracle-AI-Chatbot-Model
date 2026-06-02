@@ -127,6 +127,13 @@ export interface CoreTestItem {
   feedback: string;
 }
 
+export interface CoreTestPart {
+  id: string;
+  title: string;
+  info: string;
+  questionIds: string[];
+}
+
 export type CoreTestGradingStyle =
   | 'default'
   | 'ap'
@@ -146,6 +153,7 @@ export interface CoreTestSummary {
 export interface CoreTestPayload {
   title: string;
   instructions: string;
+  parts?: CoreTestPart[];
   items: CoreTestItem[];
   summary: CoreTestSummary | null;
 }

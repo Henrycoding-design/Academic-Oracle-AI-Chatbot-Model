@@ -10,10 +10,11 @@
  * See NOTICE and TRADEMARK_POLICY.md for additional terms.
  */
 
-import React, { useMemo, useState } from 'react';
-import { AlertTriangle, ChevronLeft, ChevronRight, Clock3, Flag, Lightbulb, LoaderCircle, Send } from 'lucide-react';
+import React, { Fragment, useMemo, useState } from 'react';
+import { AlertTriangle, BookOpen, ChevronLeft, ChevronRight, Clock3, Flag, Lightbulb, LoaderCircle, Send } from 'lucide-react';
 import type { CoreTestItem } from '../../types';
 import type { ExamHelpLevel } from '../../hooks/exam/useExamSession';
+import type { CoreTestRuntimeEntry } from '../../hooks/exam/examRuntimeEntries';
 import { ExamErrorBanner } from './ExamErrorBanner';
 import { MarkdownContent } from '../MarkdownContent';
 import { AppLanguage, LANGUAGE_DATA} from '../../lang/Language';
@@ -25,8 +26,11 @@ type RuntimeToast = {
 
 type ExamRuntimeViewProps = {
   items: CoreTestItem[];
-  activeQuestionIndex: number;
+  entries: CoreTestRuntimeEntry[];
+  activeEntryIndex: number;
+  currentEntry: CoreTestRuntimeEntry | null;
   currentQuestion: CoreTestItem | null;
+  shouldShowPartHeaders: boolean;
   remainingMs: number;
   helpLevel: ExamHelpLevel;
   isPaused: boolean;
@@ -47,10 +51,10 @@ type ExamRuntimeViewProps = {
   onPrevious: () => void;
   onNext: () => void;
   onToggleFlag: (questionId: string) => void;
-  onGoToQuestion: (index: number) => void;
+  onGoToEntry: (index: number) => void;
   isAnswered: (questionId: string) => boolean;
   isFlagged: (questionId: string) => boolean;
-  isCurrent: (questionId: string) => boolean;
+  isCurrentEntry: (entry: CoreTestRuntimeEntry) => boolean;
   language: AppLanguage;
 };
 
@@ -128,8 +132,11 @@ const getHintLabel = (helpLevel: ExamHelpLevel, languageData: { solution: string
 
 export const ExamRuntimeView: React.FC<ExamRuntimeViewProps> = ({
   items,
-  activeQuestionIndex,
+  entries,
+  activeEntryIndex,
+  currentEntry,
   currentQuestion,
+  shouldShowPartHeaders,
   remainingMs,
   helpLevel,
   isPaused,
@@ -150,10 +157,10 @@ export const ExamRuntimeView: React.FC<ExamRuntimeViewProps> = ({
   onPrevious,
   onNext,
   onToggleFlag,
-  onGoToQuestion,
+  onGoToEntry,
   isAnswered,
   isFlagged,
-  isCurrent,
+  isCurrentEntry,
   language = 'en',
 }) => {
   const languageData = LANGUAGE_DATA[language].ui.exam;
@@ -193,7 +200,7 @@ export const ExamRuntimeView: React.FC<ExamRuntimeViewProps> = ({
           </div>
 
           <div className="text-sm font-medium text-slate-600 dark:text-slate-300">
-            {languageData.questionOf?.replace('{current}', String(Math.min(activeQuestionIndex + 1, items.length))).replace('{total}', String(items.length)) }
+            {languageData.questionOf?.replace('{current}', String(Math.min(activeEntryIndex + 1, entries.length))).replace('{total}', String(entries.length)) }
           </div>
 
           <button
@@ -228,33 +235,89 @@ export const ExamRuntimeView: React.FC<ExamRuntimeViewProps> = ({
             {languageData.navigator}
           </h2>
           <div className="mt-4 grid grid-cols-4 gap-2">
-            {items.map((item, index) => {
-              const state = isCurrent(item.id)
+            {entries.map((entry, index) => {
+              const item = entry.type === 'question' ? entry.item : null;
+              const state = isCurrentEntry(entry)
                 ? 'current'
-                : isFlagged(item.id)
+                : item && isFlagged(item.id)
                   ? 'flagged'
-                  : isAnswered(item.id)
+                  : item && isAnswered(item.id)
                     ? 'answered'
                     : 'unanswered';
+              const previousEntry = entries[index - 1];
+              const shouldRenderPartHeader =
+                shouldShowPartHeaders &&
+                entry.partId &&
+                entry.partId !== previousEntry?.partId;
 
               return (
-                <button
-                  key={item.id}
-                  onClick={() => onGoToQuestion(index)}
-                  className={`rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${getNavigatorClassName(state)}`}
-                >
-                  {item.questionNumber}
-                </button>
+                <Fragment key={entry.id}>
+                  {shouldRenderPartHeader && (
+                    <div className="col-span-4 pt-2 text-[11px] font-semibold uppercase tracking-wide text-slate-400 first:pt-0">
+                      {entry.partTitle}
+                    </div>
+                  )}
+                  <button
+                    onClick={() => onGoToEntry(index)}
+                    className={`rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${getNavigatorClassName(state)}`}
+                  >
+                    {entry.type === 'info' ? 'I' : entry.item.questionNumber}
+                  </button>
+                </Fragment>
               );
             })}
           </div>
         </aside>
 
         <section className="rounded-2xl border border-black/5 bg-white p-5 shadow-sm dark:border-white/10 dark:bg-slate-900">
-          {currentQuestion ? (
+          {currentEntry?.type === 'info' ? (
             <>
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
+                  {shouldShowPartHeaders && (
+                    <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">
+                      {currentEntry.partTitle}
+                    </p>
+                  )}
+                  <p className="mt-1 inline-flex items-center gap-2 text-xs font-medium uppercase tracking-[0.14em] text-slate-400">
+                    <BookOpen className="h-4 w-4" />
+                    Information
+                  </p>
+                </div>
+              </div>
+
+              <div className="mt-4 rounded-xl border border-indigo-100 bg-indigo-50/60 p-4 text-sm leading-6 text-slate-700 dark:border-indigo-900/40 dark:bg-indigo-950/20 dark:text-slate-200">
+                <MarkdownContent content={currentEntry.info} />
+              </div>
+
+              <div className="mt-6 flex flex-wrap items-center gap-2">
+                <button
+                  onClick={onPrevious}
+                  disabled={activeEntryIndex === 0}
+                  className="inline-flex items-center gap-2 rounded-lg border border-black/5 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-white/10 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                  {languageData.prev}
+                </button>
+                <button
+                  onClick={onNext}
+                  disabled={activeEntryIndex === entries.length - 1}
+                  className="inline-flex items-center gap-2 rounded-lg border border-black/5 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-white/10 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
+                >
+                  {languageData.next}
+                  <ChevronRight className="h-4 w-4" />
+                </button>
+              </div>
+            </>
+          ) : currentQuestion ? (
+            <>
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div>
+                  {shouldShowPartHeaders && currentEntry?.type === 'question' && currentEntry.partTitle && (
+                    <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-indigo-500 dark:text-indigo-300">
+                      {currentEntry.partTitle}
+                    </p>
+                  )}
                   <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">
                     {languageData.questionPrefix || 'Question'} {currentQuestion.questionNumber}
                   </p>
@@ -326,7 +389,7 @@ export const ExamRuntimeView: React.FC<ExamRuntimeViewProps> = ({
                 <div className="flex items-center gap-2">
                   <button
                     onClick={onPrevious}
-                    disabled={activeQuestionIndex === 0}
+                    disabled={activeEntryIndex === 0}
                     className="inline-flex items-center gap-2 rounded-lg border border-black/5 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-white/10 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
                   >
                     <ChevronLeft className="h-4 w-4" />
@@ -334,7 +397,7 @@ export const ExamRuntimeView: React.FC<ExamRuntimeViewProps> = ({
                   </button>
                   <button
                     onClick={onNext}
-                    disabled={activeQuestionIndex === items.length - 1}
+                    disabled={activeEntryIndex === entries.length - 1}
                     className="inline-flex items-center gap-2 rounded-lg border border-black/5 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-white/10 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
                   >
                     {languageData.next}

@@ -313,6 +313,8 @@ export const LANGUAGE_DATA: Record<AppLanguage, {
       resultSummaryStrong: string; // use {score}, {total}
       resultSummaryCompetent: string; // use {score}, {total}
       resultSummaryNeedsReview: string; // use {score}, {total}
+      submittingLoading: string;
+      submittingSubtitle: string;
     };
   };
 }> = {
@@ -633,7 +635,9 @@ export const LANGUAGE_DATA: Record<AppLanguage, {
         resultSummaryNotAnswered: 'Test not answered. No responses were submitted, so this attempt was recorded as 0 out of {total} available marks.',
         resultSummaryStrong: 'Strong performance. You earned {score} out of {total} available marks.',
         resultSummaryCompetent: 'Competent result. You earned {score} out of {total} available marks, with some room to tighten consistency.',
-        resultSummaryNeedsReview: 'The runtime is working, but this attempt needs review. You earned {score} out of {total} available marks.',
+        resultSummaryNeedsReview: 'This attempt requires further review. You earned {score} out of {total} available marks.',
+        submittingLoading: 'Grading in progress...',
+        submittingSubtitle: 'Please wait while we evaluate your responses based on the provided criteria.',
       },
     },
   },
@@ -954,7 +958,9 @@ export const LANGUAGE_DATA: Record<AppLanguage, {
         resultSummaryNotAnswered: 'Examen non répondu. Aucune réponse n\'a été soumise, cette tentative est enregistrée comme 0 sur {total} points disponibles.',
         resultSummaryStrong: 'Excellente performance. Vous avez obtenu {score} sur {total} points disponibles.',
         resultSummaryCompetent: 'Résultat compétent. Vous avez obtenu {score} sur {total} points disponibles, avec quelques marges de progression.',
-        resultSummaryNeedsReview: 'L\'environnement fonctionne, mais cette tentative nécessite une révision. Vous avez obtenu {score} sur {total} points disponibles.',
+        resultSummaryNeedsReview: 'Cette tentative nécessite une révision plus approfondie. Vous avez obtenu {score} sur {total} points disponibles.',
+        submittingLoading: 'Notation en cours...',
+        submittingSubtitle: 'Veuillez patienter pendant que nous évaluons vos réponses sur la base des critères fournis.',
       },
     },
   },
@@ -1275,7 +1281,9 @@ export const LANGUAGE_DATA: Record<AppLanguage, {
         resultSummaryNotAnswered: 'Examen sin responder. No se enviaron respuestas, este intento se registró como 0 de {total} puntos disponibles.',
         resultSummaryStrong: 'Rendimiento sólido. Obtuviste {score} de {total} puntos disponibles.',
         resultSummaryCompetent: 'Resultado competente. Obtuviste {score} de {total} puntos disponibles, con algo de margen para mejorar la consistencia.',
-        resultSummaryNeedsReview: 'El entorno funciona, pero este intento necesita revisión. Obtuviste {score} de {total} puntos disponibles.',
+        resultSummaryNeedsReview: 'Este intento requiere una revisión más detallada. Obtuviste {score} de {total} puntos disponibles.',
+        submittingLoading: 'Calificación en curso...',
+        submittingSubtitle: 'Por favor, espere mientras evaluamos sus respuestas basándonos en los criterios proporcionados.',
       },
     },
   },
@@ -1596,7 +1604,9 @@ export const LANGUAGE_DATA: Record<AppLanguage, {
         resultSummaryNotAnswered: 'Bài kiểm tra chưa được trả lời. Không có câu nào được nộp, lần thử này được ghi nhận là 0 trên {total} điểm.',
         resultSummaryStrong: 'Kết quả xuất sắc. Bạn đạt {score} trên {total} điểm.',
         resultSummaryCompetent: 'Kết quả khá. Bạn đạt {score} trên {total} điểm, còn một số chỗ cần cải thiện.',
-        resultSummaryNeedsReview: 'Hệ thống hoạt động, nhưng lần thử này cần xem lại. Bạn đạt {score} trên {total} điểm.',
+        resultSummaryNeedsReview: 'Lần thử này cần được xem xét kỹ hơn. Bạn đạt {score} trên {total} điểm.',
+        submittingLoading: 'Đang chấm điểm...',
+        submittingSubtitle: 'Vui lòng đợi trong khi chúng tôi đánh giá câu trả lời của bạn dựa trên các tiêu chí đã cung cấp.',
       },
     },
   },

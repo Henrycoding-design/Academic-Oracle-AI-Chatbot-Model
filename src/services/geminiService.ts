@@ -36,6 +36,7 @@ import {
   recordStandardModelFailure,
   recordStandardModelSuccess,
   shouldSkipStandardModel,
+  shouldForceRaceFromRoutingMemory,
 } from "./modelRoutingMemory";
 
 // const SYSTEM_INSTRUCTION = `You are the 'Academic Oracle', a world-class polymath and supportive mentor. 
@@ -64,6 +65,7 @@ const MODEL_FALLBACK_CHAIN: GeminiModelFlag[] = [
 const shouldUseExamRace = (): boolean => {
   if (typeof window === "undefined") return false;
   try {
+    if (shouldForceRaceFromRoutingMemory()) return true;
     const tailoring = localStorage.getItem("academic-oracle-tailoring") || "standard";
     if (tailoring === "no") return false;
     if (tailoring === "always") return true;
@@ -209,6 +211,73 @@ const normalizeCoreTestPayload = (data: any): CoreTestPayload | null => {
     return null;
   }
 
+  const itemIds = new Set(items.map((item) => item.id));
+  const itemsInOrder = items.map((item) => item.id);
+  const usedPartIds = new Set<string>();
+  const usedQuestionIdsInParts = new Set<string>();
+
+  const parts = Array.isArray(data.parts)
+    ? data.parts
+      .map((part: any, index: number) => {
+        const rawId = normalizeString(part?.id, `part-${index + 1}`);
+        const id = usedPartIds.has(rawId) ? `${rawId}-${index + 1}` : rawId;
+        usedPartIds.add(id);
+
+        const questionIds = Array.isArray(part?.questionIds)
+          ? part.questionIds
+            .filter((questionId: unknown): questionId is string =>
+              typeof questionId === "string" && itemIds.has(questionId.trim()),
+            )
+            .map((questionId: string) => questionId.trim())
+          : [];
+
+        if (questionIds.length === 1) {
+          throw new InvalidAIResponseError("Wrong Format: A part must contain more than 1 question. If shared information applies to only one question, it must be prepended to that question's prompt.");
+        }
+
+        if (questionIds.length > 1) {
+          const firstIdx = itemsInOrder.indexOf(questionIds[0]);
+          const seenInPart = new Set<string>();
+
+          for (let i = 0; i < questionIds.length; i++) {
+            const qId = questionIds[i];
+
+            if (seenInPart.has(qId)) {
+              throw new InvalidAIResponseError(
+                `Wrong Format: Question '${qId}' appears multiple times in part '${part?.title ?? index + 1}'.`
+              );
+            }
+            seenInPart.add(qId);
+            
+            const currentIdx = itemsInOrder.indexOf(qId);
+
+            if (currentIdx !== firstIdx + i) {
+              throw new InvalidAIResponseError(`Wrong Format: Questions in part '${part?.title ?? index + 1}' must be consecutive according to the global items order.`);
+            }
+
+            if (usedQuestionIdsInParts.has(qId)) {
+              throw new InvalidAIResponseError(`Wrong Format: Question '${qId}' is assigned to multiple parts.`);
+            }
+            usedQuestionIdsInParts.add(qId);
+          }
+        }
+
+        const info = normalizeString(
+          part?.info ?? part?.passage ?? part?.context ?? part?.source,
+        );
+
+        if (!info && questionIds.length === 0) return null;
+
+        return {
+          id,
+          title: normalizeString(part?.title ?? part?.name ?? part?.label, `Part ${index + 1}`),
+          info,
+          questionIds,
+        };
+      })
+      .filter(Boolean) as CoreTestPayload["parts"]
+    : undefined;
+
   const gradedItems = items.filter((item) => item.isCorrect !== null || item.score !== null);
   const derivedCorrect = gradedItems.filter((item) => item.isCorrect).length;
   const derivedEarnedScore = roundScore(
@@ -256,6 +325,7 @@ const normalizeCoreTestPayload = (data: any): CoreTestPayload | null => {
   return {
     title: normalizeString(data.title, "Core Test System"),
     instructions: normalizeString(data.instructions),
+    ...(parts?.length ? { parts } : {}),
     items,
     summary,
   };
