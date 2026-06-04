@@ -17,6 +17,7 @@ type ExamResultViewProps = {
   onAddToMemory?: () => void;
   onRedo: () => void;
   onReview: () => void;
+  onChecklist: () => void;
   language: AppLanguage;
 };
 
@@ -34,6 +35,7 @@ export const ExamResultView: React.FC<ExamResultViewProps> = ({
   onAddToMemory,
   onRedo,
   onReview,
+  onChecklist,
   language = 'en', // Default to English if language prop is not provided -> safe fallback
 }) => {
   const languageData = LANGUAGE_DATA[language].ui.exam;
@@ -109,6 +111,13 @@ export const ExamResultView: React.FC<ExamResultViewProps> = ({
           >
             <Brain className="h-4 w-4" />
             {languageData.addToOracleMemory}
+          </button>
+          <button
+            onClick={onChecklist}
+            className="inline-flex items-center gap-2 rounded-lg border border-indigo-200 bg-indigo-50 px-4 py-2 text-sm font-medium text-indigo-700 transition-colors hover:bg-indigo-100 dark:border-indigo-900/40 dark:bg-indigo-950/20 dark:text-indigo-200 dark:hover:bg-indigo-950/40"
+          >
+            <ClipboardList className="h-4 w-4" />
+            Blind Checklist
           </button>
           <button
             onClick={onReview}

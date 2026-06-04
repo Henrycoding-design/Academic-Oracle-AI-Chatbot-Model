@@ -20,11 +20,13 @@ import { ExamInstructionView } from './ExamInstructionView';
 import { ExamResultView } from './ExamResultView';
 import { ExamReviewView } from './ExamReviewView';
 import { ExamRuntimeView } from './ExamRuntimeView';
+import { CheckListView } from './CheckListView';
 import { exportExamResultDocx } from './examResultExport';
 import { useExamNavigation } from '../../hooks/exam/useExamNavigation';
 import { useExamSession } from '../../hooks/exam/useExamSession';
 import { useExamTimer } from '../../hooks/exam/useExamTimer';
 import { shouldShowExamPartHeaders } from '../../hooks/exam/examRuntimeEntries';
+import { generateBlindChecklist } from '../../services/geminiService';
 
 interface CoreTestViewProps {
   language: AppLanguage;
@@ -34,6 +36,8 @@ interface CoreTestViewProps {
   onRequestScrollTop?: () => void;
   onBusyChange?: (isBusy: boolean) => void;
   onAddToMemory?: (summary: string, topicTag: string | null) => void;
+  chatHistory: any[];
+  oracleMemory: string | null;
 }
 
 type ToastMessage = {
@@ -160,6 +164,8 @@ export const CoreTestView: React.FC<CoreTestViewProps> = ({
   onRequestScrollTop,
   onBusyChange,
   onAddToMemory,
+  chatHistory,
+  oracleMemory,
 }) => {
   const {
     session,
@@ -190,6 +196,62 @@ export const CoreTestView: React.FC<CoreTestViewProps> = ({
   const navigation = useExamNavigation(session, updateSession);
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
   const [isSubmitConfirmOpen, setIsSubmitConfirmOpen] = useState(false);
+  const [isGeneratingChecklist, setIsGeneratingChecklist] = useState(false);
+
+  const calculateMetricsHash = (metrics: any) => {
+    try {
+      const str = JSON.stringify(metrics);
+      let hash = 0;
+      for (let i = 0; i < str.length; i++) {
+        const char = str.charCodeAt(i);
+        hash = ((hash << 5) - hash) + char;
+        hash |= 0;
+      }
+      return hash.toString();
+    } catch (e) {
+      return Date.now().toString();
+    }
+  };
+
+  const handleGenerateChecklist = async () => {
+    if (isGeneratingChecklist) return;
+
+    const metrics = {
+      chats: chatHistory,
+      tests: [session.payload],
+      memory: oracleMemory,
+    };
+
+    const currentHash = calculateMetricsHash(metrics);
+
+    if (session.checklistContent && session.lastChecklistMetricsHash === currentHash) {
+      goToStage('checklist');
+      return;
+    }
+
+    setIsGeneratingChecklist(true);
+    goToStage('checklist');
+
+    try {
+      const content = await generateBlindChecklist(
+        metrics,
+        language,
+        encryptedApiKey
+      );
+
+      updateSession(prev => ({
+        ...prev,
+        checklistContent: content,
+        lastChecklistMetricsHash: currentHash
+      }));
+    } catch (err) {
+      console.error(err);
+      setError('Failed to generate the blind checklist.');
+      goToStage('results');
+    } finally {
+      setIsGeneratingChecklist(false);
+    }
+  };
 
   const lang = LANGUAGE_DATA[language].ui.exam;
   const setupLang = LANGUAGE_DATA[language].ui.examSetup;
@@ -392,6 +454,7 @@ export const CoreTestView: React.FC<CoreTestViewProps> = ({
         }
         onRedo={redoExam}
         onReview={() => goToStage('review')}
+        onChecklist={handleGenerateChecklist}
         language={language}
       />
     );
@@ -407,6 +470,19 @@ export const CoreTestView: React.FC<CoreTestViewProps> = ({
         chatLabel={chatLabel}
         onRedo={redoExam}
         language={language}
+      />
+    );
+  }
+
+  if (session.stage === 'checklist') {
+    return (
+      <CheckListView
+        language={language}
+        content={session.checklistContent}
+        isLoading={isGeneratingChecklist}
+        onBack={() => goToStage('results')}
+        onBackToChat={onBack}
+        chatLabel={chatLabel}
       />
     );
   }

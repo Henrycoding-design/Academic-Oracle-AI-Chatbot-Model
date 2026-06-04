@@ -598,7 +598,7 @@ type EdgeCallBaseParams = {
   prompt: string;
   temp?: number;
   systemInstruction?: string;
-  mode?: "chat" | "quiz" | "summary" | "exam-structure" | "exam-enrich" | "exam-grade";
+  mode?: "chat" | "quiz" | "summary" | "exam-structure" | "exam-enrich" | "exam-grade" | "checklist";
   language?: string;
   responseMimeType?: string;
   promptVariables?: Record<string, string>;
@@ -1843,4 +1843,81 @@ export const generateSearchQueries = async (
 
   // 🥉 Final fallback: raw prompt
   return [userPrompt];
+};
+
+export const generateBlindChecklist = async (
+  metrics: any,
+  language: AppLanguage,
+  encryptedKeyPayload: any
+): Promise<string> => {
+  const prompt = `METRICS DATA: ${JSON.stringify(metrics)}`;
+  const resolvedLanguage =
+    language === "en" ? "English"
+    : language === "fr" ? "French"
+    : language === "es" ? "Spanish"
+    : "Vietnamese";
+
+  const isValid = (res: { text: string }) => {
+    const parsed = extractAndParseJSONSafe(res.text);
+    return parsed.ok && typeof parsed.data.checklist === "string";
+  };
+
+  try {
+    const raceResult = await raceModels([
+      () => getGeminiTextFromEdge({
+        model: "smart",
+        prompt,
+        temp: 0.3,
+        mode: "checklist",
+        language: resolvedLanguage,
+        responseMimeType: "application/json",
+        encryptedKeyPayload,
+      }).then(text => ({ model: "smart", text })),
+      () => getGeminiTextFromEdge({
+        model: "agentic",
+        prompt,
+        temp: 0.3,
+        mode: "checklist",
+        language: resolvedLanguage,
+        responseMimeType: "application/json",
+        encryptedKeyPayload,
+      }).then(text => ({ model: "agentic", text })),
+    ], isValid);
+
+    return JSON.parse(raceResult.text).checklist;
+  } catch (err) {
+    console.warn("Blind checklist race failed, falling back to balanced", err);
+    try {
+      const text = await getGeminiTextFromEdge({
+        model: "balanced",
+        prompt,
+        temp: 0.4,
+        mode: "checklist",
+        language: resolvedLanguage,
+        responseMimeType: "application/json",
+        encryptedKeyPayload,
+      });
+
+      const parsed = extractAndParseJSONSafe(text);
+      if (parsed.ok) return parsed.data.checklist;
+
+      return JSON.parse(text).checklist;
+    } catch (err2) {
+      console.warn("Blind checklist balanced fallback failed, falling back to fast", err2);
+      const text = await getGeminiTextFromEdge({
+        model: "fast",
+        prompt,
+        temp: 0.5,
+        mode: "checklist",
+        language: resolvedLanguage,
+        responseMimeType: "application/json",
+        encryptedKeyPayload,
+      });
+
+      const parsed = extractAndParseJSONSafe(text);
+      if (parsed.ok) return parsed.data.checklist;
+
+      return JSON.parse(text).checklist;
+    }
+  }
 };

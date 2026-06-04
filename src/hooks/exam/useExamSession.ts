@@ -26,7 +26,8 @@ export type ExamStage =
   | 'instructions'
   | 'runtime'
   | 'results'
-  | 'review';
+  | 'review'
+  | 'checklist';
 
 export interface ExamSession {
   stage: ExamStage;
@@ -39,6 +40,8 @@ export interface ExamSession {
   activeInfoPartId?: string | null;
   flaggedQuestionIds: string[];
   payload: CoreTestPayload;
+  checklistContent?: string;
+  lastChecklistMetricsHash?: string;
 }
 
 export type ExamHelpLevel = 'none' | 'general' | 'specific' | 'solution';
@@ -380,6 +383,8 @@ export const useExamSession = ({
         activeInfoPartId: structured.parts?.find((part) => part.info.trim())?.id ?? null,
         flaggedQuestionIds: [],
         payload: structured,
+        checklistContent: undefined,
+        lastChecklistMetricsHash: undefined,
       }));
     } catch (uploadError) {
       console.error(uploadError);
@@ -634,6 +639,8 @@ export const useExamSession = ({
       activeInfoPartId: prev.payload.parts?.find((part) => part.info.trim())?.id ?? null,
       flaggedQuestionIds: [],
       payload: resetPayloadForAttempt(prev.payload),
+      checklistContent: undefined,
+      lastChecklistMetricsHash: undefined,
     }));
   };
 

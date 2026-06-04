@@ -189,6 +189,7 @@ const App: React.FC = () => {
 
   // NEW STATE: View Switching
   const [currentView, setCurrentView] = useState<'chat' | 'quiz' | 'dashboard' | 'profile' | 'test'>('chat');
+  const [chatKey, setChatKey] = useState(0); // For forcing remount of ChatInput
   const [isCoreTestBusy, setIsCoreTestBusy] = useState(false);
   // NEW STATE: Mastery Popup
   const [showMasteryPopup, setShowMasteryPopup] = useState(false);
@@ -1091,6 +1092,9 @@ const App: React.FC = () => {
     sessionStorage.removeItem("academic-oracle-chat");
     sessionStorage.removeItem("academic-oracle-history");
     sessionStorage.removeItem("academic-oracle-quiz-state"); // Clear quiz cache on reset
+    sessionStorage.removeItem("academic-oracle-professional-exam-state"); // Clear Core Test session on reset
+    localStorage.removeItem("chat_input_draft"); // clear draft on reset
+    setChatKey(prev => prev + 1);
 
     clearPendingMasteryPopup();
     handledMasteryTopicsRef.current = new Set();
@@ -1149,7 +1153,9 @@ const App: React.FC = () => {
     sessionStorage.removeItem("academic-oracle-memory"); //wipe profile
     sessionStorage.removeItem("academic-oracle-quiz-state"); // Clear quiz cache on logout
     sessionStorage.removeItem("academic-oracle-professional-exam-state"); // Clear Core Test session on logout
+    sessionStorage.removeItem("academic-oracle-model-routing-memory"); // Clear routing telemetry on logout
     localStorage.removeItem("chat_input_draft"); // clear draft
+    setChatKey(prev => prev + 1);
     setOracleMemory(null);
 
     clearPendingMasteryPopup();
@@ -1252,6 +1258,21 @@ const App: React.FC = () => {
 
   const handleDeleteTopicMemory = (topicTag: string) => {
     setOracleMemory((prev) => deleteTopicFromOracleMemory(prev, topicTag));
+
+    // Clear checklist content from professional exam state if it exists
+    const examState = sessionStorage.getItem("academic-oracle-professional-exam-state");
+    if (examState) {
+      try {
+        const parsed = JSON.parse(examState);
+        if (parsed.session) {
+          parsed.session.checklistContent = undefined;
+          parsed.session.lastChecklistMetricsHash = undefined;
+          sessionStorage.setItem("academic-oracle-professional-exam-state", JSON.stringify(parsed));
+        }
+      } catch (e) {
+        // ignore parse errors
+      }
+    }
   };
 
 
@@ -1669,6 +1690,8 @@ const App: React.FC = () => {
                   }}
                   onBusyChange={setIsCoreTestBusy}
                   onAddToMemory={handleAddToMemory}
+                  chatHistory={chatHistory}
+                  oracleMemory={oracleMemory}
                 />
               </div>
             )}
@@ -1758,6 +1781,7 @@ const App: React.FC = () => {
             <footer className="absolute bottom-0 left-0 right-0 z-30 pointer-events-none">
               <div className="pointer-events-auto bg-gradient-to-t from-slate-50 dark:from-slate-950 via-slate-50/90 to-transparent">
                 <ChatInput
+                  key={chatKey}
                   onSendMessage={(message, files, uiMeta) =>
                     handleSendMessage(message, files ?? [], false, uiMeta)
                   }
