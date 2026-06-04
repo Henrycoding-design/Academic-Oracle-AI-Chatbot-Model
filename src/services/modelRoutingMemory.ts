@@ -18,10 +18,15 @@ type ModelRoutingStats = {
 
 type ModelRoutingMemory = {
   version: 1;
+  createdAt: number;
+  lastUpdated: number;
   models: Partial<Record<GeminiModelFlag, ModelRoutingStats>>;
 };
 
 const STORAGE_KEY = "academic-oracle-model-routing-memory";
+
+const INACTIVITY_THRESHOLD = 6 * 60 * 60 * 1000; // 6 hours
+const LIFETIME_THRESHOLD = 12 * 60 * 60 * 1000; // 12 hours
 
 const FAILURE_TYPES: ModelFailureType[] = [
   "unretriable",
@@ -47,10 +52,15 @@ const createEmptyFailureCounts = (): ModelFailureCounts => ({
   wrong_format: 0,
 });
 
-const createEmptyRoutingMemory = (): ModelRoutingMemory => ({
-  version: 1,
-  models: {},
-});
+const createEmptyRoutingMemory = (): ModelRoutingMemory => {
+  const now = Date.now();
+  return {
+    version: 1,
+    createdAt: now,
+    lastUpdated: now,
+    models: {},
+  };
+};
 
 const normalizeStats = (value: any): ModelRoutingStats => ({
   attempts: typeof value?.attempts === "number" && value.attempts > 0 ? Math.round(value.attempts) : 0,
@@ -71,10 +81,22 @@ const readRoutingMemory = (): ModelRoutingMemory => {
     if (!raw) return createEmptyRoutingMemory();
 
     const parsed = JSON.parse(raw);
+    const now = Date.now();
+    const createdAt = typeof parsed?.createdAt === "number" ? parsed.createdAt : now;
+    const lastUpdated = typeof parsed?.lastUpdated === "number" ? parsed.lastUpdated : now;
+
+    // Reset if 6 hours of inactivity or 12 hours total lifetime
+    if (now - lastUpdated > INACTIVITY_THRESHOLD || now - createdAt > LIFETIME_THRESHOLD) {
+      window.sessionStorage.removeItem(STORAGE_KEY);
+      return createEmptyRoutingMemory();
+    }
+
     const models = parsed?.models && typeof parsed.models === "object" ? parsed.models : {};
 
     return {
       version: 1,
+      createdAt,
+      lastUpdated,
       models: Object.entries(models).reduce<ModelRoutingMemory["models"]>((acc, [model, stats]) => {
         acc[model as GeminiModelFlag] = normalizeStats(stats);
         return acc;
@@ -89,6 +111,7 @@ const writeRoutingMemory = (memory: ModelRoutingMemory) => {
   if (typeof window === "undefined") return;
 
   try {
+    memory.lastUpdated = Date.now();
     window.sessionStorage.setItem(STORAGE_KEY, JSON.stringify(memory));
   } catch {
     // Best-effort session telemetry only.
