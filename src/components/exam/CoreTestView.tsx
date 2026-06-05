@@ -20,10 +20,13 @@ import { ExamInstructionView } from './ExamInstructionView';
 import { ExamResultView } from './ExamResultView';
 import { ExamReviewView } from './ExamReviewView';
 import { ExamRuntimeView } from './ExamRuntimeView';
+import { CheckListView } from './CheckListView';
 import { exportExamResultDocx } from './examResultExport';
 import { useExamNavigation } from '../../hooks/exam/useExamNavigation';
 import { useExamSession } from '../../hooks/exam/useExamSession';
 import { useExamTimer } from '../../hooks/exam/useExamTimer';
+import { shouldShowExamPartHeaders } from '../../hooks/exam/examRuntimeEntries';
+import { generateBlindChecklist } from '../../services/geminiService';
 
 interface CoreTestViewProps {
   language: AppLanguage;
@@ -33,6 +36,8 @@ interface CoreTestViewProps {
   onRequestScrollTop?: () => void;
   onBusyChange?: (isBusy: boolean) => void;
   onAddToMemory?: (summary: string, topicTag: string | null) => void;
+  chatHistory: any[];
+  oracleMemory: string | null;
 }
 
 type ToastMessage = {
@@ -159,6 +164,8 @@ export const CoreTestView: React.FC<CoreTestViewProps> = ({
   onRequestScrollTop,
   onBusyChange,
   onAddToMemory,
+  chatHistory,
+  oracleMemory,
 }) => {
   const {
     session,
@@ -189,6 +196,62 @@ export const CoreTestView: React.FC<CoreTestViewProps> = ({
   const navigation = useExamNavigation(session, updateSession);
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
   const [isSubmitConfirmOpen, setIsSubmitConfirmOpen] = useState(false);
+  const [isGeneratingChecklist, setIsGeneratingChecklist] = useState(false);
+
+  const calculateMetricsHash = (metrics: any) => {
+    try {
+      const str = JSON.stringify(metrics);
+      let hash = 0;
+      for (let i = 0; i < str.length; i++) {
+        const char = str.charCodeAt(i);
+        hash = ((hash << 5) - hash) + char;
+        hash |= 0;
+      }
+      return hash.toString();
+    } catch (e) {
+      return Date.now().toString();
+    }
+  };
+
+  const handleGenerateChecklist = async () => {
+    if (isGeneratingChecklist) return;
+
+    const metrics = {
+      chats: chatHistory,
+      tests: [session.payload],
+      memory: oracleMemory,
+    };
+
+    const currentHash = calculateMetricsHash(metrics);
+
+    if (session.checklistContent && session.lastChecklistMetricsHash === currentHash) {
+      goToStage('checklist');
+      return;
+    }
+
+    setIsGeneratingChecklist(true);
+    goToStage('checklist');
+
+    try {
+      const content = await generateBlindChecklist(
+        metrics,
+        language,
+        encryptedApiKey
+      );
+
+      updateSession(prev => ({
+        ...prev,
+        checklistContent: content,
+        lastChecklistMetricsHash: currentHash
+      }));
+    } catch (err) {
+      console.error(err);
+      setError('Failed to generate the blind checklist.');
+      goToStage('results');
+    } finally {
+      setIsGeneratingChecklist(false);
+    }
+  };
 
   const lang = LANGUAGE_DATA[language].ui.exam;
   const setupLang = LANGUAGE_DATA[language].ui.examSetup;
@@ -216,7 +279,7 @@ export const CoreTestView: React.FC<CoreTestViewProps> = ({
     { value: 60 * 60, label: setupLang.duration60 },
   ] as const;
 
-  const currentQuestion = session.payload.items[session.activeQuestionIndex] ?? null;
+  const shouldShowPartHeaders = shouldShowExamPartHeaders(session.payload);
   const unansweredCount = useMemo(
     () => session.payload.items.filter((item) => !item.userAnswer.trim()).length,
     [session.payload.items],
@@ -299,12 +362,34 @@ export const CoreTestView: React.FC<CoreTestViewProps> = ({
     );
   }
 
+  if (session.status === 'submitting' && session.stage === 'runtime') {
+    return (
+      <div className="flex min-h-[400px] flex-col items-center justify-center p-8 text-center animate-in fade-in duration-500">
+        <div className="relative">
+          <LoaderCircle className="h-16 w-16 animate-spin text-indigo-500" />
+          <div className="absolute inset-0 flex items-center justify-center">
+            <ClipboardCheck className="h-6 w-6 text-indigo-400" />
+          </div>
+        </div>
+        <h2 className="mt-8 text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
+          {setupLang.submittingLoading}
+        </h2>
+        <p className="mt-3 max-w-md text-lg text-slate-600 dark:text-slate-400">
+          {setupLang.submittingSubtitle}
+        </p>
+      </div>
+    );
+  }
+
   if (session.stage === 'runtime') {
     return (
-      <ExamRuntimeView
-        items={session.payload.items}
-        activeQuestionIndex={session.activeQuestionIndex}
-        currentQuestion={currentQuestion}
+        <ExamRuntimeView
+          items={session.payload.items}
+        entries={navigation.entries}
+        activeEntryIndex={navigation.activeEntryIndex}
+        currentEntry={navigation.currentEntry}
+        currentQuestion={navigation.currentQuestion}
+        shouldShowPartHeaders={shouldShowPartHeaders}
         remainingMs={timer.remainingMs}
         helpLevel={helpLevel}
         isPaused={timer.isPaused}
@@ -325,10 +410,10 @@ export const CoreTestView: React.FC<CoreTestViewProps> = ({
         onPrevious={navigation.goPrevious}
         onNext={navigation.goNext}
         onToggleFlag={navigation.toggleFlag}
-        onGoToQuestion={navigation.goToQuestion}
+        onGoToEntry={navigation.goToEntry}
         isAnswered={navigation.isAnswered}
         isFlagged={navigation.isFlagged}
-        isCurrent={navigation.isCurrent}
+        isCurrentEntry={navigation.isCurrentEntry}
         language={language}
       />
     );
@@ -369,6 +454,7 @@ export const CoreTestView: React.FC<CoreTestViewProps> = ({
         }
         onRedo={redoExam}
         onReview={() => goToStage('review')}
+        onChecklist={handleGenerateChecklist}
         language={language}
       />
     );
@@ -384,6 +470,19 @@ export const CoreTestView: React.FC<CoreTestViewProps> = ({
         chatLabel={chatLabel}
         onRedo={redoExam}
         language={language}
+      />
+    );
+  }
+
+  if (session.stage === 'checklist') {
+    return (
+      <CheckListView
+        language={language}
+        content={session.checklistContent}
+        isLoading={isGeneratingChecklist}
+        onBack={() => goToStage('results')}
+        onBackToChat={onBack}
+        chatLabel={chatLabel}
       />
     );
   }

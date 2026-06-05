@@ -30,6 +30,14 @@ import {
   parseOracleMemory,
 } from "./oracleMemory";
 import { encryptApiKey } from "./edgeCrypto";
+import {
+  type ModelFailureType,
+  recordStandardModelAttempt,
+  recordStandardModelFailure,
+  recordStandardModelSuccess,
+  shouldSkipStandardModel,
+  shouldForceRaceFromRoutingMemory,
+} from "./modelRoutingMemory";
 
 // const SYSTEM_INSTRUCTION = `You are the 'Academic Oracle', a world-class polymath and supportive mentor. 
 // Your scope is UNLIMITED: from primary education and competitive exams (IGCSE, SAT, AP, IELTS) to University-level research and professional Industrial practices.
@@ -57,6 +65,7 @@ const MODEL_FALLBACK_CHAIN: GeminiModelFlag[] = [
 const shouldUseExamRace = (): boolean => {
   if (typeof window === "undefined") return false;
   try {
+    if (shouldForceRaceFromRoutingMemory()) return true;
     const tailoring = localStorage.getItem("academic-oracle-tailoring") || "standard";
     if (tailoring === "no") return false;
     if (tailoring === "always") return true;
@@ -202,6 +211,73 @@ const normalizeCoreTestPayload = (data: any): CoreTestPayload | null => {
     return null;
   }
 
+  const itemIds = new Set(items.map((item) => item.id));
+  const itemsInOrder = items.map((item) => item.id);
+  const usedPartIds = new Set<string>();
+  const usedQuestionIdsInParts = new Set<string>();
+
+  const parts = Array.isArray(data.parts)
+    ? data.parts
+      .map((part: any, index: number) => {
+        const rawId = normalizeString(part?.id, `part-${index + 1}`);
+        const id = usedPartIds.has(rawId) ? `${rawId}-${index + 1}` : rawId;
+        usedPartIds.add(id);
+
+        const questionIds = Array.isArray(part?.questionIds)
+          ? part.questionIds
+            .filter((questionId: unknown): questionId is string =>
+              typeof questionId === "string" && itemIds.has(questionId.trim()),
+            )
+            .map((questionId: string) => questionId.trim())
+          : [];
+
+        if (questionIds.length === 1) {
+          throw new InvalidAIResponseError("Wrong Format: A part must contain more than 1 question. If shared information applies to only one question, it must be prepended to that question's prompt.");
+        }
+
+        if (questionIds.length > 1) {
+          const firstIdx = itemsInOrder.indexOf(questionIds[0]);
+          const seenInPart = new Set<string>();
+
+          for (let i = 0; i < questionIds.length; i++) {
+            const qId = questionIds[i];
+
+            if (seenInPart.has(qId)) {
+              throw new InvalidAIResponseError(
+                `Wrong Format: Question '${qId}' appears multiple times in part '${part?.title ?? index + 1}'.`
+              );
+            }
+            seenInPart.add(qId);
+            
+            const currentIdx = itemsInOrder.indexOf(qId);
+
+            if (currentIdx !== firstIdx + i) {
+              throw new InvalidAIResponseError(`Wrong Format: Questions in part '${part?.title ?? index + 1}' must be consecutive according to the global items order.`);
+            }
+
+            if (usedQuestionIdsInParts.has(qId)) {
+              throw new InvalidAIResponseError(`Wrong Format: Question '${qId}' is assigned to multiple parts.`);
+            }
+            usedQuestionIdsInParts.add(qId);
+          }
+        }
+
+        const info = normalizeString(
+          part?.info ?? part?.passage ?? part?.context ?? part?.source,
+        );
+
+        if (!info && questionIds.length === 0) return null;
+
+        return {
+          id,
+          title: normalizeString(part?.title ?? part?.name ?? part?.label, `Part ${index + 1}`),
+          info,
+          questionIds,
+        };
+      })
+      .filter(Boolean) as CoreTestPayload["parts"]
+    : undefined;
+
   const gradedItems = items.filter((item) => item.isCorrect !== null || item.score !== null);
   const derivedCorrect = gradedItems.filter((item) => item.isCorrect).length;
   const derivedEarnedScore = roundScore(
@@ -249,6 +325,7 @@ const normalizeCoreTestPayload = (data: any): CoreTestPayload | null => {
   return {
     title: normalizeString(data.title, "Core Test System"),
     instructions: normalizeString(data.instructions),
+    ...(parts?.length ? { parts } : {}),
     items,
     summary,
   };
@@ -422,6 +499,14 @@ const isInvalidApiKeyError = (err: unknown): boolean => {
   }
 };
 
+const getStandardRoutingFailureType = (err: unknown): ModelFailureType => {
+  if (isRateLimitError(err)) return "rate_limited";
+  if (isUnavailableError(err)) return "unavailable";
+  if (err instanceof InvalidAIResponseError || err instanceof SyntaxError) return "wrong_format";
+  if (isRetryableAIError(err)) return "retriable";
+  return "unretriable";
+};
+
 function extractBalancedJSON(text: string): string {
   let depth = 0;
   let start = -1;
@@ -513,7 +598,7 @@ type EdgeCallBaseParams = {
   prompt: string;
   temp?: number;
   systemInstruction?: string;
-  mode?: "chat" | "quiz" | "summary" | "exam-structure" | "exam-enrich" | "exam-grade";
+  mode?: "chat" | "quiz" | "summary" | "exam-structure" | "exam-enrich" | "exam-grade" | "checklist";
   language?: string;
   responseMimeType?: string;
   promptVariables?: Record<string, string>;
@@ -673,6 +758,20 @@ const openRouterFallback = async (params: {
   }
 };
 
+const runOpenRouterFallback = async (
+  params: Parameters<typeof openRouterFallback>[0],
+  context: string,
+  originalError: unknown
+): Promise<OracleResponse> => {
+  try {
+    return await openRouterFallback(params);
+  } catch (fallbackError) {
+    console.error(`${context} OpenRouter fallback failed:`, fallbackError);
+    if (isInvalidApiKeyError(fallbackError)) throw new InvalidAPIError();
+    throw fallbackError ?? originalError;
+  }
+};
+
 export const sendMessageToBotRace = async (params: {
   history: { role: "user" | "model"; content: string }[];
   memory?: string | null;
@@ -780,24 +879,24 @@ export const sendMessageToBotRace = async (params: {
     return parseOracleChatResponse(raceResult.text, memory, history, raceResult.model);
   } catch (err: any) {
     if (err.message && err.message.includes("Race timeout")) {
-      return openRouterFallback({
+      return runOpenRouterFallback({
         prompt,
         temp,
         language: resolvedLanguage,
         memory,
         history,
         webSearchFailed,
-      });
+      }, "Race", err);
     }
     if (err.message && err.message.includes("All models in race failed")) { // fail fast if all models responsed with errors
-      return openRouterFallback({
+      return runOpenRouterFallback({
         prompt,
         temp,
         language: resolvedLanguage,
         memory,
         history,
         webSearchFailed,
-      });
+      }, "Race", err);
     }
     if (isInvalidApiKeyError(err)) throw new InvalidAPIError();
     throw err;
@@ -864,7 +963,13 @@ export const sendMessageToBot = async (params: {
   // }
   let lastError: any = null;
   for (const model of MODEL_FALLBACK_CHAIN) {
+    if (shouldSkipStandardModel(model)) {
+      console.warn(`Skipping ${model} in standard routing due to session failure telemetry`);
+      continue;
+    }
+
     try {
+      recordStandardModelAttempt(model);
       // const ai = new GoogleGenAI({ apiKey: api_key });
       // const chat = ai.chats.create({
       //   model,
@@ -902,32 +1007,41 @@ export const sendMessageToBot = async (params: {
       // Debug Only
       // console.log(`Response from model ${model}:`, text);
 
-      return parseOracleChatResponse(text, memory, history, model);
+      const parsedResponse = parseOracleChatResponse(text, memory, history, model);
+      recordStandardModelSuccess(model);
+      return parsedResponse;
     } catch (err: any) {
       lastError = err;
+      if (isInvalidApiKeyError(err)) throw new InvalidAPIError();
+
+      const failureType = getStandardRoutingFailureType(err);
+      recordStandardModelFailure(model, failureType);
+
       // If it's a rate limit, try the next model in the chain
-      if (isRateLimitError(err) || isUnavailableError(err) || isRetryableAIError(err)) {
+      if (
+        failureType === "rate_limited" ||
+        failureType === "unavailable" ||
+        failureType === "wrong_format" ||
+        failureType === "retriable" ||
+        shouldSkipStandardModel(model)
+      ) {
         await sleep(200 + Math.random() * 300); // small random backoff to reduce thundering herd
         continue;
       }
-      if (isInvalidApiKeyError(err)) throw new InvalidAPIError();
-      throw err;
+
+      console.warn(`Standard routing model ${model} failed with ${failureType}; trying next fallback model`, err);
+      continue;
     }
   }
   // last resort for openrouter/free fallback
-  try {
-    return await openRouterFallback({
-      prompt,
-      temp,
-      language: resolvedLanguage,
-      memory,
-      history,
-      webSearchFailed,
-    });
-  } catch (fallbackError) {
-    if (isInvalidApiKeyError(fallbackError)) throw new InvalidAPIError();
-    throw fallbackError ?? lastError;
-  }
+  return runOpenRouterFallback({
+    prompt,
+    temp,
+    language: resolvedLanguage,
+    memory,
+    history,
+    webSearchFailed,
+  }, "Standard", lastError);
 };
 
 
@@ -1729,4 +1843,81 @@ export const generateSearchQueries = async (
 
   // 🥉 Final fallback: raw prompt
   return [userPrompt];
+};
+
+export const generateBlindChecklist = async (
+  metrics: any,
+  language: AppLanguage,
+  encryptedKeyPayload: any
+): Promise<string> => {
+  const prompt = `METRICS DATA: ${JSON.stringify(metrics)}`;
+  const resolvedLanguage =
+    language === "en" ? "English"
+    : language === "fr" ? "French"
+    : language === "es" ? "Spanish"
+    : "Vietnamese";
+
+  const isValid = (res: { text: string }) => {
+    const parsed = extractAndParseJSONSafe(res.text);
+    return parsed.ok && typeof parsed.data.checklist === "string";
+  };
+
+  try {
+    const raceResult = await raceModels([
+      () => getGeminiTextFromEdge({
+        model: "smart",
+        prompt,
+        temp: 0.3,
+        mode: "checklist",
+        language: resolvedLanguage,
+        responseMimeType: "application/json",
+        encryptedKeyPayload,
+      }).then(text => ({ model: "smart", text })),
+      () => getGeminiTextFromEdge({
+        model: "agentic",
+        prompt,
+        temp: 0.3,
+        mode: "checklist",
+        language: resolvedLanguage,
+        responseMimeType: "application/json",
+        encryptedKeyPayload,
+      }).then(text => ({ model: "agentic", text })),
+    ], isValid);
+
+    return JSON.parse(raceResult.text).checklist;
+  } catch (err) {
+    console.warn("Blind checklist race failed, falling back to balanced", err);
+    try {
+      const text = await getGeminiTextFromEdge({
+        model: "balanced",
+        prompt,
+        temp: 0.4,
+        mode: "checklist",
+        language: resolvedLanguage,
+        responseMimeType: "application/json",
+        encryptedKeyPayload,
+      });
+
+      const parsed = extractAndParseJSONSafe(text);
+      if (parsed.ok) return parsed.data.checklist;
+
+      return JSON.parse(text).checklist;
+    } catch (err2) {
+      console.warn("Blind checklist balanced fallback failed, falling back to fast", err2);
+      const text = await getGeminiTextFromEdge({
+        model: "fast",
+        prompt,
+        temp: 0.5,
+        mode: "checklist",
+        language: resolvedLanguage,
+        responseMimeType: "application/json",
+        encryptedKeyPayload,
+      });
+
+      const parsed = extractAndParseJSONSafe(text);
+      if (parsed.ok) return parsed.data.checklist;
+
+      return JSON.parse(text).checklist;
+    }
+  }
 };

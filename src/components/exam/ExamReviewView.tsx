@@ -1,8 +1,10 @@
-import React from 'react';
+import React, { Fragment } from 'react';
+import { BookOpen } from 'lucide-react';
 import type { CoreTestPayload } from '../../types';
 import { ExamBackToChatButton } from './ExamBackToChatButton';
 import { MarkdownContent } from '../MarkdownContent';
 import { AppLanguage, LANGUAGE_DATA} from '../../lang/Language';
+import { buildExamRuntimeEntries, shouldShowExamPartHeaders } from '../../hooks/exam/examRuntimeEntries';
 
 type ExamReviewViewProps = {
   title: string;
@@ -23,6 +25,9 @@ export const ExamReviewView: React.FC<ExamReviewViewProps> = ({
   onRedo,
   language = 'en',
 }) => {
+  const entries = buildExamRuntimeEntries(payload);
+  const shouldShowPartHeaders = shouldShowExamPartHeaders(payload);
+
   return (
     <div className="relative mx-auto flex w-full max-w-5xl flex-col gap-6 px-3 pb-6 pt-20 sm:px-4 sm:pb-8 sm:pt-24 md:pt-8">
       <ExamBackToChatButton onClick={onBackToChat} label={chatLabel} />
@@ -52,8 +57,36 @@ export const ExamReviewView: React.FC<ExamReviewViewProps> = ({
         </div>
       </div>
 
-      <div className="space-y-4">
-        {payload.items.map((item) => {
+      <div className="space-y-6">
+        {entries.map((entry, index) => {
+          const previousEntry = entries[index - 1];
+          const shouldRenderPartHeader =
+            shouldShowPartHeaders &&
+            entry.partId &&
+            entry.partId !== previousEntry?.partId;
+
+          if (entry.type === 'info') {
+            return (
+              <Fragment key={entry.id}>
+                {shouldRenderPartHeader && (
+                  <h2 className="pt-4 text-sm font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 first:pt-0">
+                    {entry.partTitle}
+                  </h2>
+                )}
+                <div className="rounded-2xl border border-indigo-100 bg-indigo-50/30 p-5 shadow-sm dark:border-indigo-900/30 dark:bg-indigo-950/10">
+                  <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-indigo-500 dark:text-indigo-300">
+                    <BookOpen className="h-4 w-4" />
+                    Information
+                  </div>
+                  <div className="mt-3 text-sm leading-6 text-slate-700 dark:text-slate-200">
+                    <MarkdownContent content={entry.info} />
+                  </div>
+                </div>
+              </Fragment>
+            );
+          }
+
+          const item = entry.item;
           const isUnanswered = !item.userAnswer.trim();
           const itemScore = item.score ?? 0;
           const itemMaxScore = item.maxScore ?? 1;
@@ -94,67 +127,73 @@ export const ExamReviewView: React.FC<ExamReviewViewProps> = ({
                 : LANGUAGE_DATA[language].ui.exam.unanswered;
 
           return (
-            <article
-              key={item.id}
-              className={`rounded-2xl border p-5 shadow-sm ${cardClassName}`}
-            >
-              <div className="flex flex-wrap items-start justify-between gap-3">
-                <div>
-                  <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">
-                    {LANGUAGE_DATA[language].ui.exam.questionPrefix} {item.questionNumber}
-                  </p>
-                  <p className="mt-1 text-xs font-medium uppercase tracking-[0.14em] text-slate-400">
-                    {item.type === 'mcq' ? LANGUAGE_DATA[language].ui.exam.multipleChoice : LANGUAGE_DATA[language].ui.exam.openResponse}
-                  </p>
-                </div>
-                <div className="flex items-start gap-3">
-                  <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${badgeClassName}`}>
-                    {badgeText}
-                  </span>
-                  <div className="text-right">
-                    <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
-                      {LANGUAGE_DATA[language].ui.exam.score}
+            <Fragment key={item.id}>
+              {shouldRenderPartHeader && (
+                <h2 className="pt-4 text-sm font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 first:pt-0">
+                  {entry.partTitle}
+                </h2>
+              )}
+              <article
+                className={`rounded-2xl border p-5 shadow-sm ${cardClassName}`}
+              >
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div>
+                    <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">
+                      {LANGUAGE_DATA[language].ui.exam.questionPrefix} {item.questionNumber}
                     </p>
-                    <p className="text-lg font-semibold text-slate-900 dark:text-slate-100">
-                      {item.score ?? 0}/{item.maxScore ?? 1}
+                    <p className="mt-1 text-xs font-medium uppercase tracking-[0.14em] text-slate-400">
+                      {item.type === 'mcq' ? LANGUAGE_DATA[language].ui.exam.multipleChoice : LANGUAGE_DATA[language].ui.exam.openResponse}
+                    </p>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${badgeClassName}`}>
+                      {badgeText}
+                    </span>
+                    <div className="text-right">
+                      <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
+                        {LANGUAGE_DATA[language].ui.exam.score}
+                      </p>
+                      <p className="text-lg font-semibold text-slate-900 dark:text-slate-100">
+                        {item.score ?? 0}/{item.maxScore ?? 1}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-4 text-sm leading-6 text-slate-700 dark:text-slate-200">
+                  <MarkdownContent content={item.prompt} />
+                </div>
+
+                <div className="mt-5 grid gap-4 md:grid-cols-2">
+                  <div className="rounded-xl bg-slate-50 p-4 dark:bg-slate-950/60">
+                    <p className="text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">
+                      {LANGUAGE_DATA[language].ui.exam.yourAnswer}
+                    </p>
+                    <p className="mt-2 whitespace-pre-wrap text-sm text-slate-700 dark:text-slate-200">
+                      {item.userAnswer || LANGUAGE_DATA[language].ui.exam.noAnswerSubmitted}
+                    </p>
+                  </div>
+
+                  <div className="rounded-xl bg-slate-50 p-4 dark:bg-slate-950/60">
+                    <p className="text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">
+                      {LANGUAGE_DATA[language].ui.exam.correctAnswer}
+                    </p>
+                    <p className="mt-2 whitespace-pre-wrap text-sm text-slate-700 dark:text-slate-200">
+                      {item.correctAnswer || item.markScheme || LANGUAGE_DATA[language].ui.exam.noOfficialAnswer}
                     </p>
                   </div>
                 </div>
-              </div>
 
-              <div className="mt-4 text-sm leading-6 text-slate-700 dark:text-slate-200">
-                <MarkdownContent content={item.prompt} />
-              </div>
-
-              <div className="mt-5 grid gap-4 md:grid-cols-2">
-                <div className="rounded-xl bg-slate-50 p-4 dark:bg-slate-950/60">
+                <div className="mt-4 rounded-xl bg-slate-50 p-4 dark:bg-slate-950/60">
                   <p className="text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">
-                    {LANGUAGE_DATA[language].ui.exam.yourAnswer}
+                    {LANGUAGE_DATA[language].ui.exam.feedback}
                   </p>
                   <p className="mt-2 whitespace-pre-wrap text-sm text-slate-700 dark:text-slate-200">
-                    {item.userAnswer || LANGUAGE_DATA[language].ui.exam.noAnswerSubmitted}
+                    {item.feedback || LANGUAGE_DATA[language].ui.exam.noAdditionalFeedback}
                   </p>
                 </div>
-
-                <div className="rounded-xl bg-slate-50 p-4 dark:bg-slate-950/60">
-                  <p className="text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">
-                    {LANGUAGE_DATA[language].ui.exam.correctAnswer}
-                  </p>
-                  <p className="mt-2 whitespace-pre-wrap text-sm text-slate-700 dark:text-slate-200">
-                    {item.correctAnswer || item.markScheme || LANGUAGE_DATA[language].ui.exam.noOfficialAnswer}
-                  </p>
-                </div>
-              </div>
-
-              <div className="mt-4 rounded-xl bg-slate-50 p-4 dark:bg-slate-950/60">
-                <p className="text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">
-                  {LANGUAGE_DATA[language].ui.exam.feedback}
-                </p>
-                <p className="mt-2 whitespace-pre-wrap text-sm text-slate-700 dark:text-slate-200">
-                  {item.feedback || LANGUAGE_DATA[language].ui.exam.noAdditionalFeedback}
-                </p>
-              </div>
-            </article>
+              </article>
+            </Fragment>
           );
         })}
       </div>

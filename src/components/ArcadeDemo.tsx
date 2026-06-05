@@ -1,5 +1,5 @@
 
-// v2.5.x demo
+// v2.5.x chat demo
 export function ArcadeDemo() {
   return (
     <div style={{ position: 'relative', paddingBottom: 'calc(45.708333333333336% + 41px)', height: '0', width: '100%' }}>
@@ -15,6 +15,24 @@ export function ArcadeDemo() {
     </div>
   )
 }
+
+// v2.5.x core test demo
+export function ArcadeCoreTest() {
+  return (
+    <div style={{ position: 'relative', paddingBottom: 'calc(45.708333333333336% + 41px)', height: '0', width: '100%' }}>
+      <iframe
+        src="https://demo.arcade.software/jYbDPdp3Iep2HUug8QJQ?embed&embed_mobile=tab&embed_desktop=inline&show_copy_link=true"
+        title="Academic Oracle Core Test v2.5.x"
+        frameBorder="0"
+        loading="lazy"
+        allowFullScreen
+        allow="clipboard-write"
+        style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', colorScheme: 'light' }}
+      />
+    </div>
+  )
+}
+
 
 // v2.4.x demo
 // export function ArcadeDemo() {

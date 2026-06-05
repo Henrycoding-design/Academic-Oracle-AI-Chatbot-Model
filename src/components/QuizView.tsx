@@ -11,7 +11,7 @@
  */
 
 import React, { useEffect, useRef, useState } from 'react';
-import { CheckCircle2, XCircle, ArrowRight, Settings, Play, RotateCcw, MessageSquarePlus, MessageSquare, LoaderCircle } from 'lucide-react';
+import { AlertTriangle, CheckCircle2, XCircle, ArrowRight, Settings, Play, RotateCcw, MessageSquarePlus, MessageSquare, LoaderCircle } from 'lucide-react';
 import type { ChatHistoryItem, QuizConfig, QuizQuestion, QuizResult, UserMessageUiMeta } from '../types';
 import { generateQuizQuestions, validateOpenAnswer, estimateQuizConfig } from '../services/geminiService';
 import { formatTopicTagForDisplay, getCurrentTopicTag, getVisibleOracleTopics } from '../services/oracleMemory';
@@ -368,7 +368,8 @@ export const QuizView: React.FC<QuizViewProps> = ({
         result = {
           questionId: currentQ.id,
           userAnswer: answer,
-          isCorrect: false,
+          isCorrect: null,
+          isModelFailure: true,
           feedback: LD.ui.genericError
         };
       }
@@ -389,7 +390,11 @@ export const QuizView: React.FC<QuizViewProps> = ({
   };
 
   const handleExplainInChat = (q: QuizQuestion, r: QuizResult) => {
-    const resultText = r.isCorrect ? LD.ui.correctLabel : LD.ui.notQuite;
+    const resultText = r.isModelFailure
+      ? LD.ui.modelGradingUnavailable
+      : r.isCorrect
+        ? LD.ui.correctLabel
+        : LD.ui.notQuite;
     const prompt = LD.ui.explainContext
       .replace('{question}', q.question)
       .replace('{answer}', r.userAnswer ?? '')
@@ -416,7 +421,7 @@ export const QuizView: React.FC<QuizViewProps> = ({
 
   const handleFinish = () => {
     const score = (Object.values(results) as QuizResult[])
-        .filter(r => r.isCorrect)
+        .filter(r => r.isCorrect === true)
         .length;
     const summary = LD.ui.quizSummary
       .replace('{score}', String(score))
@@ -550,6 +555,7 @@ export const QuizView: React.FC<QuizViewProps> = ({
     const currentQ = questions[currentQIndex];
     const currentResult = results[currentQ.id];
     const isAnswered = !!currentResult;
+    const isModelFailure = currentResult?.isModelFailure === true;
 
     return (
       <div className="relative h-full">
@@ -627,20 +633,36 @@ export const QuizView: React.FC<QuizViewProps> = ({
             
             {isAnswered && !isValidating && (
               <div className={`mt-8 rounded-2xl p-5 sm:p-6 animate-in slide-in-from-bottom-4 ${
-                currentResult.isCorrect ? 'bg-emerald-50 dark:bg-emerald-950/30' : 'bg-rose-50 dark:bg-rose-950/30'
+                isModelFailure
+                  ? 'bg-amber-50 dark:bg-amber-950/30'
+                  : currentResult.isCorrect
+                    ? 'bg-emerald-50 dark:bg-emerald-950/30'
+                    : 'bg-rose-50 dark:bg-rose-950/30'
               }`}>
                 <div className="flex items-start gap-3">
-                  {currentResult.isCorrect 
+                  {isModelFailure
+                    ? <AlertTriangle className="w-6 h-6 text-amber-500 shrink-0" />
+                    : currentResult.isCorrect 
                     ? <CheckCircle2 className="w-6 h-6 text-emerald-500 shrink-0" />
                     : <XCircle className="w-6 h-6 text-rose-500 shrink-0" />
                   }
                   <div className="flex-1">
-                    <p className={`font-semibold mb-2 ${currentResult.isCorrect ? 'text-emerald-700 dark:text-emerald-400' : 'text-rose-700 dark:text-rose-400'}`}>
-                      {currentResult.isCorrect ? LD.ui.correctExclaim : LD.ui.notQuite}
+                    <p className={`font-semibold mb-2 ${
+                      isModelFailure
+                        ? 'text-amber-700 dark:text-amber-400'
+                        : currentResult.isCorrect
+                          ? 'text-emerald-700 dark:text-emerald-400'
+                          : 'text-rose-700 dark:text-rose-400'
+                    }`}>
+                      {isModelFailure
+                        ? LD.ui.modelGradingUnavailable
+                        : currentResult.isCorrect
+                          ? LD.ui.correctExclaim
+                          : LD.ui.notQuite}
                     </p>
                     <p className="text-slate-600 dark:text-slate-300 text-sm leading-relaxed"><MarkdownContent content={currentResult.feedback} /></p>
                     
-                    {!currentResult.isCorrect && (
+                    {currentResult.isCorrect === false && (
                       <button 
                         onClick={() => handleExplainInChat(currentQ, currentResult)}
                         className="mt-4 flex items-center gap-2 text-sm font-medium text-indigo-600 dark:text-indigo-400 hover:underline"
@@ -692,7 +714,7 @@ export const QuizView: React.FC<QuizViewProps> = ({
             <div className="p-4 bg-emerald-50 dark:bg-emerald-900/20 rounded-2xl">
                 <div className="text-4xl font-bold text-emerald-600 mb-1">
                     {(Object.values(results) as QuizResult[])
-                        .filter(r => r.isCorrect)
+                        .filter(r => r.isCorrect === true)
                         .length}
                 </div>
                 <div className="text-sm text-emerald-700 dark:text-emerald-400">{LD.ui.correctLabel}</div>
@@ -700,7 +722,7 @@ export const QuizView: React.FC<QuizViewProps> = ({
             <div className="p-4 bg-rose-50 dark:bg-rose-900/20 rounded-2xl">
                 <div className="text-4xl font-bold text-rose-600 mb-1">
                     {(Object.values(results) as QuizResult[])
-                        .filter(r => !r.isCorrect)
+                        .filter(r => r.isCorrect === false)
                         .length}
                 </div>
                 <div className="text-sm text-rose-700 dark:text-rose-400">{LD.ui.needsReview}</div>

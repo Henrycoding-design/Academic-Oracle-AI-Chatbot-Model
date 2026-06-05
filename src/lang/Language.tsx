@@ -41,6 +41,7 @@ export const LANGUAGE_DATA: Record<AppLanguage, {
     aiGrading: string;
     correctExclaim: string;
     notQuite: string;
+    modelGradingUnavailable: string;
     explainSelectionButton: string;
     followUpSelectionButton: string;
     explainSelectionPrompt: string;
@@ -312,6 +313,8 @@ export const LANGUAGE_DATA: Record<AppLanguage, {
       resultSummaryStrong: string; // use {score}, {total}
       resultSummaryCompetent: string; // use {score}, {total}
       resultSummaryNeedsReview: string; // use {score}, {total}
+      submittingLoading: string;
+      submittingSubtitle: string;
     };
   };
 }> = {
@@ -357,6 +360,7 @@ export const LANGUAGE_DATA: Record<AppLanguage, {
       aiGrading: "AI is grading your answer...",
       correctExclaim: "Correct!",
       notQuite: "Not quite right",
+      modelGradingUnavailable: "Unable to grade this answer",
       explainSelectionButton: "Explain further",
       followUpSelectionButton: "Follow up",
       explainSelectionPrompt: "Explain this part more clearly and simply:\n\n\"{selection}\"",
@@ -631,7 +635,9 @@ export const LANGUAGE_DATA: Record<AppLanguage, {
         resultSummaryNotAnswered: 'Test not answered. No responses were submitted, so this attempt was recorded as 0 out of {total} available marks.',
         resultSummaryStrong: 'Strong performance. You earned {score} out of {total} available marks.',
         resultSummaryCompetent: 'Competent result. You earned {score} out of {total} available marks, with some room to tighten consistency.',
-        resultSummaryNeedsReview: 'The runtime is working, but this attempt needs review. You earned {score} out of {total} available marks.',
+        resultSummaryNeedsReview: 'This attempt requires further review. You earned {score} out of {total} available marks.',
+        submittingLoading: 'Grading in progress...',
+        submittingSubtitle: 'Please wait while we evaluate your responses based on the provided criteria.',
       },
     },
   },
@@ -669,6 +675,7 @@ export const LANGUAGE_DATA: Record<AppLanguage, {
       aiGrading: "L'IA évalue votre réponse...",
       correctExclaim: "Correct !",
       notQuite: "Pas tout à fait correct",
+      modelGradingUnavailable: "Impossible de noter cette réponse",
       explainContext: "Je fais un quiz sur notre sujet précédent.\nQuestion: \"{question}\"\nMa réponse: \"{answer}\"\nRésultat: {result}\nRetour reçu: \"{feedback}\"\n\nPeux-tu expliquer ce concept plus en détail ?",
       quizSummary: "Quiz terminé. Score : {score}/{total}. Difficulté : {level}.",
       chatTooShortForQuiz: "Historique de discussion ou mémoire de session insuffisant pour générer un quiz.",
@@ -951,7 +958,9 @@ export const LANGUAGE_DATA: Record<AppLanguage, {
         resultSummaryNotAnswered: 'Examen non répondu. Aucune réponse n\'a été soumise, cette tentative est enregistrée comme 0 sur {total} points disponibles.',
         resultSummaryStrong: 'Excellente performance. Vous avez obtenu {score} sur {total} points disponibles.',
         resultSummaryCompetent: 'Résultat compétent. Vous avez obtenu {score} sur {total} points disponibles, avec quelques marges de progression.',
-        resultSummaryNeedsReview: 'L\'environnement fonctionne, mais cette tentative nécessite une révision. Vous avez obtenu {score} sur {total} points disponibles.',
+        resultSummaryNeedsReview: 'Cette tentative nécessite une révision plus approfondie. Vous avez obtenu {score} sur {total} points disponibles.',
+        submittingLoading: 'Notation en cours...',
+        submittingSubtitle: 'Veuillez patienter pendant que nous évaluons vos réponses sur la base des critères fournis.',
       },
     },
   },
@@ -989,6 +998,7 @@ export const LANGUAGE_DATA: Record<AppLanguage, {
       aiGrading: "La IA está calificando tu respuesta...",
       correctExclaim: "¡Correcto!",
       notQuite: "No es del todo correcto",
+      modelGradingUnavailable: "No se pudo calificar esta respuesta",
       explainContext: "Estoy haciendo un cuestionario sobre nuestro tema anterior.\nPregunta: \"{question}\"\nMi respuesta: \"{answer}\"\nResultado: {result}\nRetroalimentación recibida: \"{feedback}\"\n\n¿Puedes explicar este concepto con más detalle?",
       quizSummary: "Cuestionario completado. Puntuación: {score}/{total}. Dificultad: {level}.",
       chatTooShortForQuiz: "Historial de chat o memoria de sesión insuficiente para generar un cuestionario.",
@@ -1271,7 +1281,9 @@ export const LANGUAGE_DATA: Record<AppLanguage, {
         resultSummaryNotAnswered: 'Examen sin responder. No se enviaron respuestas, este intento se registró como 0 de {total} puntos disponibles.',
         resultSummaryStrong: 'Rendimiento sólido. Obtuviste {score} de {total} puntos disponibles.',
         resultSummaryCompetent: 'Resultado competente. Obtuviste {score} de {total} puntos disponibles, con algo de margen para mejorar la consistencia.',
-        resultSummaryNeedsReview: 'El entorno funciona, pero este intento necesita revisión. Obtuviste {score} de {total} puntos disponibles.',
+        resultSummaryNeedsReview: 'Este intento requiere una revisión más detallada. Obtuviste {score} de {total} puntos disponibles.',
+        submittingLoading: 'Calificación en curso...',
+        submittingSubtitle: 'Por favor, espere mientras evaluamos sus respuestas basándonos en los criterios proporcionados.',
       },
     },
   },
@@ -1309,6 +1321,7 @@ export const LANGUAGE_DATA: Record<AppLanguage, {
       aiGrading: "AI đang chấm đáp án...",
       correctExclaim: "Đúng!",
       notQuite: "Chưa chính xác",
+      modelGradingUnavailable: "Chưa thể chấm câu trả lời này",
       explainContext: "Tôi đang làm một bài kiểm tra về chủ đề trước đó.\nCâu hỏi: \"{question}\"\nCâu trả lời của tôi: \"{answer}\"\nKết quả: {result}\nPhản hồi nhận được: \"{feedback}\"\n\nBạn có thể giải thích khái niệm này chi tiết hơn không?",
       quizSummary: "Hoàn thành bài kiểm tra. Điểm: {score}/{total}. Mức độ: {level}.",
       chatTooShortForQuiz: "Lịch sử trò chuyện hoặc bộ nhớ phiên không đủ để tạo bài kiểm tra.",
@@ -1591,7 +1604,9 @@ export const LANGUAGE_DATA: Record<AppLanguage, {
         resultSummaryNotAnswered: 'Bài kiểm tra chưa được trả lời. Không có câu nào được nộp, lần thử này được ghi nhận là 0 trên {total} điểm.',
         resultSummaryStrong: 'Kết quả xuất sắc. Bạn đạt {score} trên {total} điểm.',
         resultSummaryCompetent: 'Kết quả khá. Bạn đạt {score} trên {total} điểm, còn một số chỗ cần cải thiện.',
-        resultSummaryNeedsReview: 'Hệ thống hoạt động, nhưng lần thử này cần xem lại. Bạn đạt {score} trên {total} điểm.',
+        resultSummaryNeedsReview: 'Lần thử này cần được xem xét kỹ hơn. Bạn đạt {score} trên {total} điểm.',
+        submittingLoading: 'Đang chấm điểm...',
+        submittingSubtitle: 'Vui lòng đợi trong khi chúng tôi đánh giá câu trả lời của bạn dựa trên các tiêu chí đã cung cấp.',
       },
     },
   },

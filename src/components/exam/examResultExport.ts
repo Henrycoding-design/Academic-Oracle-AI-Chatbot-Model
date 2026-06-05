@@ -14,6 +14,7 @@ import { Document, HeadingLevel, Packer, Paragraph, TextRun } from 'docx';
 import { saveAs } from 'file-saver';
 import type { CoreTestPayload } from '../../types';
 import { LANGUAGE_DATA, type AppLanguage } from '../../lang/Language';
+import { buildExamRuntimeEntries, shouldShowExamPartHeaders } from '../../hooks/exam/examRuntimeEntries';
 
 type ExportExamResultOptions = {
   payload: CoreTestPayload;
@@ -69,6 +70,8 @@ export const exportExamResultDocx = async ({
   language,
 }: ExportExamResultOptions) => {
   const lang = LANGUAGE_DATA[language].ui.exam;
+  const entries = buildExamRuntimeEntries(payload);
+  const shouldShowPartHeaders = shouldShowExamPartHeaders(payload);
 
   const doc = new Document({
     sections: [
@@ -90,21 +93,60 @@ export const exportExamResultDocx = async ({
             spacing: { before: 320 },
           }),
           new Paragraph(summary),
-          ...payload.items.flatMap((item) => [
-            new Paragraph({
-              text: `${lang.reportQuestion} ${item.questionNumber}`,
-              heading: HeadingLevel.HEADING_1,
-              spacing: { before: 420 },
-            }),
-            metricLine(lang.score, `${item.score ?? 0}/${item.maxScore ?? 1}`),
-            bodyLine(lang.reportQuestion, stripMarkdown(item.prompt)),
-            bodyLine(lang.yourAnswer, item.userAnswer || lang.noAnswerSubmitted),
-            bodyLine(
-              lang.correctAnswer,
-              item.correctAnswer || item.markScheme || lang.noOfficialAnswer,
-            ),
-            bodyLine(lang.feedback, item.feedback || lang.noAdditionalFeedback),
-          ]),
+          ...entries.flatMap((entry, index) => {
+            const previousEntry = entries[index - 1];
+            const shouldRenderPartHeader =
+              shouldShowPartHeaders &&
+              entry.partId &&
+              entry.partId !== previousEntry?.partId;
+
+            const content: Paragraph[] = [];
+
+            if (shouldRenderPartHeader) {
+              content.push(
+                new Paragraph({
+                  text: entry.partTitle || '',
+                  heading: HeadingLevel.HEADING_1,
+                  spacing: { before: 420 },
+                })
+              );
+            }
+
+            if (entry.type === 'info') {
+              const infoLines = stripMarkdown(entry.info).split('\n').filter(line => line.trim().length > 0);
+              content.push(
+                new Paragraph({
+                  text: 'Information',
+                  heading: HeadingLevel.HEADING_2,
+                  spacing: { before: 240 },
+                }),
+                ...infoLines.map(line => new Paragraph({
+                  text: line,
+                  spacing: { before: 120 },
+                }))
+              );
+              return content;
+            }
+
+            const item = entry.item;
+            content.push(
+              new Paragraph({
+                text: `${lang.reportQuestion} ${item.questionNumber}`,
+                heading: HeadingLevel.HEADING_2,
+                spacing: { before: 420 },
+              }),
+              metricLine(lang.score, `${item.score ?? 0}/${item.maxScore ?? 1}`),
+              bodyLine(lang.reportQuestion, stripMarkdown(item.prompt)),
+              bodyLine(lang.yourAnswer, item.userAnswer || lang.noAnswerSubmitted),
+              bodyLine(
+                lang.correctAnswer,
+                item.correctAnswer || item.markScheme || lang.noOfficialAnswer,
+              ),
+              bodyLine(lang.feedback, item.feedback || lang.noAdditionalFeedback),
+            );
+
+            return content;
+          }),
         ],
       },
     ],

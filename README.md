@@ -152,7 +152,7 @@ Academic Oracle optimizes for **retention, intuition, and reasoning**.
 
 ---
 
-### 🎓 Exam Practice Module *(updated v2.4.8)*
+### 🎓 Exam Practice Module *(updated v2.5.0)*
 
 **Transforms Academic Oracle from a learning assistant into a full exam + evaluation system.**
 
@@ -172,8 +172,9 @@ Academic Oracle optimizes for **retention, intuition, and reasoning**.
 ### 📄 Multi-Format Exam Input
 
 - Process full exams from **PDF, PNG, TXT, DOCX**
+- **Enhanced passage extraction** *(new v2.5.0)* — identifies and isolates reading passages or shared information blocks
+- **Grouped Parts Support** *(new v2.5.0)* — automatically detects and renders exam sections (e.g., Part 3: Reading) with dedicated headers
 - Automated **question extraction + mark scheme parsing**
-- Supports real past papers and custom teacher-provided materials
 
 
 ### 🎚️ Tiered Help System
@@ -206,6 +207,10 @@ Enables a smooth transition from **independent performance → supported improve
   - Weak topics  
   - Error patterns  
   - Performance trends across sessions  
+- **Blind-Checklist feature** *(new v2.5.0)*:
+  - Personalized pre-exam guide generated from all session metrics (chats, quizzes, tests, memory)
+  - Designed for a quick review right before test day
+  - Synthesized via smart/agentic model racing for maximum effectiveness
 
 - Builds a **persistent exam-performance model** over time
 
@@ -253,9 +258,13 @@ Ideal for:
 
 ---
 
-### ⚙️ Intelligent Request Routing *(major update v2.4.0, refined v2.4.9)*
+### ⚙️ Intelligent Request Routing *(major update v2.4.0, refined v2.5.0)*
 
 - **Gemini-first orchestration pipeline** — Chat / Quiz / Summary / Crons all prioritize Gemini models
+- **Failure Tracking & Real-time Recovery** *(new v2.5.0)*
+  - Monitors unretriable errors, rate limits (429/503), and format mismatches per model
+  - Automatically skips failing models in real-time, falling back to other providers or OpenRouter
+  - **Automatic Race Mode** triggers when multiple primary models experience unusual failure rates
 - OpenRouter used strictly as last-resort fallback with validation
 - **Multi-mode execution pipeline**
   - Standard

@@ -1,5 +1,21 @@
 [
   {
+    "version": "2.5.0",
+    "date": "2026-06-05",
+    "changes": [
+      { "type": "feature", "text": "Enhanced Core Test with reading passage extraction and grouped parts support (e.g., Part 1, 2, 3)." },
+      { "type": "improve", "text": "Redesigned Core Test UI to render passages as dedicated 'Info' steps (marked 'I') with bold formatting support." },
+      { "type": "feature", "text": "Implemented real-time model routing with failure tracking (unretriable, rate-limited, wrong format) and automatic fallback to OpenRouter." },
+      { "type": "improve", "text": "Added automatic Race Mode activation when multiple models experience unusual failure rates." },
+      { "type": "feature", "text": "Introduced 'Blind-Checklist': a personalized pre-exam guide generated from chats, quizzes, and Oracle Memory metrics." },
+      { "type": "improve", "text": "Optimized checklist generation with smart/agentic model racing and intelligent result caching." },
+      { "type": "improve", "text": "Hardened state management: chat drafts now clear on reset, and routing memory resets on logout or after inactivity." },
+      { "type": "fix", "text": "Improved Quiz FRQ error handling: model failures are now correctly flagged instead of being marked as incorrect answers." },
+      { "type": "improve", "text": "Professionalized analytics summary wording and added a dedicated loading screen after test submission." },
+      { "type": "improve", "text": "Refined prompt engineering to remove redundant question numbering and ensure 100% information capture from documents." }
+    ]
+  },
+  {
     "version": "2.4.9",
     "date": "2026-05-29",
     "changes": [

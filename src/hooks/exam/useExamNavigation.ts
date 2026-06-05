@@ -1,15 +1,20 @@
 import { useMemo } from 'react';
 import type { CoreTestItem } from '../../types';
 import type { ExamSession, UpdateExamSession } from './useExamSession';
+import { buildExamRuntimeEntries, type CoreTestRuntimeEntry } from './examRuntimeEntries';
 
 type NavigationHook = {
+  entries: CoreTestRuntimeEntry[];
+  activeEntryIndex: number;
+  currentEntry: CoreTestRuntimeEntry | null;
+  currentQuestion: CoreTestItem | null;
   goNext: () => void;
   goPrevious: () => void;
-  goToQuestion: (index: number) => void;
+  goToEntry: (index: number) => void;
   toggleFlag: (questionId: string) => void;
   isAnswered: (questionId: string) => boolean;
   isFlagged: (questionId: string) => boolean;
-  isCurrent: (questionId: string) => boolean;
+  isCurrentEntry: (entry: CoreTestRuntimeEntry) => boolean;
 };
 
 export const useExamNavigation = (
@@ -22,31 +27,51 @@ export const useExamNavigation = (
     );
   }, [session.payload.items]);
 
-  const goNext = () => {
+  const entries = useMemo(
+    () => buildExamRuntimeEntries(session.payload),
+    [session.payload],
+  );
+
+  const activeEntryIndex = useMemo(() => {
+    if (session.activeInfoPartId) {
+      const infoIndex = entries.findIndex(
+        (entry) => entry.type === 'info' && entry.partId === session.activeInfoPartId,
+      );
+      if (infoIndex >= 0) return infoIndex;
+    }
+
+    const activeItem = session.payload.items[session.activeQuestionIndex];
+    const questionIndex = entries.findIndex(
+      (entry) => entry.type === 'question' && entry.item.id === activeItem?.id,
+    );
+
+    return Math.max(questionIndex, 0);
+  }, [entries, session.activeInfoPartId, session.activeQuestionIndex, session.payload.items]);
+
+  const currentEntry = entries[activeEntryIndex] ?? null;
+  const currentQuestion = currentEntry?.type === 'question' ? currentEntry.item : null;
+
+  const applyEntry = (entry: CoreTestRuntimeEntry) => {
     updateSession((prev) => ({
       ...prev,
-      activeQuestionIndex: Math.min(
-        prev.payload.items.length - 1,
-        prev.activeQuestionIndex + 1,
-      ),
+      activeInfoPartId: entry.type === 'info' ? entry.partId : null,
+      activeQuestionIndex: entry.type === 'question' ? entry.itemIndex : prev.activeQuestionIndex,
     }));
+  };
+
+  const goNext = () => {
+    const nextEntry = entries[Math.min(entries.length - 1, activeEntryIndex + 1)];
+    if (nextEntry) applyEntry(nextEntry);
   };
 
   const goPrevious = () => {
-    updateSession((prev) => ({
-      ...prev,
-      activeQuestionIndex: Math.max(0, prev.activeQuestionIndex - 1),
-    }));
+    const previousEntry = entries[Math.max(0, activeEntryIndex - 1)];
+    if (previousEntry) applyEntry(previousEntry);
   };
 
-  const goToQuestion = (index: number) => {
-    updateSession((prev) => ({
-      ...prev,
-      activeQuestionIndex: Math.min(
-        Math.max(index, 0),
-        Math.max(prev.payload.items.length - 1, 0),
-      ),
-    }));
+  const goToEntry = (index: number) => {
+    const entry = entries[Math.min(Math.max(index, 0), Math.max(entries.length - 1, 0))];
+    if (entry) applyEntry(entry);
   };
 
   const toggleFlag = (questionId: string) => {
@@ -70,17 +95,21 @@ export const useExamNavigation = (
   const isFlagged = (questionId: string) =>
     session.flaggedQuestionIds.includes(questionId);
 
-  const isCurrent = (questionId: string) =>
-    session.payload.items[session.activeQuestionIndex]?.id === questionId;
+  const isCurrentEntry = (entry: CoreTestRuntimeEntry) =>
+    currentEntry?.type === entry.type && currentEntry.id === entry.id;
 
   return {
+    entries,
+    activeEntryIndex,
+    currentEntry,
+    currentQuestion,
     goNext,
     goPrevious,
-    goToQuestion,
+    goToEntry,
     toggleFlag,
     isAnswered,
     isFlagged,
-    isCurrent,
+    isCurrentEntry,
   };
 };
 

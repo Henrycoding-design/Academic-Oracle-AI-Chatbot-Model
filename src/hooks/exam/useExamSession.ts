@@ -26,7 +26,8 @@ export type ExamStage =
   | 'instructions'
   | 'runtime'
   | 'results'
-  | 'review';
+  | 'review'
+  | 'checklist';
 
 export interface ExamSession {
   stage: ExamStage;
@@ -36,8 +37,11 @@ export interface ExamSession {
   durationSeconds: number;
   endTimestamp?: number;
   activeQuestionIndex: number;
+  activeInfoPartId?: string | null;
   flaggedQuestionIds: string[];
   payload: CoreTestPayload;
+  checklistContent?: string;
+  lastChecklistMetricsHash?: string;
 }
 
 export type ExamHelpLevel = 'none' | 'general' | 'specific' | 'solution';
@@ -91,6 +95,7 @@ const createDefaultSession = (): ExamSession => ({
   status: 'idle',
   durationSeconds: 60 * 60,
   activeQuestionIndex: 0,
+  activeInfoPartId: null,
   flaggedQuestionIds: [],
   payload: createEmptyPayload(),
 });
@@ -375,8 +380,11 @@ export const useExamSession = ({
         submittedAt: undefined,
         endTimestamp: undefined,
         activeQuestionIndex: 0,
+        activeInfoPartId: structured.parts?.find((part) => part.info.trim())?.id ?? null,
         flaggedQuestionIds: [],
         payload: structured,
+        checklistContent: undefined,
+        lastChecklistMetricsHash: undefined,
       }));
     } catch (uploadError) {
       console.error(uploadError);
@@ -454,6 +462,7 @@ export const useExamSession = ({
       submittedAt: undefined,
       endTimestamp: startedAt + prev.durationSeconds * 1000,
       activeQuestionIndex: 0,
+      activeInfoPartId: prev.payload.parts?.find((part) => part.info.trim())?.id ?? null,
       flaggedQuestionIds: [],
       payload: resetPayloadForAttempt(prev.payload),
     }));
@@ -553,6 +562,7 @@ export const useExamSession = ({
           submittedAt: undefined,
           endTimestamp: undefined,
           activeQuestionIndex: 0,
+          activeInfoPartId: structured.parts?.find((part) => part.info.trim())?.id ?? null,
           flaggedQuestionIds: [],
           payload: mergeUserAnswers(structured, prev.payload),
         }));
@@ -626,8 +636,11 @@ export const useExamSession = ({
       submittedAt: undefined,
       endTimestamp: undefined,
       activeQuestionIndex: 0,
+      activeInfoPartId: prev.payload.parts?.find((part) => part.info.trim())?.id ?? null,
       flaggedQuestionIds: [],
       payload: resetPayloadForAttempt(prev.payload),
+      checklistContent: undefined,
+      lastChecklistMetricsHash: undefined,
     }));
   };
 
