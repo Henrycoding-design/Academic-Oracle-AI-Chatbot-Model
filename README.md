@@ -171,7 +171,7 @@ Academic Oracle optimizes for **retention, intuition, and reasoning**.
 
 ### 📄 Multi-Format Exam Input
 
-- Process full exams from **PDF, PNG, TXT, DOCX**
+- Process full exams from **PDF**
 - **Enhanced passage extraction** *(new v2.5.0)* — identifies and isolates reading passages or shared information blocks
 - **Grouped Parts Support** *(new v2.5.0)* — automatically detects and renders exam sections (e.g., Part 3: Reading) with dedicated headers
 - Automated **question extraction + mark scheme parsing**
