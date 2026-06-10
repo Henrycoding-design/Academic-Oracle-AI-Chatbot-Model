@@ -110,7 +110,7 @@ export default function Navbar() {
           <button
             onClick={() =>
               window.open(
-                "https://www.producthunt.com/products/academic-oracle/launches/academic-oracle-v2-0",
+                "https://www.producthunt.com/products/academic-oracle?utm_source=other&utm_medium=social",
                 "_blank",
                 "noopener,noreferrer"
               )
