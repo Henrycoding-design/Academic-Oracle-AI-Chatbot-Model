@@ -121,24 +121,44 @@ const buildMemorySummary = (
   grade: string,
   gradingStyle: CoreTestGradingStyle,
 ) => {
+  const truncateQuestion = (text: string, limit = 300) => {
+    if (!text) return '';
+    const clean = text.replace(/\s+/g, ' ').trim();
+    return clean.length > limit ? clean.substring(0, limit) + '...' : clean;
+  };
+
+  const truncateAnswers = (text: string, limit = 150) => {
+    if (!text) return '';
+    const clean = text.replace(/\s+/g, ' ').trim();
+    return clean.length > limit ? clean.substring(0, limit) + '...' : clean;
+  };
+
   const weakItems = payload.items
     .filter((item) => (item.score ?? 0) < (item.maxScore ?? 1))
     .slice(0, 6)
     .map((item) => {
+      const question = item.prompt ? ` Question: "${truncateQuestion(item.prompt)}"` : '';
+      const uAns = item.userAnswer ? ` User: "${truncateAnswers(item.userAnswer)}"` : '';
+      const cAns = item.correctAnswer ? ` Correct: "${truncateAnswers(item.correctAnswer)}"` : '';
       const feedback = item.feedback ? ` Feedback: ${item.feedback}` : '';
-      return `Q${item.questionNumber}: ${item.score ?? 0}/${item.maxScore ?? 1}.${feedback}`;
+      return `Q${item.questionNumber}: ${item.score ?? 0}/${item.maxScore ?? 1}.${question}${uAns}${cAns}${feedback}`;
     });
 
   const strengths = payload.items
     .filter((item) => (item.score ?? 0) >= (item.maxScore ?? 1))
     .slice(0, 4)
-    .map((item) => `Q${item.questionNumber}`);
+    .map((item) => {
+      const question = item.prompt ? ` Question: "${truncateQuestion(item.prompt)}"` : '';
+      const uAns = item.userAnswer ? ` User: "${truncateAnswers(item.userAnswer)}"` : '';
+      const feedback = item.feedback ? ` Feedback: ${item.feedback}` : '';
+      return `Q${item.questionNumber}: ${item.score ?? 0}/${item.maxScore ?? 1}.${question}${uAns}${feedback}`;
+    });
 
   return [
     `Core test result for "${payload.title}": ${score}/${total} (${percentage}%), estimated ${grade}, grading style ${gradingStyle}.`,
-    strengths.length ? `Strong questions: ${strengths.join(', ')}.` : '',
-    weakItems.length ? `Review targets: ${weakItems.join(' ')}` : 'No major review targets were detected from this test.',
-  ].filter(Boolean).join('\n');
+    strengths.length ? `Strong questions:\n- ${strengths.join('\n- ')}` : '',
+    weakItems.length ? `Review targets:\n- ${weakItems.join('\n- ')}` : 'No major review targets were detected from this test.',
+  ].filter(Boolean).join('\n\n');
 };
 
 const buildSetupInstructions = (payloadInstructions: string, lang: any) => {

@@ -1,5 +1,35 @@
 [
   {
+    "version": "2.5.2",
+    "date": "2026-06-13",
+    "changes": [
+      {
+        "type": "improve",
+        "text": "Strengthened Core Test extraction safeguards to prevent reading passages and questions from being omitted due to AI assumptions or prior knowledge."
+      },
+      {
+        "type": "improve",
+        "text": "Added mandatory validation checks to enforce complete document capture, verbatim transcription, and strict chronological question ordering."
+      },
+      {
+        "type": "improve",
+        "text": "Improved sub-question recognition (e.g., 1a, 1b, 1c) to reduce the risk of missing sibling question components during document processing."
+      },
+      {
+        "type": "improve",
+        "text": "Enhanced Academic Oracle memory injection with richer exam context, including question prompts, user responses, feedback, and review corrections."
+      },
+      {
+        "type": "improve",
+        "text": "Optimized memory summaries for improved token efficiency, consistency, and downstream AI tutoring performance."
+      },
+      {
+        "type": "fix",
+        "text": "Improved summary generation reliability through stronger whitespace normalization and defensive string handling."
+      }
+    ]
+  },
+  {
     "version": "2.5.0",
     "date": "2026-06-05",
     "changes": [

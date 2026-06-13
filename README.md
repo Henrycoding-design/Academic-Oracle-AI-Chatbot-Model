@@ -152,7 +152,7 @@ Academic Oracle optimizes for **retention, intuition, and reasoning**.
 
 ---
 
-### 🎓 Exam Practice Module *(updated v2.5.0)*
+### 🎓 Exam Practice Module *(updated v2.5.2)*
 
 **Transforms Academic Oracle from a learning assistant into a full exam + evaluation system.**
 
@@ -166,6 +166,8 @@ Academic Oracle optimizes for **retention, intuition, and reasoning**.
 
 - **Full Exam Mode** — timed conditions, restricted help, and no live feedback  
 - Replicates real testing pressure to train focus, discipline, and decision-making  
+- **Performance Memory Injection** *(new v2.5.2)* — Detailed exam summaries (including question prompts, user answers, and corrections) are now injected into the AI's memory.
+- **Total Capture Safeguards** *(new v2.5.2)* — Upgraded prompt engineering with a *General Knowledge Override Exception* and *Mandatory Execution Checklist* to ensure 100% of reading passages and sub-questions are captured verbatim from source documents, even if they appear answerable by general knowledge.
 - Designed for structured exam systems *(IGCSE, A-Level, AP, SAT-style preparation)*  
 
 
