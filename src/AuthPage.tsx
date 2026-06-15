@@ -258,10 +258,18 @@ const AuthPage: React.FC<{
   return (
     <div className="h-screen flex flex-col items-center justify-center
                     bg-slate-50 dark:bg-slate-950">
-      <h1 className="text-3xl font-bold mb-7 text-slate-900 dark:text-slate-100">
-        Academic Oracle
-      </h1>
-
+      <button 
+        onClick={() => window.open("/home", "_self")} 
+        className="group focus:outline-none"
+      >
+        <h1 className="text-3xl font-bold mb-7 text-slate-900 dark:text-slate-100 
+                      hover:text-indigo-600 dark:hover:text-indigo-400
+                      hover:scale-105 active:scale-95
+                      hover:drop-shadow-[0_0_15px_rgba(99,102,241,0.4)]
+                      transition-all duration-300 ease-out">
+          Academic Oracle
+        </h1>
+      </button>
       <button
         onClick={handleLogin}
         className="inline-flex items-center gap-2 px-5 py-3 mt-2
