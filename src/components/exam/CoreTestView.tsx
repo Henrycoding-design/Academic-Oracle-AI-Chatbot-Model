@@ -11,7 +11,7 @@
  */
 
 import React, { useEffect, useMemo, useState } from 'react';
-import { ChevronRight, ClipboardCheck, FileText, LoaderCircle, RotateCcw, Upload } from 'lucide-react';
+import { ChevronRight, ClipboardCheck, FileText, Info, LoaderCircle, RotateCcw, Upload } from 'lucide-react';
 import { LANGUAGE_DATA, type AppLanguage } from '../../lang/Language';
 import type { CoreTestGradingStyle, CoreTestPayload } from '../../types';
 import { ExamBackToChatButton } from './ExamBackToChatButton';
@@ -47,6 +47,11 @@ type ToastMessage = {
 
 const QUESTION_FILE_INPUT_ID = 'core-test-question-input';
 const MARKSCHEME_FILE_INPUT_ID = 'core-test-markscheme-input';
+const DURATION_SLIDER_VALUES = [1, ...Array.from({ length: 18 }, (_, index) => (index + 1) * 5)];
+const DURATION_SLIDER_MAX_MINUTES = 90;
+const DURATION_INPUT_MAX_MINUTES = 6 * 60;
+const DURATION_INPUT_MIN_MINUTES = 1;
+type SetupTooltipKey = 'duration' | 'helpLevel' | 'gradingStyle';
 
 const estimateGrade = (percentage: number, gradingStyle: CoreTestGradingStyle) => {
   if (gradingStyle === 'ap') {
@@ -217,6 +222,10 @@ export const CoreTestView: React.FC<CoreTestViewProps> = ({
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
   const [isSubmitConfirmOpen, setIsSubmitConfirmOpen] = useState(false);
   const [isGeneratingChecklist, setIsGeneratingChecklist] = useState(false);
+  const [activeSetupTooltip, setActiveSetupTooltip] = useState<SetupTooltipKey | null>(null);
+  const [durationInputValue, setDurationInputValue] = useState(() =>
+    String(Math.round(session.durationSeconds / 60)),
+  );
 
   const calculateMetricsHash = (metrics: any) => {
     try {
@@ -292,14 +301,21 @@ export const CoreTestView: React.FC<CoreTestViewProps> = ({
     { value: 'cambridge', label: 'Cambridge' },
   ];
 
-  const DURATION_OPTIONS = [
-    { value: 15 * 60, label: setupLang.duration15 },
-    { value: 30 * 60, label: setupLang.duration30 },
-    { value: 45 * 60, label: setupLang.duration45 },
-    { value: 60 * 60, label: setupLang.duration60 },
-  ] as const;
-
   const shouldShowPartHeaders = shouldShowExamPartHeaders(session.payload);
+  const durationMinutes = Math.round(session.durationSeconds / 60);
+  const durationSliderIndex = DURATION_SLIDER_VALUES.reduce(
+    (closestIndex, value, index) =>
+      Math.abs(value - Math.min(durationMinutes, DURATION_SLIDER_MAX_MINUTES)) <
+      Math.abs(DURATION_SLIDER_VALUES[closestIndex] - Math.min(durationMinutes, DURATION_SLIDER_MAX_MINUTES))
+        ? index
+        : closestIndex,
+    0,
+  );
+  const setupTooltips: Record<SetupTooltipKey, string> = {
+    duration: setupLang.durationTooltip,
+    helpLevel: setupLang.helpLevelTooltip,
+    gradingStyle: setupLang.gradingStyleTooltip,
+  };
   const unansweredCount = useMemo(
     () => session.payload.items.filter((item) => !item.userAnswer.trim()).length,
     [session.payload.items],
@@ -343,6 +359,10 @@ export const CoreTestView: React.FC<CoreTestViewProps> = ({
   }, [session.stage]);
 
   useEffect(() => {
+    setDurationInputValue(String(durationMinutes));
+  }, [durationMinutes]);
+
+  useEffect(() => {
     if (!isViewActive) return;
     onRequestScrollTop?.();
   }, [isViewActive, onRequestScrollTop, session.stage]);
@@ -351,6 +371,51 @@ export const CoreTestView: React.FC<CoreTestViewProps> = ({
     setIsSubmitConfirmOpen(false);
     void submitExam();
   };
+
+  const applyDurationMinutes = (minutes: number) => {
+    const nextMinutes = Math.max(
+      DURATION_INPUT_MIN_MINUTES,
+      Math.min(DURATION_INPUT_MAX_MINUTES, Math.round(minutes)),
+    );
+
+    setDurationSeconds(nextMinutes * 60);
+    setDurationInputValue(String(nextMinutes));
+  };
+
+  const renderSetupLabel = (
+    label: string,
+    tooltipKey: SetupTooltipKey,
+    htmlFor?: string,
+  ) => (
+    <div className="flex items-center gap-2">
+      <label
+        htmlFor={htmlFor}
+        className="block text-sm font-medium text-slate-700 dark:text-slate-300"
+      >
+        {label}
+      </label>
+      <div
+        className="relative flex items-center"
+        onMouseEnter={() => setActiveSetupTooltip(tooltipKey)}
+        onMouseLeave={() => setActiveSetupTooltip((current) => current === tooltipKey ? null : current)}
+        onFocus={() => setActiveSetupTooltip(tooltipKey)}
+        onBlur={() => setActiveSetupTooltip((current) => current === tooltipKey ? null : current)}
+      >
+        <button
+          type="button"
+          className="text-slate-400 transition-colors hover:text-slate-600 focus:outline-none focus-visible:text-slate-600 dark:hover:text-slate-200 dark:focus-visible:text-slate-200"
+          aria-label={setupTooltips[tooltipKey]}
+        >
+          <Info className="h-3.5 w-3.5" />
+        </button>
+        {activeSetupTooltip === tooltipKey && (
+          <div className="absolute bottom-full left-1/2 z-50 mb-2 w-64 -translate-x-1/2 rounded-lg bg-slate-100 px-3 py-2 text-xs text-slate-900 shadow-lg dark:bg-slate-800 dark:text-white">
+            {setupTooltips[tooltipKey]}
+          </div>
+        )}
+      </div>
+    </div>
+  );
 
   const score = session.payload.summary?.correct ?? 0;
   const total = session.payload.summary?.total ?? session.payload.items.length;
@@ -684,30 +749,50 @@ export const CoreTestView: React.FC<CoreTestViewProps> = ({
 
           <div className="mt-6 grid gap-5 md:grid-cols-3">
             <div>
-              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">
-                {setupLang.durationLabel}
-              </label>
-              <div className="mt-3 grid grid-cols-2 gap-2">
-                {DURATION_OPTIONS.map((option) => (
-                  <button
-                    key={option.value}
-                    onClick={() => setDurationSeconds(option.value)}
-                    className={`rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
-                      session.durationSeconds === option.value
-                        ? 'border-indigo-500 bg-indigo-600 text-white'
-                        : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800'
-                    }`}
-                  >
-                    {option.label}
-                  </button>
-                ))}
+              {renderSetupLabel(setupLang.durationLabel, 'duration', 'core-test-duration-minutes')}
+              <div className="mt-3 space-y-3">
+                <input
+                  type="range"
+                  min="0"
+                  max={DURATION_SLIDER_VALUES.length - 1}
+                  step="1"
+                  value={durationSliderIndex}
+                  onChange={(event) => applyDurationMinutes(DURATION_SLIDER_VALUES[Number(event.target.value)])}
+                  className="h-2 w-full cursor-pointer appearance-none rounded-lg bg-slate-200 accent-indigo-600 dark:bg-slate-700"
+                />
+                <input
+                  id="core-test-duration-minutes"
+                  type="number"
+                  min={DURATION_INPUT_MIN_MINUTES}
+                  max={DURATION_INPUT_MAX_MINUTES}
+                  step="1"
+                  value={durationInputValue}
+                  onChange={(event) => {
+                    const nextValue = event.target.value;
+                    setDurationInputValue(nextValue);
+                    if (nextValue === '') return;
+
+                    const parsedMinutes = Number(nextValue);
+                    if (Number.isFinite(parsedMinutes)) {
+                      applyDurationMinutes(parsedMinutes);
+                    }
+                  }}
+                  onBlur={() => {
+                    if (durationInputValue === '') {
+                      setDurationInputValue(String(durationMinutes));
+                      return;
+                    }
+
+                    const parsedMinutes = Number(durationInputValue);
+                    applyDurationMinutes(Number.isFinite(parsedMinutes) ? parsedMinutes : durationMinutes);
+                  }}
+                  className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 outline-none transition-colors focus:border-indigo-400 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
+                />
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">
-                {setupLang.helpLevelLabel}
-              </label>
+              {renderSetupLabel(setupLang.helpLevelLabel, 'helpLevel')}
               <div className="mt-3 grid grid-cols-1 gap-2">
                 {HELP_LEVEL_OPTIONS.map((option) => (
                   <button
@@ -726,9 +811,7 @@ export const CoreTestView: React.FC<CoreTestViewProps> = ({
             </div>
 
             <div>
-              <label htmlFor="core-test-grading-style" className="block text-sm font-medium text-slate-700 dark:text-slate-300">
-                {setupLang.gradingStyleLabel}
-              </label>
+              {renderSetupLabel(setupLang.gradingStyleLabel, 'gradingStyle', 'core-test-grading-style')}
               <select
                 id="core-test-grading-style"
                 value={gradingStyle}

@@ -20,6 +20,7 @@ import {
   gradeCoreTestPayload,
   structureCoreTestFromPdf,
 } from '../../services/geminiService';
+import { buildExamRuntimeEntries } from './examRuntimeEntries';
 
 export type ExamStage =
   | 'setup'
@@ -82,6 +83,20 @@ type UseExamSessionOptions = {
 };
 
 const STORAGE_KEY = 'academic-oracle-professional-exam-state';
+const MIN_EXAM_DURATION_SECONDS = 60;
+const MAX_EXAM_DURATION_SECONDS = 6 * 60 * 60;
+const DEFAULT_EXAM_DURATION_SECONDS = 60 * 60;
+
+const clampExamDurationSeconds = (durationSeconds: number) => {
+  const safeDurationSeconds = Number.isFinite(durationSeconds)
+    ? durationSeconds
+    : DEFAULT_EXAM_DURATION_SECONDS;
+
+  return Math.max(
+    MIN_EXAM_DURATION_SECONDS,
+    Math.min(MAX_EXAM_DURATION_SECONDS, Math.round(safeDurationSeconds)),
+  );
+};
 
 const createEmptyPayload = (): CoreTestPayload => ({
   title: 'Core Test System',
@@ -93,7 +108,7 @@ const createEmptyPayload = (): CoreTestPayload => ({
 const createDefaultSession = (): ExamSession => ({
   stage: 'setup',
   status: 'idle',
-  durationSeconds: 60 * 60,
+  durationSeconds: DEFAULT_EXAM_DURATION_SECONDS,
   activeQuestionIndex: 0,
   activeInfoPartId: null,
   flaggedQuestionIds: [],
@@ -186,6 +201,15 @@ const resetPayloadForAttempt = (payload: CoreTestPayload): CoreTestPayload => ({
   })),
 });
 
+const getInitialRuntimePosition = (payload: CoreTestPayload) => {
+  const firstEntry = buildExamRuntimeEntries(payload)[0];
+
+  return {
+    activeQuestionIndex: firstEntry?.type === 'question' ? firstEntry.itemIndex : 0,
+    activeInfoPartId: firstEntry?.type === 'info' ? firstEntry.partId : null,
+  };
+};
+
 const buildUnansweredSubmissionPayload = (
   payload: CoreTestPayload,
   gradingStyle: ExamGradingStyle,
@@ -213,7 +237,12 @@ export const useExamSession = ({
 }: UseExamSessionOptions) => {
   const storedState = readStoredState();
   const [session, setSession] = useState<ExamSession>(
-    storedState?.session ?? createDefaultSession(),
+    storedState?.session
+      ? {
+          ...storedState.session,
+          durationSeconds: clampExamDurationSeconds(storedState.session.durationSeconds),
+        }
+      : createDefaultSession(),
   );
   const [files, setFiles] = useState<ExamFilesState>(
     storedState?.files ?? createDefaultFiles(),
@@ -303,7 +332,7 @@ export const useExamSession = ({
   const setDurationSeconds = (durationSeconds: number) => {
     updateSession((prev) => ({
       ...prev,
-      durationSeconds,
+      durationSeconds: clampExamDurationSeconds(durationSeconds),
     }));
   };
 
@@ -379,8 +408,7 @@ export const useExamSession = ({
         startedAt: undefined,
         submittedAt: undefined,
         endTimestamp: undefined,
-        activeQuestionIndex: 0,
-        activeInfoPartId: structured.parts?.find((part) => part.info.trim())?.id ?? null,
+        ...getInitialRuntimePosition(structured),
         flaggedQuestionIds: [],
         payload: structured,
         checklistContent: undefined,
@@ -461,8 +489,7 @@ export const useExamSession = ({
       startedAt,
       submittedAt: undefined,
       endTimestamp: startedAt + prev.durationSeconds * 1000,
-      activeQuestionIndex: 0,
-      activeInfoPartId: prev.payload.parts?.find((part) => part.info.trim())?.id ?? null,
+      ...getInitialRuntimePosition(prev.payload),
       flaggedQuestionIds: [],
       payload: resetPayloadForAttempt(prev.payload),
     }));
@@ -561,8 +588,7 @@ export const useExamSession = ({
           startedAt: undefined,
           submittedAt: undefined,
           endTimestamp: undefined,
-          activeQuestionIndex: 0,
-          activeInfoPartId: structured.parts?.find((part) => part.info.trim())?.id ?? null,
+          ...getInitialRuntimePosition(structured),
           flaggedQuestionIds: [],
           payload: mergeUserAnswers(structured, prev.payload),
         }));
@@ -635,8 +661,7 @@ export const useExamSession = ({
       startedAt: undefined,
       submittedAt: undefined,
       endTimestamp: undefined,
-      activeQuestionIndex: 0,
-      activeInfoPartId: prev.payload.parts?.find((part) => part.info.trim())?.id ?? null,
+      ...getInitialRuntimePosition(prev.payload),
       flaggedQuestionIds: [],
       payload: resetPayloadForAttempt(prev.payload),
       checklistContent: undefined,

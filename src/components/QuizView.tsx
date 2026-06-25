@@ -379,6 +379,18 @@ export const QuizView: React.FC<QuizViewProps> = ({
     setIsValidating(false);
   };
 
+  const handleRetryOpenAnswer = (question: QuizQuestion, result: QuizResult) => {
+    if (isValidating) return;
+
+    setResults((prev) => {
+      const next = { ...prev };
+      delete next[question.id];
+      return next;
+    });
+
+    void handleSubmitAnswer(result.userAnswer ?? userAnswers[question.id] ?? '');
+  };
+
   const handleNext = () => {
     if (isValidating) return; // Prevent navigation during validation
 
@@ -662,6 +674,15 @@ export const QuizView: React.FC<QuizViewProps> = ({
                     </p>
                     <p className="text-slate-600 dark:text-slate-300 text-sm leading-relaxed"><MarkdownContent content={currentResult.feedback} /></p>
                     
+                    {isModelFailure && (
+                      <button
+                        onClick={() => handleRetryOpenAnswer(currentQ, currentResult)}
+                        className="mt-4 flex items-center gap-2 text-sm font-medium text-amber-700 hover:underline dark:text-amber-400"
+                      >
+                        <RotateCcw className="w-4 h-4" /> {LD.ui.retryButton}
+                      </button>
+                    )}
+
                     {currentResult.isCorrect === false && (
                       <button 
                         onClick={() => handleExplainInChat(currentQ, currentResult)}

@@ -286,13 +286,16 @@ export const LANGUAGE_DATA: Record<AppLanguage, {
       duration30: string;
       duration45: string;
       duration60: string;
+      durationTooltip: string;
       helpLevelLabel: string;
       helpLevelNone: string;
       helpLevelGeneral: string;
       helpLevelSpecific: string;
       helpLevelSolution: string;
+      helpLevelTooltip: string;
       gradingStyleLabel: string;
       gradingStyleDefault: string;
+      gradingStyleTooltip: string;
       snapshotTitle: string;
       snapshotFieldTitle: string;
       snapshotPendingTitle: string;
@@ -609,13 +612,16 @@ export const LANGUAGE_DATA: Record<AppLanguage, {
         duration30: '30 min',
         duration45: '45 min',
         duration60: '60 min',
+        durationTooltip: 'Use the slider for 1-90 minutes, or type any value from 1 to 360 minutes.',
         helpLevelLabel: 'Help Level',
         helpLevelNone: 'Level 0 - None',
         helpLevelGeneral: 'Level 1 - General hint',
         helpLevelSpecific: 'Level 2 - Specific hint',
         helpLevelSolution: 'Level 3 - Solution',
+        helpLevelTooltip: 'Controls how much assistance is available during the exam runtime.',
         gradingStyleLabel: 'Grading Style',
         gradingStyleDefault: 'Default',
+        gradingStyleTooltip: 'Selects the scale used to estimate the final grade after scoring.',
         snapshotTitle: 'Exam Snapshot',
         snapshotFieldTitle: 'Title',
         snapshotPendingTitle: 'Pending question paper',
@@ -932,13 +938,16 @@ export const LANGUAGE_DATA: Record<AppLanguage, {
         duration30: '30 min',
         duration45: '45 min',
         duration60: '60 min',
+        durationTooltip: 'Utilisez le curseur pour 1 à 90 minutes, ou saisissez une valeur de 1 à 360 minutes.',
         helpLevelLabel: 'Niveau d\'aide',
         helpLevelNone: 'Niveau 0 - Aucun',
         helpLevelGeneral: 'Niveau 1 - Indice général',
         helpLevelSpecific: 'Niveau 2 - Indice spécifique',
         helpLevelSolution: 'Niveau 3 - Solution',
+        helpLevelTooltip: 'Contrôle le niveau d’aide disponible pendant l’examen.',
         gradingStyleLabel: 'Style de notation',
         gradingStyleDefault: 'Par défaut',
+        gradingStyleTooltip: 'Définit l’échelle utilisée pour estimer la note finale après correction.',
         snapshotTitle: 'Aperçu de l\'examen',
         snapshotFieldTitle: 'Titre',
         snapshotPendingTitle: 'En attente du sujet',
@@ -1255,13 +1264,16 @@ export const LANGUAGE_DATA: Record<AppLanguage, {
         duration30: '30 min',
         duration45: '45 min',
         duration60: '60 min',
+        durationTooltip: 'Usa el control para 1-90 minutos, o escribe cualquier valor de 1 a 360 minutos.',
         helpLevelLabel: 'Nivel de ayuda',
         helpLevelNone: 'Nivel 0 - Ninguno',
         helpLevelGeneral: 'Nivel 1 - Pista general',
         helpLevelSpecific: 'Nivel 2 - Pista específica',
         helpLevelSolution: 'Nivel 3 - Solución',
+        helpLevelTooltip: 'Controla cuánta ayuda estará disponible durante el examen.',
         gradingStyleLabel: 'Estilo de calificación',
         gradingStyleDefault: 'Predeterminado',
+        gradingStyleTooltip: 'Selecciona la escala usada para estimar la calificación final después de puntuar.',
         snapshotTitle: 'Resumen del examen',
         snapshotFieldTitle: 'Título',
         snapshotPendingTitle: 'Esperando papel de preguntas',
@@ -1578,13 +1590,16 @@ export const LANGUAGE_DATA: Record<AppLanguage, {
         duration30: '30 phút',
         duration45: '45 phút',
         duration60: '60 phút',
+        durationTooltip: 'Dùng thanh trượt cho 1-90 phút, hoặc nhập bất kỳ giá trị nào từ 1 đến 360 phút.',
         helpLevelLabel: 'Mức hỗ trợ',
         helpLevelNone: 'Mức 0 - Không có',
         helpLevelGeneral: 'Mức 1 - Gợi ý chung',
         helpLevelSpecific: 'Mức 2 - Gợi ý cụ thể',
         helpLevelSolution: 'Mức 3 - Giải pháp',
+        helpLevelTooltip: 'Điều chỉnh mức hỗ trợ có sẵn trong khi làm bài.',
         gradingStyleLabel: 'Kiểu chấm điểm',
         gradingStyleDefault: 'Mặc định',
+        gradingStyleTooltip: 'Chọn thang dùng để ước tính điểm cuối cùng sau khi chấm.',
         snapshotTitle: 'Tổng quan bài kiểm tra',
         snapshotFieldTitle: 'Tiêu đề',
         snapshotPendingTitle: 'Chờ đề thi',
