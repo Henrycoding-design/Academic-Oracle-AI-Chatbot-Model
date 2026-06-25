@@ -1,5 +1,35 @@
 [
   {
+    "version": "2.5.4",
+    "date": "2026-06-25",
+    "changes": [
+      {
+        "type": "feature",
+        "text": "Introduced an FRQ 'Retry' button in Quiz Mode, letting you instantly resubmit your answer if a temporary AI model error occurs."
+      },
+      {
+        "type": "feature",
+        "text": "Upgraded Core Test setup with an interactive 1–90 minute slider alongside a manual input box supporting custom test durations up to 6 hours."
+      },
+      {
+        "type": "improve",
+        "text": "Empowered the AI to generate clean, text-based code diagrams and simple visual layouts to help explain complex topics clearly."
+      },
+      {
+        "type": "improve",
+        "text": "Added helpful hover info icons (`i`) to all Core Test configuration settings so you always know exactly what each setting does."
+      },
+      {
+        "type": "fix",
+        "text": "Resolved a layout bug in Core Test to ensure your exam always kicks off with the actual first exam item, instead of accidentally jumping straight to a later information passage."
+      },
+      {
+        "type": "security",
+        "text": "Upgraded core system packages and dependencies to optimize platform stability and enforce the latest security standards."
+      }
+    ]
+  },
+  {
     "version": "2.5.2",
     "date": "2026-06-13",
     "changes": [

@@ -81,14 +81,14 @@ Academic Oracle optimizes for **retention, intuition, and reasoning**.
 
 ## Features
 
-### 🧠 Learning Engine *(updated v2.4.9)*
+### 🧠 Learning Engine *(updated v2.5.4)*
 
 - **Hint-based reasoning flow** — ask first, reveal progressively
 - **Structured thinking prompts** with richer Oracle Memory JSON returns
 - **Feynman-technique reinforcement** when understanding needs rebuilding from first principles
 - **Exam-style adaptation** and wider mastery branching for context-aware coaching
 - **Pattern extraction** instead of answer dumping
-- **Follow-up suggestion system** *(updated v2.4.9)*
+- **Follow-up suggestion system**
   - Context-aware follow-up buttons on text selection
   - New "Follow up" mode with input container (no auto-send)
   - Selection actions now render linked UI containers instead of raw selected-question text
@@ -104,10 +104,13 @@ Academic Oracle optimizes for **retention, intuition, and reasoning**.
 - **Cross-mode learning loop**
   - Concepts learned in chat influence exam performance
   - Exam results feed back into targeted learning and revision
+- **Lightweight educational visualizations**
+  - Models may generate simple code-block diagrams and monochrome visual aids when useful for explanation
+  - Helps communicate spatial, logical, or structural concepts without requiring images
 
 ---
 
-### 📝 Integrated Quiz Platform *(updated v2.4.9)*
+### 📝 Integrated Quiz Platform *(updated v2.5.4)*
 
 - Auto-generated concept-specific quizzes
 - Multi-question adaptive testing
@@ -115,6 +118,8 @@ Academic Oracle optimizes for **retention, intuition, and reasoning**.
 - Reinforcement-based correction
 - Mid-session language switching
 - Unified Chat + Quiz UI system
+- **FRQ Failure Resubmission Loop** *(new v2.5.4)*
+  - Added a dedicated retry button when a model failure occurs during a Free Response Question (FRQ), allowing users to immediately resubmit their input without losing their current state (similar to the wrong-answer chat explanation button).
 - **Wrong-answer follow-up chips** *(new v2.4.9)*
   - Quiz-to-chat follow-ups now render clean UI chips instead of raw text injection
   - Backend quiz and chat flows remain unchanged for compatibility
@@ -152,7 +157,7 @@ Academic Oracle optimizes for **retention, intuition, and reasoning**.
 
 ---
 
-### 🎓 Exam Practice Module *(updated v2.5.2)*
+### 🎓 Exam Practice Module *(updated v2.5.4)*
 
 **Transforms Academic Oracle from a learning assistant into a full exam + evaluation system.**
 
@@ -166,12 +171,16 @@ Academic Oracle optimizes for **retention, intuition, and reasoning**.
 
 - **Full Exam Mode** — timed conditions, restricted help, and no live feedback  
 - Replicates real testing pressure to train focus, discipline, and decision-making  
+- **Dual-Control Duration Slider Component** *(new v2.5.4)*
+  - Replaced the legacy time configurations in Core Test with an interactive slider bar ranging from 0 to 90 minutes (incrementing in steps of 5 minutes).
+  - Pairs with a synchronized input field directly underneath that displays the selected value and allows for custom manual numerical entries up to a maximum threshold of 6 hours.
+- **Ubiquitous Configuration Tooltips** *(new v2.5.4)*
+  - Implemented info icons (`i`) with interactive hover states across all three Core Test configurations for a consistent informational architecture mirroring `ProfilePage.tsx`.
+- **Chronological First-Item Runtime Fix** *(new v2.5.4)*
+  - Resolved a runtime rendering bug in the Core Test view where the initial information passage section was forcibly rendered on first load regardless of position. The view now guarantees strict structural ordering by rendering the absolute first structural item of the exam upon initial layout, whether it is an info passage or a question.
 - **Performance Memory Injection** *(new v2.5.2)* — Detailed exam summaries (including question prompts, user answers, and corrections) are now injected into the AI's memory.
 - **Total Capture Safeguards** *(new v2.5.2)* — Upgraded prompt engineering with a *General Knowledge Override Exception* and *Mandatory Execution Checklist* to ensure 100% of reading passages and sub-questions are captured verbatim from source documents, even if they appear answerable by general knowledge.
-- Designed for structured exam systems *(IGCSE, A-Level, AP, SAT-style preparation)*  
-
-
-### 📄 Multi-Format Exam Input
+- Designed for structured exam systems *(IGCSE, A-Level, AP, SAT-style preparation)* ### 📄 Multi-Format Exam Input
 
 - Process full exams from **PDF**
 - **Enhanced passage extraction** *(new v2.5.0)* — identifies and isolates reading passages or shared information blocks
@@ -183,8 +192,7 @@ Academic Oracle optimizes for **retention, intuition, and reasoning**.
 
 Control how much assistance is allowed during exam sessions:
 
-- **Level 0:** Strict exam conditions *(no hints, no guidance)*  
-- **Level 1:** Light conceptual nudges  
+- **Level 0:** Strict exam conditions *(no hints, no guidance)* - **Level 1:** Light conceptual nudges  
 - **Level 2:** Guided scaffolding  
 - **Level 3:** Full worked solutions  
 
@@ -488,6 +496,10 @@ attribution and clearly reference the original source.
 
 For protected files, branding, and excluded components, refer to the repository's
 licensing and policy documents.
+
+## Citation
+
+If you use Universal Academic Oracle in research, projects, reports, or publications, please cite the project using the metadata provided in `CITATION.cff`.
 
 ## Support
 

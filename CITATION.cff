@@ -3,18 +3,23 @@ message: "If you use Universal Academic Oracle in research, projects, or publica
 title: "Universal Academic Oracle"
 abstract: >
   Universal Academic Oracle is a learning-focused AI platform designed to promote
-  deep understanding through active recall, progressive hinting, and
-  pattern-based reasoning rather than passive answer consumption.
+  deep understanding through active recall, progressive hinting, pattern-based
+  reasoning, and structured assessment workflows. The platform aims to support
+  learners in developing independent problem-solving skills rather than relying
+  on passive answer consumption.
 authors:
   - family-names: "Vo"
     given-names: "Tan Binh"
 repository-code: "https://github.com/Henrycoding-design/Academic-Oracle-AI-Chatbot-Model"
+url: "https://academicoracle.onrender.com"
 license: "Apache-2.0"
 keywords:
   - artificial intelligence
   - education
-  - learning science
+  - educational technology
   - active recall
+  - assessment
+  - learning science
   - reasoning systems
-version: "2.5.2"
-date-released: 2026-06-13
+version: "2.5.4"
+date-released: 2026-06-25
