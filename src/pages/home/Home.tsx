@@ -34,11 +34,10 @@ export default function Home() {
       <section className="px-6 pb-8 text-center">
         <div className="mx-auto max-w-3xl">
           <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">
-            Track how learning evolves
+            Turn evaluation into evolution
           </h2>
           <p className="mt-3 text-white/60">
-            The new dashboard, structured Oracle Memory, adaptive quiz loop, and session summary flow now work together as one guided learning system.
-          </p>
+            Every simulation automatically syncs with your summary, dynamically adapting quizzes, chats, and pre-test checklists to your real-time performance.          </p>
         </div>
       </section>
       <FeatureGrid />

@@ -1,6 +1,6 @@
 import React, { useRef } from "react";
 import { motion, useMotionValue , useMotionTemplate , useSpring } from "framer-motion";
-import { Brain, Globe, Shield, Sparkles, Database, FileText, LayoutDashboard } from "lucide-react";
+import { Brain, ClipboardCheck, Shield, Sparkles, Database, FileText, LayoutDashboard } from "lucide-react";
 
 const FEATURES = [
   { id: 1, icon: Database, title: "Structured Memory" },
@@ -8,7 +8,7 @@ const FEATURES = [
   { id: 3, icon: LayoutDashboard, title: "Learning Dashboard" },
   { id: 4, icon: Shield, title: "Security" },
   { id: 5, icon: Sparkles, title: "Adaptive Quiz"},
-  { id: 6, icon: Globe, title: "Universal Access" }, // Renamed to feel more expansive
+  { id: 6, icon: ClipboardCheck, title: "Real Exam Simulation" }, // Renamed to feel more expansive
   { id: 7, icon: FileText, title: "Session Summary" },
 ];
 
@@ -69,7 +69,7 @@ export function FeatureCard({ icon: Icon, title, span }: { icon: any; title: str
   )`;
 
   return (
-    <motion.a
+    <motion.div
       ref={ref}
       onMouseMove={handleMouseMove}
       onMouseEnter={(e) => handleMouseMove(e)} // Fade In
@@ -99,6 +99,6 @@ export function FeatureCard({ icon: Icon, title, span }: { icon: any; title: str
         </div>
         <div className="text-xl font-medium tracking-tight text-white/90">{title}</div>
       </div>
-    </motion.a>
+    </motion.div>
   );
 }

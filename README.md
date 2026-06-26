@@ -172,7 +172,7 @@ Academic Oracle optimizes for **retention, intuition, and reasoning**.
 - **Full Exam Mode** — timed conditions, restricted help, and no live feedback  
 - Replicates real testing pressure to train focus, discipline, and decision-making  
 - **Dual-Control Duration Slider Component** *(new v2.5.4)*
-  - Replaced the legacy time configurations in Core Test with an interactive slider bar ranging from 0 to 90 minutes (incrementing in steps of 5 minutes).
+  - Replaced the legacy time configurations in Core Test with an interactive slider bar ranging from 1 to 90 minutes (incrementing in steps of 5 minutes).
   - Pairs with a synchronized input field directly underneath that displays the selected value and allows for custom manual numerical entries up to a maximum threshold of 6 hours.
 - **Ubiquitous Configuration Tooltips** *(new v2.5.4)*
   - Implemented info icons (`i`) with interactive hover states across all three Core Test configurations for a consistent informational architecture mirroring `ProfilePage.tsx`.
@@ -180,9 +180,8 @@ Academic Oracle optimizes for **retention, intuition, and reasoning**.
   - Resolved a runtime rendering bug in the Core Test view where the initial information passage section was forcibly rendered on first load regardless of position. The view now guarantees strict structural ordering by rendering the absolute first structural item of the exam upon initial layout, whether it is an info passage or a question.
 - **Performance Memory Injection** *(new v2.5.2)* — Detailed exam summaries (including question prompts, user answers, and corrections) are now injected into the AI's memory.
 - **Total Capture Safeguards** *(new v2.5.2)* — Upgraded prompt engineering with a *General Knowledge Override Exception* and *Mandatory Execution Checklist* to ensure 100% of reading passages and sub-questions are captured verbatim from source documents, even if they appear answerable by general knowledge.
-- Designed for structured exam systems *(IGCSE, A-Level, AP, SAT-style preparation)* ### 📄 Multi-Format Exam Input
-
-- Process full exams from **PDF**
+- Designed for structured exam systems *(IGCSE, A-Level, AP, SAT-style preparation)*
+- 📄 Process full exams from **PDF**
 - **Enhanced passage extraction** *(new v2.5.0)* — identifies and isolates reading passages or shared information blocks
 - **Grouped Parts Support** *(new v2.5.0)* — automatically detects and renders exam sections (e.g., Part 3: Reading) with dedicated headers
 - Automated **question extraction + mark scheme parsing**

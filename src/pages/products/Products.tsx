@@ -1,7 +1,7 @@
 import PageLayout from "@/src/layout/PageLayout";
 import PageHeader from "../ui/PageHeader";
 import { ArcadeDemo } from "@/src/components/ArcadeDemo";
-import { AppWindow, Brain, Shield, Layout, X, BookOpen, Github, Zap , MessageCircleIcon , PackageCheckIcon, ClipboardCheck, RefreshCw, MessageSquare, ArrowRight, Database, TrendingUp, LayoutDashboard, FileText } from "lucide-react";
+import { AppWindow, Brain, Shield, Layout, X, BookOpen, Github, Zap , MessageCircleIcon , PackageCheckIcon, ClipboardCheck, RefreshCw, MessageSquare, ArrowRight, Database, TrendingUp, LayoutDashboard, FileText, GraduationCap, Sliders, CheckSquare } from "lucide-react";
 
 export default function Products() {
   return (
@@ -145,6 +145,82 @@ export default function Products() {
             <p className="text-sm text-white/70 leading-relaxed">
               Review learner identity, efficiency, strengths, weaknesses, current topics, and downloadable session summaries from one focused dashboard built for reflection and next-step planning.
             </p>
+          </div>
+        </div>
+        <hr className="border-white/5 my-12" />
+        {/* Third Row: Real-Time Exam System (v2.5.x Core Feature) */}
+        <div className="grid grid-cols-1">
+          {/* Feature 7: Full-width Exam Core Test Module */}
+          <div className="space-y-6 group p-8 rounded-2xl bg-gradient-to-b from-blue-500/[0.02] to-transparent border border-white/5 hover:border-blue-500/40 transition-all duration-300">
+            <div className="flex flex-wrap items-center justify-between gap-4">
+              <div className="flex items-center gap-3 text-white/80">
+                <GraduationCap className="w-7 h-7 text-blue-400" />
+                <ArrowRight className="w-4 h-4 opacity-40" />
+                <Sliders className="w-6 h-6 text-indigo-400" />
+                <ArrowRight className="w-4 h-4 opacity-40" />
+                <CheckSquare className="w-6 h-6 text-emerald-400" />
+              </div>
+              <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20 tracking-wider uppercase">
+                New Feature v2.5.x
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-2">
+              <div className="md:col-span-1 space-y-3">
+                <h3 className="text-2xl font-bold text-white tracking-tight">
+                  Real-Time Exam Core
+                </h3>
+                <h4 className="text-sm text-white/60 font-medium">
+                  Timed Simulations · Tiered Help Systems
+                </h4>
+                <p className="text-sm text-white/70 leading-relaxed">
+                  Transforms Academic Oracle from a learning companion into a high-stakes performance environment. Train focus, discipline, and strategic decision-making under strict, time-restricted examination rules.
+                </p>
+              </div>
+
+              {/* Sub-feature Pillars */}
+              <div className="md:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+                <div className="p-4 rounded-xl bg-white/[0.01] border border-white/[0.03]">
+                  <h5 className="font-semibold text-white flex items-center gap-2 mb-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-indigo-400" />
+                    Interactive Duration Controls
+                  </h5>
+                  <p className="text-white/60 leading-relaxed text-xs">
+                    Configure simulations using a responsive 1–90 minute dual-control slider, backed by manual entry fields scaling up to 6 hours for complex papers.
+                  </p>
+                </div>
+
+                <div className="p-4 rounded-xl bg-white/[0.01] border border-white/[0.03]">
+                  <h5 className="font-semibold text-white flex items-center gap-2 mb-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-orange-400" />
+                    Tiered Guidance Systems
+                  </h5>
+                  <p className="text-white/60 leading-relaxed text-xs">
+                    Choose your friction level: Level 0 for absolute exam lockdowns, scaling up to Level 3 for real-time worked solutions and structural step-by-step scaffolding.
+                  </p>
+                </div>
+
+                <div className="p-4 rounded-xl bg-white/[0.01] border border-white/[0.03]">
+                  <h5 className="font-semibold text-white flex items-center gap-2 mb-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                    Examiner-Style AI Grading
+                  </h5>
+                  <p className="text-white/60 leading-relaxed text-xs">
+                    Evaluates performance using criteria-aligned rubrics rather than basic string parsing. Injects metrics downstream to auto-reshape summaries and active quizzes.
+                  </p>
+                </div>
+
+                <div className="p-4 rounded-xl bg-white/[0.01] border border-white/[0.03]">
+                  <h5 className="font-semibold text-white flex items-center gap-2 mb-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-purple-400" />
+                    Pre-Test Blind Checklist
+                  </h5>
+                  <p className="text-white/60 leading-relaxed text-xs">
+                    An automated, high-fidelity checklist generated by agentic models racing across your entire chat history, error trends, and exam memory for targeted night-before validation.
+                  </p>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </section>
