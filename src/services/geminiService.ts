@@ -925,7 +925,7 @@ export const sendMessageToBot = async (params: {
     ${history.map(h => `${h.role.toUpperCase()}: ${h.content}`).join("\n\n")}
     `.trim();
 
-  let api_key: string | null = null;
+  // let api_key: string | null = null;
   
   // if (!encryptedKeyPayload) {
   //   // Use environment key

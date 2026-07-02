@@ -63,6 +63,9 @@ const normalizeTopic = (topic: Partial<OracleTopicMemory> | null | undefined): O
     quizzes_done: typeof topic?.quizzes_done === "number" && topic.quizzes_done >= 0
       ? Math.round(topic.quizzes_done)
       : 0,
+    mastery_checks_attempted: typeof topic?.mastery_checks_attempted === "number" && topic.mastery_checks_attempted >= 0
+      ? Math.round(topic.mastery_checks_attempted)
+      : 0,
     mastered: Boolean(topic?.mastered),
     quiz_results: Array.isArray(topic?.quiz_results)
       ? topic!.quiz_results.filter((item): item is string => typeof item === "string" && item.trim().length > 0)
@@ -125,6 +128,7 @@ const normalizeOracleMemoryObject = (input: Partial<OracleMemory> | null | undef
     existing.mistake_log = Array.from(new Set([...existing.mistake_log, ...topic.mistake_log]));
     existing.quiz_results = Array.from(new Set([...existing.quiz_results, ...topic.quiz_results]));
     existing.quizzes_done = Math.max(existing.quizzes_done, topic.quizzes_done);
+    existing.mastery_checks_attempted = Math.max(existing.mastery_checks_attempted, topic.mastery_checks_attempted);
     existing.accuracy = topic.accuracy ?? existing.accuracy;
     existing.confidence_level = topic.confidence_level || existing.confidence_level;
     existing.mastered = existing.mastered || topic.mastered;
@@ -194,6 +198,7 @@ const parseTopicMentions = (text: string): OracleTopicMemory[] => {
       accuracy: null,
       confidence_level: "medium",
       quizzes_done: 0,
+      mastery_checks_attempted: 0,
       mastered: Boolean(masteredMatch),
       quiz_results: [],
       recommended_question_style: "mixed",
@@ -237,6 +242,7 @@ const reconstructLegacyMemory = (text: string): OracleMemory => {
       accuracy: null,
       confidence_level: "medium",
       quizzes_done: 0,
+      mastery_checks_attempted: 0,
       mastered: false,
       quiz_results: [],
       recommended_question_style: "mixed" as const,
@@ -361,6 +367,7 @@ const ensureTopic = (memory: OracleMemory, topicTag: string): OracleTopicMemory 
       accuracy: null,
       confidence_level: memory.profile.confidence_level || "medium",
       quizzes_done: 0,
+      mastery_checks_attempted: 0,
       mastered: false,
       quiz_results: [],
       recommended_question_style: "mixed",

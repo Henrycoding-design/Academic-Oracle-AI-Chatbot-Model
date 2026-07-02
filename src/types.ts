@@ -38,6 +38,7 @@ export interface OracleTopicMemory {
   accuracy: number | null;
   confidence_level: string;
   quizzes_done: number;
+  mastery_checks_attempted: number;
   mastered: boolean;
   quiz_results: string[];
   recommended_question_style?: "practical" | "cognitive" | "mixed";

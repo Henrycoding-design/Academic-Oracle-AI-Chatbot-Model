@@ -1,5 +1,23 @@
 [
   {
+    "version": "2.5.5",
+    "date": "2026-07-02",
+    "changes": [
+      {
+        "type": "improve",
+        "text": "Overhauled the topic tracking system to prevent the AI from getting stuck in endless 'mastery check' loop questions."
+      },
+      {
+        "type": "improve",
+        "text": "Refined lesson progression to smartly drop down to easier checks when you make a mistake, ensuring a smoother and more encouraging learning pace."
+      },
+      {
+        "type": "feature",
+        "text": "Added a flexible 3rd-attempt option on final topic checks, letting you choose whether to try one more time or smoothly move on to a fresh topic."
+      }
+    ]
+  },
+  {
     "version": "2.5.4",
     "date": "2026-06-25",
     "changes": [

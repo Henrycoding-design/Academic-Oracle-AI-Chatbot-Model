@@ -81,7 +81,7 @@ Academic Oracle optimizes for **retention, intuition, and reasoning**.
 
 ## Features
 
-### 🧠 Learning Engine *(updated v2.5.4)*
+### 🧠 Learning Engine *(updated v2.5.5)*
 
 - **Hint-based reasoning flow** — ask first, reveal progressively
 - **Structured thinking prompts** with richer Oracle Memory JSON returns
@@ -94,10 +94,10 @@ Academic Oracle optimizes for **retention, intuition, and reasoning**.
   - Selection actions now render linked UI containers instead of raw selected-question text
   - Follow-up chips can highlight and jump back to the selected section
   - Reduces friction between curiosity → action
-- **Improved mastery check system**
-  - Max 2 mastery checks per topic
-  - Adaptive phrasing after incorrect attempts
-  - Smart fallback: explain → user chooses retry or move on
+- **Improved mastery check system** *(new v2.5.5)*
+  - Strictly limited to a maximum of 3 check attempts per topic using exact runtime counter tracking.
+  - Mitigates evaluation loops by automatically falling back to low-stakes checks (`Quick/Understanding/Mistake Check`) after an initial failure.
+  - Enforces a dedicated user opt-in choice on a second failure, allowing students to choose to take a 3rd attempt or smoothly switch focus to recommended alternative topics.
 - **Oracle Memory system**
   - Tracks understanding, mistakes, and learning progress across sessions
   - Enables continuity between Learning Mode and Exam Mode
