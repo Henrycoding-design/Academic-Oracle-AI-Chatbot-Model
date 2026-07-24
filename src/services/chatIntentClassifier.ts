@@ -39,7 +39,7 @@ ${prompt}
 `;
 
   try {
-    const model: GeminiModelFlag = "fast";
+    const model: GeminiModelFlag = "nano";
 
     const { data, error } = await supabase.functions.invoke("call-ai-response", {
       method: "POST",
