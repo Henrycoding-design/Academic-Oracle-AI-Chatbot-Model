@@ -61,11 +61,11 @@ export default function Developers() {
             </h3>
 
             <h4 className="text-sm text-white/60">
-              Gemini Flash · Custom Heuristics · Fallback
+              Gemini 3.6 / 3.5 / 3 · Deep Mode · Fallback
             </h4>
 
             <p className="text-sm text-white/70 leading-relaxed">
-              Leveraging the <strong>Gemini-3-Flask</strong> series, we implement a resilient intelligence layer. Our routing logic manages fallbacks and selective model usage to maintain a continuous Socratic flow.
+              Leveraging seven Gemini capability tiers, including swift, core, lite, mini, nano, pro, and deep, we implement a resilient intelligence layer. Our routing logic manages Standard, Race, and Deep paths to maintain a continuous Socratic flow.
             </p>
           </div>
 

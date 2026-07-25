@@ -133,7 +133,7 @@ Academic Oracle optimizes for **retention, intuition, and reasoning**.
 - **Per-topic config persistence** *(new v2.4.8)*
   - Quiz settings cache independently per topic in `sessionStorage`
   - Cached configs refresh only when learning memory or chat context changes for the active topic
-- Short-query routing can jump directly into Balanced race mode
+- Short-query routing can jump directly into validated Race Mode for low-latency quiz support
 - **Gemini-first execution** *(updated v2.4.0)*
   - Faster and more consistent quiz generation
   - Improved reliability with validated fallback system
@@ -219,7 +219,7 @@ Enables a smooth transition from **independent performance → supported improve
 - **Blind-Checklist feature** *(new v2.5.0)*:
   - Personalized pre-exam guide generated from all session metrics (chats, quizzes, tests, memory)
   - Designed for a quick review right before test day
-  - Synthesized via smart/agentic model racing for maximum effectiveness
+  - Synthesized via swift & core models racing for maximum effectiveness
 
 - Builds a **persistent exam-performance model** over time
 
@@ -267,21 +267,33 @@ Ideal for:
 
 ---
 
-### ⚙️ Intelligent Request Routing *(major update v2.4.0, refined v2.5.0)*
+### ⚙️ Intelligent Request Routing *(major update v2.4.0, refined v2.5.6)*
 
 - **Gemini-first orchestration pipeline** — Chat / Quiz / Summary / Crons all prioritize Gemini models
-- **Failure Tracking & Real-time Recovery** *(new v2.5.0)*
+- **7-tier model capability map** *(new v2.5.6)*
+  - `swift` — Gemini 3.6 Flash for primary high-speed chat and checklist racing
+  - `core` — Gemini 3 Flash for strong general reasoning and race pairing
+  - `lite` — Gemini 3.5 Flash Lite for efficient fast and balanced paths
+  - `mini` — Gemini 3.1 Lite for lightweight routing, guard, and fallback tasks
+  - `nano` — Gemini 2.5 Lite for small classification and query generation calls
+  - `pro` — Gemini 2.5 Flash for structured exam, quiz, and validation-heavy work
+  - `deep` — Gemini 3.5 Flash for highly advanced reasoning
+- **DEEP chat mode** *(new v2.5.6)*
+  - Detects hard proofs, advanced derivations, complex scientific reasoning, and advanced algorithms
+  - Uses the `deep` tier first, then falls back to Standard chat routing if the deep call fails
+- **Failure Tracking & Real-time Recovery** *(expanded v2.5.6)*
   - Monitors unretriable errors, rate limits (429/503), and format mismatches per model
   - Automatically skips failing models in real-time, falling back to other providers or OpenRouter
+  - Routing telemetry now covers chat and selected non-chat callers where possible, reducing stale or repeatedly rate-limited requests
   - **Automatic Race Mode** triggers when multiple primary models experience unusual failure rates
 - OpenRouter used strictly as last-resort fallback with validation
-- **Multi-mode execution pipeline**
+- **Multi-mode chat execution pipeline**
   - Standard
-  - Fast
-  - Balanced
-  - Agentic
+  - Race
+  - Deep
   - Web Search
 - **Upgraded racing logic** — from "first response wins" → "first *valid* response wins"
+- **Backend model flag validation** *(hardened v2.5.6)* — prevents mismatched Gemini capability flags from becoming undefined model parameters and avoidable 4xx errors
 - **Dynamic routing** based on query complexity, latency conditions, and system load
 - **Non-blocking web search fallback** *(new v2.4.9)*
   - Failed web search no longer blocks the full chat request
@@ -405,7 +417,7 @@ npm run dev
 - **Frontend:** React 19 + TypeScript
 - **Backend (AI Orchestration):** Supabase Edge Functions
 - **Models:**
-  - Google GenAI (Gemini 2.5, Gemini 3)
+  - Google GenAI (Gemini 2.5, Gemini 3, Gemini 3.5, Gemini 3.6)
   - OpenRouter (last-resort fallback with validation layer)
 - **Web Search:** Tavily (primary) + JigsawStack (fallback)
 - **Auth & Database:** Supabase (Postgres + OAuth)

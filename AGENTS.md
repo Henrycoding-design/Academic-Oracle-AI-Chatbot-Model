@@ -133,18 +133,32 @@ Requests are dynamically routed according to:
 
 ---
 
-# ⚙ Execution Modes
+# ⚙ Model Capability Tiers
 
-Academic Oracle performs intent classification on the client before dispatching requests. Based on estimated reasoning complexity, latency requirements, and historical reliability, the client selects an execution mode.
+Academic Oracle uses abstract Gemini capability flags rather than hard-coding provider model names throughout the application. This keeps routing logic stable while the backend and shared model map resolve each flag to the current Gemini target.
 
 Default model routing is defined in GEMINI_MODEL_MAP in [src/services/models.ts](src/services/models.ts). Runtime routing may be modified by the client orchestration layer based on validation, telemetry, and failure recovery:
 
-| Mode         | Primary Model      | Typical Use Cases                                                                             | Characteristics                                         |
-| ------------ | ------------------ | --------------------------------------------------------------------------------------------- | ------------------------------------------------------- |
-| **Fast**     | `Gemini 2.5 Lite`  | Short factual questions, UI actions, lightweight conversations                                | Lowest latency, minimal reasoning overhead              |
-| **Smart**    | `Gemini 3.1 Lite`  | General learning conversations, Socratic guidance, explanations                               | Default mode with balanced reasoning quality and cost   |
-| **Balanced** | `Gemini 2.5 Flash` | Structured outputs, quizzes, JSON generation, UI chip responses                               | Higher output consistency and schema reliability        |
-| **Agentic**  | `Gemini 3 Flash`   | Multi-step reasoning, `examMemory`, Blind Checklist generation, complex educational workflows | Long-context reasoning and iterative task orchestration |
+| Capability | Primary Model | Typical Use Cases | Characteristics |
+|---|---|---|---|
+| **swift** | `Gemini 3.6 Flash` | Primary Standard chat, agentic race, Blind Checklist racing | Fast high-capability default |
+| **core** | `Gemini 3 Flash` | General reasoning, balanced race, agentic race | Strong reasoning and reliable race pairing |
+| **lite** | `Gemini 3.5 Flash Lite` | Fast and balanced race paths, exam fallbacks | Efficient general-purpose routing |
+| **mini** | `Gemini 3.1 Lite` | Lightweight guard, fallback, query, and chat support | Small reliable utility tier |
+| **nano** | `Gemini 2.5 Lite` | Intent classification and search-query generation | Lowest-overhead classification tier |
+| **pro** | `Gemini 2.5 Flash` | Structured quiz, Core Test extraction, grading, validation-heavy work | Schema-oriented fallback and structured output tier |
+| **deep** | `Gemini 3.5 Flash` | Hard proofs, complex derivations, advanced scientific reasoning, advanced algorithms | Dedicated deep-reasoning chat tier |
+
+---
+
+# ⚙ Execution Modes
+
+Academic Oracle performs intent and depth classification on the client before dispatching chat requests. Based on estimated reasoning complexity, latency requirements, rush-hour conditions, tailoring settings, and historical reliability, the client selects between Standard, Race, and Deep execution.
+
+* **Standard Mode**: Sequential Gemini fallback chain using `swift -> core -> lite -> mini -> pro`.
+* **Race Mode**: Parallel validated racing selected for short prompts, rush hours, tailoring, or failure-telemetry escalation.
+* **Deep Mode**: Advanced-depth chat path using `deep` (`Gemini 3.5 Flash`) for hard, complex reasoning. If Deep fails, the request falls back to Standard Mode.
+* **OpenRouter emergency route**: Last-resort fallback after Gemini routes fail or time out.
 
 ---
 
@@ -154,8 +168,8 @@ Academic Oracle follows a **Client-Orchestrated Validation Pipeline** implemente
 
 The frontend is responsible for:
 * Request classification via [classifyIntent](src/services/chatIntentClassifier.ts)
-* Selection of routing strategy (Standard vs. Race Mode)
-* Session telemetry tracking of model health via [src/services/modelRoutingMemory.ts](src/services/modelRoutingMemory.ts)
+* Selection of routing strategy (Standard, Race, or Deep Mode)
+* Session telemetry tracking of model health via [src/services/modelRoutingMemory.ts](src/services/modelRoutingMemory.ts), including chat and selected non-chat callers where possible
 * Parsing, validation, and normalization of model outputs
 * Executing provider-level and model-level fallbacks
 
@@ -165,18 +179,20 @@ The frontend is responsible for:
                           ▼
              Client Prompt Classification
                           │
-          ┌───────────────┴───────────────┐
-          │                               │
-          ▼                               ▼
-     Standard Mode                  Race Mode
-    (Fallback Chain)             (Parallel Race)
-          │                               │
-          ▼                               ▼
-    Iterate Fallback Chain       First valid response
-     (agentic -> fast ->             wins the race
-      smart -> balanced)                  │
-          │                               │
-          └───────────────┬───────────────┘
+          ┌───────────────┼───────────────┐
+          │               │               │
+          ▼               ▼               ▼
+     Standard Mode    Race Mode       Deep Mode
+    (Fallback Chain) (Parallel Race)  (Advanced Reasoning)
+          │               │               │
+          ▼               ▼               ▼
+    Iterate Chain    First valid      Try deep, 
+   (swift->core       response         fallback
+   ->lite->mini         wins           Standard
+   ->pro)                                 
+          │              │               |
+          │              │               │
+          └──────────────┴───────────────┘
                           │
                           ▼
               Supabase Edge Function(s)
@@ -197,7 +213,7 @@ The frontend is responsible for:
                                       │
                                       ▼
                             Escalate Routing Strategy
-                            (Next Model / Race / OpenRouter)
+                            (Next Model / Race / Deep / OpenRouter)
 ```
 
 *Note*: Client orchestration determines *how* requests are executed (routing, racing, validation, failover). *Supabase Edge Functions are intentionally stateless* and serve as secure gateways between the client and upstream AI providers.
@@ -216,11 +232,17 @@ Race mode is forced if any of the following conditions are met:
 ### Intent Racing Matrix
 When Race Mode is executed, models are raced according to the classified intent:
 
-* **agentic**: Races `smart` (`Gemini 3.1 Lite`) and `agentic` (`Gemini 3 Flash`).
-* **fast**: Races `fast` (`Gemini 2.5 Lite`) and `smart` (`Gemini 3.1 Lite`).
-* **balance**: Races `agentic` (`Gemini 3 Flash`) and `smart` (`Gemini 3.1 Lite`).
+* **agentic**: Races `swift` (`Gemini 3.6 Flash`) and `core` (`Gemini 3 Flash`).
+* **fast**: Races `lite` (`Gemini 3.5 Flash Lite`) and `mini` (`Gemini 3.1 Lite`).
+* **balance**: Races `lite` (`Gemini 3.5 Flash Lite`) and `core` (`Gemini 3 Flash`).
 
 If all raced models fail or a race timeout occurs, the orchestrator triggers a fallback to OpenRouter free (`openrouter/free`) via [runOpenRouterFallback](src/services/geminiService.ts).
+
+---
+
+## 🧠 Deep Mode Strategy
+
+Deep Mode is selected when [classifyDeepIntent](src/services/deepIntentClassification.ts) detects hard academic reasoning, such as formal proofs, advanced derivations, complex scientific theory, or advanced algorithms. Deep Mode uses `deep` (`Gemini 3.5 Flash`) with lower temperature for rigorous reasoning. If the deep call fails, [sendMessageToBotDeep](src/services/geminiService.ts) records the failure telemetry and falls back to Standard Mode.
 
 ---
 
@@ -228,7 +250,7 @@ If all raced models fail or a race timeout occurs, the orchestrator triggers a f
 
 When Race Mode is not triggered, the client uses a sequential failover strategy with session-level failure tracking:
 
-1. **Sequential Chain**: Requests attempt models in order: `agentic` -> `fast` -> `smart` -> `balanced` as defined in `MODEL_FALLBACK_CHAIN`.
+1. **Sequential Chain**: Requests attempt models in order: `swift` -> `core` -> `lite` -> `mini` -> `pro` as defined in `MODEL_FALLBACK_CHAIN`.
 2. **Telemetry Filter**: Before invoking any model, the system queries [shouldSkipStandardModel](src/services/modelRoutingMemory.ts). If the model has exceeded session failure limits, it is skipped.
 3. **Failover Execution**: If a model fails (rate limited, server unavailable, bad formatting, or network error), the system records the failure type via `recordStandardModelFailure`, triggers a randomized back-off delay (200ms - 500ms) to avoid thundering herds, and immediately proceeds to the next model in the fallback chain.
 4. **Emergency Provider Fallback**: If the fallback chain is exhausted, the orchestrator directs the request to OpenRouter free (`openrouter/free`).
@@ -254,13 +276,25 @@ All prompts are filtered through a client-side validation pipeline to prevent ja
    - Uses [analyzePrompt](src/services/promptGuard.ts) to run regex scans on the prompt in the user's localized language.
    - Evaluates a `jailbreakScore`. If the score is 4 or higher, the request is immediately blocked, and a localized jailbreak message is returned.
 2. **Remote Guard (LLM Intent Analysis)**:
-   - Queries [runCronPromptGuard](src/services/geminiService.ts) running on the `smart` model using `CRON_GUARD_PROMPT` to analyze prompt safety and web search intent.
+   - Queries [runCronPromptGuard](src/services/geminiService.ts) running on the `mini` model using `CRON_GUARD_PROMPT` to analyze prompt safety and web search intent.
 3. **Jailbreak Execution Branching**:
    - If either the client-side or remote guard flags a jailbreak, the query is blocked, the conversation is isolated, and web search is disabled.
 4. **Web Search Routing**:
    - Approved queries requiring real-time context verify session quota restrictions using `isWebSearchLimitReached()`.
-   - If quota is available, the search query is generated using [generateSearchQueries](src/services/geminiService.ts) (prioritizing the `fast` model and falling back to `smart` or raw text) and sent to Supabase Edge Function (`supabase/functions/tavily-search`).
+   - If quota is available, the search query is generated using [generateSearchQueries](src/services/geminiService.ts) (prioritizing the `nano` model and falling back to `mini` or raw text) and sent to Supabase Edge Function (`supabase/functions/tavily-search`).
    - Search outages or rate limits are captured gracefully by setting `webSearchFailed = true` without disrupting user conversation.
+
+---
+
+# 🧪 Local TypeScript Verification
+
+For temporary `.ts` files, use the project ESM loader explicitly:
+
+```bash
+node --loader ts-node/esm filepath
+```
+
+Replace `filepath` with the temporary file path. This avoids the common terminal failure where Node tries to execute TypeScript directly without the ESM loader.
 
 ---
 
@@ -273,8 +307,9 @@ Before merging any prompt, orchestration change, or new domain agent, verify the
 * [ ] Raw `$` and `$$` delimiters are never used.
 * [ ] The agent answers the user's immediate request before requesting profile information.
 * [ ] The orchestration targets the appropriate execution mode.
+* [ ] New Gemini usage resolves through valid capability flags (`swift`, `core`, `lite`, `mini`, `nano`, `pro`, `deep`) rather than ad hoc model strings.
 * [ ] Telemetry tracking updates are registered in [src/services/modelRoutingMemory.ts](src/services/modelRoutingMemory.ts) if new model profiles are added.
-* [ ] Provider fallbacks support both single-provider and race modes, terminating at the OpenRouter emergency route.
+* [ ] Provider fallbacks support Standard, Race, and Deep modes, terminating at the OpenRouter emergency route when required.
 * [ ] Structured outputs conform to the expected Markdown or JSON schemas.
 * [ ] UI components receive only validated structured data.
 * [ ] Prompt changes preserve Academic Oracle's pedagogical-first philosophy.

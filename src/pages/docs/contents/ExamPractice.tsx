@@ -181,7 +181,7 @@ export default function ExamPractice() {
                   <div className="flex -space-x-2">
                      {[1,2,3].map(i => <div key={i} className="w-6 h-6 rounded-full border border-[#0a0f1d] bg-white/10" />)}
                   </div>
-                  <p className="text-[10px] text-slate-500 font-black uppercase tracking-[0.2em]">Validated by Agentic-Routing Engine</p>
+                  <p className="text-[10px] text-slate-500 font-black uppercase tracking-[0.2em]">Validated by Deep/Race Routing Engine</p>
                </div>
             </div>
           </div>
