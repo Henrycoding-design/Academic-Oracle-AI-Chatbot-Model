@@ -56,10 +56,11 @@ import {
 // Chat System Prompt moved to Edge Function
 
 const MODEL_FALLBACK_CHAIN: GeminiModelFlag[] = [
-  "agentic",
-  "fast",
-  "smart", // safer public model
-  "balanced" // last resort due to this model also being use in Quiz generation/validation -> less load balancing
+  "swift", // new
+  "core",
+  "lite", // new
+  "mini",
+  "pro", // last resort due to this model also being use in Quiz generation/validation -> less load balancing
 ] as const;
 
 const shouldUseExamRace = (): boolean => {
@@ -434,7 +435,7 @@ const isUnavailableError = (err: unknown): boolean => {
 };
 
 export function isRetryableAIError(err: unknown): boolean {
-  if (err instanceof InvalidAIResponseError) return true; // mostly this case as we use the custom error in validation earlier
+  if (err instanceof InvalidAIResponseError) return true; // mostly this case
   if (err instanceof SyntaxError) return true;
 
   if (err && typeof err === "object") {
@@ -855,22 +856,22 @@ export const sendMessageToBotRace = async (params: {
     if (intent === "agentic") {
       console.log("Using agentic strategy for this request");
       raceResult = await raceModels([
-        () => callGemini("smart"),
-        () => callGemini("agentic")
+        () => callGemini("swift"),
+        () => callGemini("core")
       ], isValidRaceResult);
     }
     else if (intent === "fast") {
       console.log("Using fast strategy for this request");
       raceResult = await raceModels([
-        () => callGemini("fast"),
-        () => callGemini("smart"),
+        () => callGemini("lite"),
+        () => callGemini("mini"),
       ], isValidRaceResult);
     }
     else {
       console.log("Using balanced strategy for this request");
       raceResult = await raceModels([
-        () => callGemini("agentic"),
-        () => callGemini("smart"),
+        () => callGemini("lite"),
+        () => callGemini("core"),
       ], isValidRaceResult);
     }
 
@@ -1044,6 +1045,68 @@ export const sendMessageToBot = async (params: {
   }, "Standard", lastError);
 };
 
+export const sendMessageToBotDeep = async (params: {
+  history: { role: "user" | "model"; content: string }[];
+  memory?: string | null;
+  encryptedKeyPayload: any;
+  language: AppLanguage;
+  webSearchFailed?: boolean;
+}): Promise<OracleResponse> => {
+  const { history, memory, encryptedKeyPayload, language, webSearchFailed } = params;
+
+  const memoryBlock = memory
+    ? `ORACLE MEMORY (Persistent Student Profile):
+  ${formatOracleMemoryForPrompt(memory)}
+
+  ---`
+    : "";
+
+  const prompt = `
+    ${memoryBlock}
+    CHAT HISTORY (Trimmed)
+    ${history.map(h => `${h.role.toUpperCase()}: ${h.content}`).join("\n\n")}
+    `.trim();
+
+  const resolvedLanguage =
+    language === "en" ? "English"
+    : language === "fr" ? "French"
+    : language === "es" ? "Spanish"
+    : "Vietnamese";
+
+  try {
+    recordStandardModelAttempt("deep");
+    const response = await invokeEdgeAI({
+      provider: "gemini",
+      model: "deep",
+      prompt,
+      temp: 0.2,
+      mode: "chat",
+      language: resolvedLanguage,
+      encryptedKeyPayload,
+      webSearchFailed,
+    });
+
+    throwIfProviderErrorDetails(response);
+
+    const text = response?.candidates?.[0]?.content?.parts?.[0]?.text;
+    if (!text) {
+      throw new InvalidAIResponseError("Empty model response");
+    }
+
+    const parsedResponse = parseOracleChatResponse(text, memory, history, "deep");
+    recordStandardModelSuccess("deep");
+    return parsedResponse;
+  } catch (err: any) {
+    if (isInvalidApiKeyError(err)) throw new InvalidAPIError();
+
+    const failureType = getStandardRoutingFailureType(err);
+    recordStandardModelFailure("deep", failureType);
+    console.warn("Deep mode call failed; falling back to standard", err);
+    return sendMessageToBot(params);
+  }
+};
+
+
 
 // Generate structured session summary using Gemini
 // Summary prompt moved into Edge Function
@@ -1082,7 +1145,11 @@ ${history.map((h) => `${h.role.toUpperCase()}: ${h.content}`).join("\n\n")}
     : "Vietnamese";
 
   for (const model of MODEL_FALLBACK_CHAIN) {
+    if (shouldSkipStandardModel(model)) {
+      continue;
+    }
     try {
+      recordStandardModelAttempt(model);
       const text = await getGeminiTextFromEdge({
         model,
         prompt: inputBlock,
@@ -1094,15 +1161,17 @@ ${history.map((h) => `${h.role.toUpperCase()}: ${h.content}`).join("\n\n")}
       });
 
       const parsed = extractAndParseJSONSafe(text);
-      if (!parsed.ok) throw new InvalidAIResponseError();
+      if (!parsed.ok) {
+        recordStandardModelFailure(model, "wrong_format");
+        throw new InvalidAIResponseError();
+      }
+      recordStandardModelSuccess(model);
       return parsed.data;
     } catch (err) {
+      const failureType = getStandardRoutingFailureType(err);
+      recordStandardModelFailure(model, failureType);
       // If it's a rate limit, try the next model in the chain
-      if (isRateLimitError(err)) {
-        await sleep(200 + Math.random() * 300); // small random backoff to reduce thundering herd
-        continue;
-      }
-      if (isUnavailableError(err)) {
+      if (isRateLimitError(err) || isUnavailableError(err)) {
         await sleep(200 + Math.random() * 300); // small random backoff to reduce thundering herd
         continue;
       }
@@ -1142,11 +1211,12 @@ export const estimateQuizConfig = async (
   ${lightMemory}`;
 
   try {
-      const text = await getGeminiTextFromEdge({
-        model: "fast",
-        prompt,
-        temp: 0.2,
-        responseMimeType: "application/json",
+    recordStandardModelAttempt("nano");
+    const text = await getGeminiTextFromEdge({
+      model: "nano",
+      prompt,
+      temp: 0.2,
+      responseMimeType: "application/json",
       encryptedKeyPayload,
     });
 
@@ -1157,11 +1227,14 @@ export const estimateQuizConfig = async (
       : parsed;
 
     if (!isEstimateQuizConfigResponse(normalizedConfig)) {
+      recordStandardModelFailure("nano", "wrong_format");
       throw new InvalidAIResponseError("Invalid response format for quiz config estimation");
     }
 
+    recordStandardModelSuccess("nano");
     return normalizedConfig;
   } catch (err) { // no retry, return default config
+    recordStandardModelFailure("nano", getStandardRoutingFailureType(err));
     return {
       level: "Fundamental",
       count: 5,
@@ -1217,37 +1290,47 @@ export const generateQuizQuestions = async (
   ]`;
 
   try {
+    recordStandardModelAttempt("pro");
     const text = await getGeminiTextFromEdge({
-      model: "balanced",
+      model: "pro",
       prompt,
       temp: 0.6,
       responseMimeType: "application/json",
       encryptedKeyPayload,
     });
     
-    return JSON.parse(text);
+    const parsed = JSON.parse(text);
+    recordStandardModelSuccess("pro");
+    return parsed;
   } catch (err) {
+    recordStandardModelFailure("pro", getStandardRoutingFailureType(err));
     if (isRetryableAIError(err)) {
       // Retry once with the same model
+      recordStandardModelAttempt("pro");
       const retryText = await getGeminiTextFromEdge({
-        model: "balanced",
+        model: "pro",
         prompt,
         temp: 0.5,
         responseMimeType: "application/json",
         encryptedKeyPayload,
       });
-      return JSON.parse(retryText);
+      const parsed = JSON.parse(retryText);
+      recordStandardModelSuccess("pro");
+      return parsed;
     }
     if (isRateLimitError(err) || isUnavailableError(err)) {
       // Fallback to lite model
+      recordStandardModelAttempt("lite");
       const fallbackText = await getGeminiTextFromEdge({
-        model: "fast",
+        model: "lite",
         prompt,
         temp: 0.4,
         responseMimeType: "application/json",
         encryptedKeyPayload,
       });
-      return JSON.parse(fallbackText);
+      const parsed = JSON.parse(fallbackText);
+      recordStandardModelSuccess("lite");
+      return parsed;
     }
     throw err;
   }
@@ -1280,7 +1363,7 @@ Return JSON:
 }`;
 
   const text = await getGeminiTextFromEdge({
-    model: "balanced",
+    model: "pro",
     prompt,
     temp: 0.6,
     responseMimeType: "application/json",
@@ -1350,21 +1433,21 @@ ${markSchemeText ?? "No mark scheme provided."}
 
   const raceResult = await raceModels([
     () => getGeminiTextFromEdge({
-      model: "balanced",
+      model: "pro",
       prompt,
       temp: 0.2,
       mode: "exam-structure",
       responseMimeType: "application/json",
       encryptedKeyPayload,
-    }).then(text => ({ model: "balanced", text })),
+    }).then(text => ({ model: "pro", text })),
     () => getGeminiTextFromEdge({
-      model: "smart",
+      model: "lite",
       prompt,
       temp: 0.1,
       mode: "exam-structure",
       responseMimeType: "application/json",
       encryptedKeyPayload,
-    }).then(text => ({ model: "smart", text })),
+    }).then(text => ({ model: "lite", text })),
   ], isValid);
 
   return tryParse(raceResult.text);
@@ -1390,8 +1473,9 @@ ${markSchemeText ?? "No mark scheme provided."}
 `;
 
   try {
+    recordStandardModelAttempt("pro");
     const text = await getGeminiTextFromEdge({
-      model: "balanced",
+      model: "pro",
       prompt,
       temp: 0.2,
       mode: "exam-structure",
@@ -1399,11 +1483,15 @@ ${markSchemeText ?? "No mark scheme provided."}
       encryptedKeyPayload,
     });
 
-    return tryParse(text);
+    const parsed = tryParse(text);
+    recordStandardModelSuccess("pro");
+    return parsed;
   } catch (err) {
+    recordStandardModelFailure("pro", getStandardRoutingFailureType(err));
     if (isRetryableAIError(err) || isRateLimitError(err) || isUnavailableError(err)) {
+      recordStandardModelAttempt("lite");
       const retryText = await getGeminiTextFromEdge({
-        model: "smart",
+        model: "lite",
         prompt,
         temp: 0.1,
         mode: "exam-structure",
@@ -1411,7 +1499,9 @@ ${markSchemeText ?? "No mark scheme provided."}
         encryptedKeyPayload,
       });
 
-      return tryParse(retryText);
+      const parsed = tryParse(retryText);
+      recordStandardModelSuccess("lite");
+      return parsed;
     }
 
     throw err;
@@ -1458,8 +1548,9 @@ ${JSON.stringify(payload)}
   };
 
   try {
+    recordStandardModelAttempt("pro");
     const text = await getGeminiTextFromEdge({
-      model: "balanced",
+      model: "pro",
       prompt,
       temp: 0.1,
       mode: "exam-enrich",
@@ -1467,11 +1558,15 @@ ${JSON.stringify(payload)}
       encryptedKeyPayload,
     });
 
-    return tryParse(text);
+    const parsed = tryParse(text);
+    recordStandardModelSuccess("pro");
+    return parsed;
   } catch (err) {
+    recordStandardModelFailure("pro", getStandardRoutingFailureType(err));
     if (isRetryableAIError(err) || isRateLimitError(err) || isUnavailableError(err)) {
+      recordStandardModelAttempt("lite");
       const retryText = await getGeminiTextFromEdge({
-        model: "fast",
+        model: "lite",
         prompt,
         temp: 0.1,
         mode: "exam-enrich",
@@ -1479,7 +1574,9 @@ ${JSON.stringify(payload)}
         encryptedKeyPayload,
       });
 
-      return tryParse(retryText);
+      const parsed = tryParse(retryText);
+      recordStandardModelSuccess("lite");
+      return parsed;
     }
 
     throw err;
@@ -1527,7 +1624,7 @@ ${JSON.stringify(payload)}
 
   const raceResult = await raceModels([
     () => getGeminiTextFromEdge({
-      model: "balanced",
+      model: "pro",
       prompt,
       temp: 0.2,
       mode: "exam-grade",
@@ -1538,9 +1635,9 @@ ${JSON.stringify(payload)}
         stylePolicy,
       },
       encryptedKeyPayload,
-    }).then(text => ({ model: "balanced", text })),
+    }).then(text => ({ model: "pro", text })),
     () => getGeminiTextFromEdge({
-      model: "smart",
+      model: "lite",
       prompt,
       temp: 0.1,
       mode: "exam-grade",
@@ -1551,7 +1648,7 @@ ${JSON.stringify(payload)}
         stylePolicy,
       },
       encryptedKeyPayload,
-    }).then(text => ({ model: "smart", text })),
+    }).then(text => ({ model: "lite", text })),
   ], isValid);
 
   return tryParse(raceResult.text);
@@ -1610,8 +1707,9 @@ ${JSON.stringify(payload)}
   };
 
   try {
+    recordStandardModelAttempt("pro");
     const text = await getGeminiTextFromEdge({
-      model: "balanced",
+      model: "pro",
       prompt,
       temp: 0.2,
       mode: "exam-grade",
@@ -1624,11 +1722,15 @@ ${JSON.stringify(payload)}
       encryptedKeyPayload,
     });
 
-    return tryParse(text);
+    const parsed = tryParse(text);
+    recordStandardModelSuccess("pro");
+    return parsed;
   } catch (err) {
+    recordStandardModelFailure("pro", getStandardRoutingFailureType(err));
     if (isRetryableAIError(err) || isRateLimitError(err) || isUnavailableError(err)) {
+      recordStandardModelAttempt("lite");
       const retryText = await getGeminiTextFromEdge({
-        model: "smart",
+        model: "lite",
         prompt,
         temp: 0.1,
         mode: "exam-grade",
@@ -1641,7 +1743,9 @@ ${JSON.stringify(payload)}
         encryptedKeyPayload,
       });
 
-      return tryParse(retryText);
+      const parsed = tryParse(retryText);
+      recordStandardModelSuccess("lite");
+      return parsed;
     }
 
     throw err;
@@ -1711,8 +1815,9 @@ export const runCronPromptGuard = async (
   );
 
   try {
+    recordStandardModelAttempt("mini");
     const text = await getGeminiTextFromEdge({
-      model: "smart",
+      model: "mini",
       prompt,
       temp: 0.2,
       responseMimeType: "application/json",
@@ -1722,12 +1827,15 @@ export const runCronPromptGuard = async (
     const parsed = extractAndParseJSONSafe(text);
 
     if (!parsed.ok || !isCronGuardDecision(parsed.data)) {
+      recordStandardModelFailure("mini", "wrong_format");
       throw new InvalidAIResponseError("Invalid cron guard response");
     }
 
+    recordStandardModelSuccess("mini");
     return parsed.data;
 
   } catch (err) {
+    recordStandardModelFailure("mini", getStandardRoutingFailureType(err));
 
     // safety fallback
     return {
@@ -1809,36 +1917,44 @@ export const generateSearchQueries = async (
 ): Promise<string[]> => {
 
   const tryGenerate = async (model: GeminiModelFlag, temp: number) => {
-    const text = await getGeminiTextFromEdge({
-      model,
-      prompt: userPrompt,
-      temp,
-      systemInstruction: QUERY_EXTRACT_PROMPT,
-      responseMimeType: "application/json",
-      encryptedKeyPayload: encryptApiKeyPayload,
-    });
+    recordStandardModelAttempt(model);
+    try {
+      const text = await getGeminiTextFromEdge({
+        model,
+        prompt: userPrompt,
+        temp,
+        systemInstruction: QUERY_EXTRACT_PROMPT,
+        responseMimeType: "application/json",
+        encryptedKeyPayload: encryptApiKeyPayload,
+      });
 
-    const parsed = extractAndParseJSONSafe(text);
+      const parsed = extractAndParseJSONSafe(text);
 
-    if (!parsed.ok || !Array.isArray(parsed.data.queries)) {
-      throw new Error("Invalid query extraction response");
+      if (!parsed.ok || !Array.isArray(parsed.data.queries)) {
+        recordStandardModelFailure(model, "wrong_format");
+        throw new Error("Invalid query extraction response");
+      }
+
+      recordStandardModelSuccess(model);
+      return parsed.data.queries.slice(0, 2); // max of 2 search queries
+    } catch (err) {
+      recordStandardModelFailure(model, getStandardRoutingFailureType(err));
+      throw err;
     }
-
-    return parsed.data.queries.slice(0, 2);
   };
 
-  // 🥇 First attempt: fast model
+  // 🥇 First attempt: nano model
   try {
-    return await tryGenerate("fast", 0.2);
+    return await tryGenerate("nano", 0.2);
   } catch (e) {
-    console.warn("Fast query generation failed, falling back to smart", e);
+    console.warn("Nano query generation failed, falling back to mini", e);
   }
 
-  // 🥈 Fallback: smart model (more reliable)
+  // 🥈 Fallback: mini model (more reliable)
   try {
-    return await tryGenerate("smart", 0.1);
+    return await tryGenerate("mini", 0.1);
   } catch (e) {
-    console.warn("Smart query generation also failed, using raw prompt", e);
+    console.warn("Mini query generation also failed, using raw prompt", e);
   }
 
   // 🥉 Final fallback: raw prompt
@@ -1865,31 +1981,31 @@ export const generateBlindChecklist = async (
   try {
     const raceResult = await raceModels([
       () => getGeminiTextFromEdge({
-        model: "smart",
+        model: "swift",
         prompt,
         temp: 0.3,
         mode: "checklist",
         language: resolvedLanguage,
         responseMimeType: "application/json",
         encryptedKeyPayload,
-      }).then(text => ({ model: "smart", text })),
+      }).then(text => ({ model: "swift", text })),
       () => getGeminiTextFromEdge({
-        model: "agentic",
+        model: "core",
         prompt,
         temp: 0.3,
         mode: "checklist",
         language: resolvedLanguage,
         responseMimeType: "application/json",
         encryptedKeyPayload,
-      }).then(text => ({ model: "agentic", text })),
+      }).then(text => ({ model: "core", text })),
     ], isValid);
 
     return JSON.parse(raceResult.text).checklist;
   } catch (err) {
-    console.warn("Blind checklist race failed, falling back to balanced", err);
+    console.warn("Blind checklist race failed, falling back to pro", err);
     try {
       const text = await getGeminiTextFromEdge({
-        model: "balanced",
+        model: "pro",
         prompt,
         temp: 0.4,
         mode: "checklist",
@@ -1903,9 +2019,9 @@ export const generateBlindChecklist = async (
 
       return JSON.parse(text).checklist;
     } catch (err2) {
-      console.warn("Blind checklist balanced fallback failed, falling back to fast", err2);
+      console.warn("Blind checklist pro fallback failed, falling back to mini", err2);
       const text = await getGeminiTextFromEdge({
-        model: "fast",
+        model: "mini",
         prompt,
         temp: 0.5,
         mode: "checklist",

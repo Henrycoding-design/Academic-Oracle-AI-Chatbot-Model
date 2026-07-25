@@ -87,6 +87,19 @@ npm run build
 npm run preview
 ```
 
+### Temporary TypeScript Checks
+
+When testing a one-off `.ts` file directly from the terminal, run it through the
+project's ESM loader:
+
+```bash
+node --loader ts-node/esm filepath
+```
+
+Replace `filepath` with the temporary TypeScript file path. This avoids the
+common module-loader error that occurs when executing `.ts` files directly in an
+ESM project.
+
 ---
 
 ## Repository Structure

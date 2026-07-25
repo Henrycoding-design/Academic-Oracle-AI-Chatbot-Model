@@ -1,8 +1,11 @@
 export const GEMINI_MODEL_MAP = {
-  agentic: "Gemini 3 Flash",
-  fast: "Gemini 2.5 Lite",
-  smart: "Gemini 3.1 Lite",
-  balanced: "Gemini 2.5 Flash",
+  swift: "Gemini 3.6 Flash", // new
+  core: "Gemini 3 Flash",
+  lite: "Gemini 3.5 Lite", // new
+  mini: "Gemini 3.1 Lite",
+  nano: "Gemini 2.5 Lite",
+  pro: "Gemini 2.5 Flash",
+  deep: "Gemini 3.5 Flash", // new
 } as const;
 
 export type GeminiModelFlag = keyof typeof GEMINI_MODEL_MAP;
@@ -13,7 +16,7 @@ export type GeminiModelName =
 export type ClientModelLabel = GeminiModelFlag | "openrouter/free";
 
 export const DEFAULT_GEMINI_MODEL: GeminiModelName =
-  GEMINI_MODEL_MAP.agentic;
+  GEMINI_MODEL_MAP.swift;
 
 
 

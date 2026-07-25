@@ -1,5 +1,31 @@
 [
   {
+    "version": "2.5.6",
+    "date": "2026-07-25",
+    "changes": [
+      {
+        "type": "feature",
+        "text": "Added newer Gemini models across the orchestration layer: Gemini 3.5 Flash, Gemini 3.5 Flash Lite, and Gemini 3.6 Flash."
+      },
+      {
+        "type": "improve",
+        "text": "Updated internal model naming and routing from the previous 4-model flag system to 7 capability tiers: swift, core, lite, mini, nano, pro, and deep."
+      },
+      {
+        "type": "feature",
+        "text": "Introduced DEEP chat mode for hard, complex, advanced reasoning prompts, using Gemini 3.5 Flash before falling back to Standard chat routing if needed."
+      },
+      {
+        "type": "improve",
+        "text": "Expanded routing telemetry beyond chat-only callers where possible, helping the system avoid stale, rate-limited, or repeatedly failing model routes more dynamically."
+      },
+      {
+        "type": "fix",
+        "text": "Hardened backend Gemini model flag validation to prevent mismatched or incorrect flag names from producing undefined model parameters and avoidable 4xx network errors."
+      }
+    ]
+  },
+  {
     "version": "2.5.5",
     "date": "2026-07-02",
     "changes": [

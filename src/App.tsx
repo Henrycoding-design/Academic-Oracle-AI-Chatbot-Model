@@ -12,7 +12,8 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import type { Message, ChatHistoryItem, ChatTailoringMode, UserMessageUiMeta } from './types';
-import { sendMessageToBot, sendMessageToBotRace, runCronPromptGuard} from './services/geminiService';
+import { sendMessageToBot, sendMessageToBotDeep, sendMessageToBotRace, runCronPromptGuard} from './services/geminiService';
+import { classifyDeepIntent } from './services/deepIntentClassification';
 import { ChatInput } from './components/ChatInput';
 import { ChatMessage } from './components/ChatMessage';
 import AuthPage from "./AuthPage";
@@ -891,6 +892,14 @@ const App: React.FC = () => {
       true : isShortPrompt ?
       true : shouldUseRace(); // respect tailoring settings and rush hour optimization
       let raceIntent: "agentic" | "fast" | "balance" | null = null;
+      let useDeep = false;
+
+      if (!useRace) {
+        useDeep = await classifyDeepIntent(
+          encryptedApiKey,
+          outgoingHistory.map(h => `${h.role.toUpperCase()}: ${h.content}`).join("\n\n")
+        );
+      }
 
       if (isVeryShortPrompt) {
         raceIntent = "fast";
@@ -910,6 +919,8 @@ const App: React.FC = () => {
             : raceIntent === "fast"
               ? "Fast"
               : "Balanced";
+      } else if (useDeep) {
+        currentLoadingLabel = "Deep";
       } else if (!decision.web_search) {
         currentLoadingLabel = "Standard";
       }
@@ -917,7 +928,7 @@ const App: React.FC = () => {
       setLoadingModeLabel(currentLoadingLabel);
 
       console.log(
-        `Using ${useRace ? "RACE" : "standard"} strategy for this request`
+        `Using ${useRace ? "RACE" : useDeep ? "DEEP" : "standard"} strategy for this request`
       );
 
       const { answer, memory, model_label } =
@@ -931,13 +942,21 @@ const App: React.FC = () => {
                 intent: raceIntent ?? "balance",
                 webSearchFailed,
               })
-            : sendMessageToBot({
-                history: outgoingHistory,
-                memory: oracleMemory,
-                encryptedKeyPayload: encryptedApiKey,
-                language: language,
-                webSearchFailed,
-              })
+            : useDeep
+              ? sendMessageToBotDeep({
+                  history: outgoingHistory,
+                  memory: oracleMemory,
+                  encryptedKeyPayload: encryptedApiKey,
+                  language: language,
+                  webSearchFailed,
+                })
+              : sendMessageToBot({
+                  history: outgoingHistory,
+                  memory: oracleMemory,
+                  encryptedKeyPayload: encryptedApiKey,
+                  language: language,
+                  webSearchFailed,
+                })
         );
 
       // 🖼️ UI response

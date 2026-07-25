@@ -1,6 +1,6 @@
 export type AppLanguage = "en" | "fr" | "es" | "vi";
 
-export type LoadingModeLabel = "Agentic" | "Fast" | "Balanced" | "Standard" | "Web Search";
+export type LoadingModeLabel = "Agentic" | "Fast" | "Balanced" | "Standard" | "Web Search" | "Deep";
 
 export const LANGUAGE_DATA: Record<AppLanguage, {
   greeting: string;
@@ -514,6 +514,7 @@ export const LANGUAGE_DATA: Record<AppLanguage, {
         Balanced: "Balanced",
         Standard: "Standard",
         "Web Search": "Web Search",
+        Deep: "Deep",
       },
       exam: {
         examInstructions: "Exam Instructions",
@@ -840,6 +841,7 @@ export const LANGUAGE_DATA: Record<AppLanguage, {
         Balanced: "Équilibré",
         Standard: "Standard",
         "Web Search": "Recherche Web",
+        Deep: "Raisonnement Profond",
       },
       exam: {
         examInstructions: "Instructions de l'examen",
@@ -1161,11 +1163,12 @@ export const LANGUAGE_DATA: Record<AppLanguage, {
         reportOverallCompletion: "Cumplimiento general",
       },
       loadingModeLabels: {
-        Agentic: "Agéntico",
+        Agentic: "Agentivo",
         Fast: "Rápido",
         Balanced: "Equilibrado",
         Standard: "Estándar",
-        "Web Search": "Búsqueda web",
+        "Web Search": "Búsqueda Web",
+        Deep: "Razonamiento Profundo",
       },
       exam: {
         examInstructions: "Instrucciones del examen",
@@ -1492,6 +1495,7 @@ export const LANGUAGE_DATA: Record<AppLanguage, {
         Balanced: "Cân bằng",
         Standard: "Tiêu chuẩn",
         "Web Search": "Tìm kiếm web",
+        Deep: "Suy luận Sâu",
       },
       exam: {
         examInstructions: "Hướng dẫn bài kiểm tra",
