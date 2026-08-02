@@ -16,6 +16,8 @@ export interface UserMessageSelectionContext {
 export interface UserMessageUiMeta {
   displayContent?: string;
   selectionContext?: UserMessageSelectionContext;
+  forceDeepMode?: boolean;
+  forceWebSearch?: boolean;
 }
 
 export interface Message {
