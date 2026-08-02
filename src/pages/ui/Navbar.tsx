@@ -1,5 +1,6 @@
 import React, { useEffect, useState , useRef} from "react";
-import { ChevronDown, Github, MessageSquare, Rocket, Menu, X } from "lucide-react";
+import { ChevronDown, Github, Menu, X, Rocket } from "lucide-react";
+import { MessageSquare} from "lucide-react-motion";
 import { motion, AnimatePresence, easeOut } from "framer-motion";
 import { supabase } from "../../services/supabaseClient";
 import {Link} from "react-router-dom";
@@ -125,8 +126,9 @@ export default function Navbar() {
               bg-[#0b1225]/80 border border-blue-400/20
               text-white hover:shadow-[0_0_20px_rgba(59,130,246,0.35)]
               transition md:flex items-center gap-2"
+              data-motion-icon-group
           >
-            <MessageSquare size={16} />
+            <MessageSquare size={16} trigger="parent-hover" duration={0.5}/>
             Chat
           </a>
 

@@ -5,7 +5,8 @@ import Footer from "../ui/Footer";
 import InfiniteRail from "./InfiniteRail";
 import FeatureGrid from "../ui/FeatureCard";
 import { ArcadeCoreTest } from "@/src/components/ArcadeDemo";
-import { Mail, Github, MessageSquare} from "lucide-react";
+import { MessageSquare} from "lucide-react-motion";
+import {Github, Mail} from "lucide-react";
 import {motion , useReducedMotion, Variants} from "framer-motion";
 
 // important!!
@@ -180,8 +181,9 @@ export default function Home() {
               shadow-lg shadow-blue-500/25
               transition-all duration-300
             "
+            data-motion-icon-group
           >
-            <MessageSquare size={20} />
+            <MessageSquare size={20} trigger="parent-hover" />
             Start Chatting
           </a>
 
