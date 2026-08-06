@@ -1,4 +1,5 @@
 
+import { AppLanguage } from "./lang/Language";
 import type { ClientModelLabel } from "./services/models";
 
 export interface AttachmentMeta {
@@ -27,6 +28,9 @@ export interface Message {
   attachment?: AttachmentMeta;
   attachments?: AttachmentMeta[];
   selectionContext?: UserMessageSelectionContext;
+  isDeepMode?: boolean;
+  isWebSearch?: boolean;
+  language?: AppLanguage;
 }
 
 export interface ChatHistoryItem {

@@ -758,6 +758,9 @@ const App: React.FC = () => {
                 }))
               : undefined,
             selectionContext: uiMeta?.selectionContext,
+            isDeepMode: uiMeta?.forceDeepMode,
+            isWebSearch: uiMeta?.forceWebSearch,
+            language: language,
           },
         ]);
 

@@ -309,7 +309,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
                 {isDeepMode && (
                   <div className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-indigo-500/10 dark:bg-indigo-500/20 border border-indigo-500/30 text-indigo-700 dark:text-indigo-300 rounded-xl text-xs font-semibold">
                     <Brain className="w-3.5 h-3.5" />
-                    <span>Deep mode</span>
+                    <span>{LANGUAGE_DATA[language].ui.loadingModeLabels.Deep}</span>
                     <button
                       type="button"
                       onClick={() => setIsDeepMode(false)}
@@ -323,7 +323,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
                 {isWebSearch && (
                   <div className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-500/10 dark:bg-emerald-500/20 border border-emerald-500/30 text-emerald-700 dark:text-emerald-300 rounded-xl text-xs font-semibold">
                     <Globe className="w-3.5 h-3.5" />
-                    <span>Web search</span>
+                    <span>{LANGUAGE_DATA[language].ui.loadingModeLabels['Web Search']}</span>
                     <button
                       type="button"
                       onClick={() => setIsWebSearch(false)}
@@ -458,7 +458,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
           >
             <div className="flex items-center gap-2.5">
               <Brain className="w-4 h-4 text-indigo-500" />
-              <span>Deep mode</span>
+              <span>{LANGUAGE_DATA[language].ui.loadingModeLabels.Deep}</span>
             </div>
             {isDeepMode && (
               <span className="text-[10px] uppercase tracking-wider bg-indigo-600 text-white px-1.5 py-0.5 rounded-md font-semibold">
@@ -480,7 +480,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
           >
             <div className="flex items-center gap-2.5">
               <Globe className="w-4 h-4 text-emerald-500" />
-              <span>Web search</span>
+              <span>{LANGUAGE_DATA[language].ui.loadingModeLabels['Web Search']}</span>
             </div>
             {isWebSearch && (
               <span className="text-[10px] uppercase tracking-wider bg-emerald-600 text-white px-1.5 py-0.5 rounded-md font-semibold">
