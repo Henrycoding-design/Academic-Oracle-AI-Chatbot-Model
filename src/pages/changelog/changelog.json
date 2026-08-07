@@ -1,5 +1,31 @@
 [
   {
+    "version": "2.5.7",
+    "date": "2026-08-07",
+    "changes": [
+      {
+        "type": "feature",
+        "text": "Redesigned the chat input with a unified Add portal, bringing file uploads, Deep Mode, and Web Search into a more streamlined interface with full multilingual support."
+      },
+      {
+        "type": "fix",
+        "text": "Fixed an issue where Oracle Memory could incorrectly record Core Test accuracy as 100% by introducing structured metadata for both Core Test and Quiz results, ensuring more reliable memory, mastery tracking, and Best Practice recommendations."
+      },
+      {
+        "type": "improve",
+        "text": "Expanded the Core Test duration controls to support sessions from 1 to 360 minutes while preserving manual custom durations within the valid range."
+      },
+      {
+        "type": "improve",
+        "text": "Refined PromptGuard detection heuristics to reduce false positives and improve prompt injection detection accuracy across a wider range of user interactions."
+      },
+      {
+        "type": "improve",
+        "text": "Introduced selective animated icons across the landing page to create a more polished and engaging user experience."
+      }
+    ]
+  },
+  {
     "version": "2.5.6",
     "date": "2026-07-25",
     "changes": [
