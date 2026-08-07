@@ -47,10 +47,11 @@ type ToastMessage = {
 
 const QUESTION_FILE_INPUT_ID = 'core-test-question-input';
 const MARKSCHEME_FILE_INPUT_ID = 'core-test-markscheme-input';
-const DURATION_SLIDER_VALUES = [1, ...Array.from({ length: 18 }, (_, index) => (index + 1) * 5)];
-const DURATION_SLIDER_MAX_MINUTES = 90;
-const DURATION_INPUT_MAX_MINUTES = 6 * 60;
-const DURATION_INPUT_MIN_MINUTES = 1;
+//  Array of [1, 30, 60, ..., 360]
+const DURATION_SLIDER_VALUES = Array.from({ length: 13 }, (_, index) => index === 0 ? 1 : index * 30);
+const DURATION_SLIDER_MAX_MINUTES = 360; // 6 hours
+const DURATION_INPUT_MAX_MINUTES = 360; // 6 hours
+const DURATION_INPUT_MIN_MINUTES = 1; // 1 min
 type SetupTooltipKey = 'duration' | 'helpLevel' | 'gradingStyle';
 
 const estimateGrade = (percentage: number, gradingStyle: CoreTestGradingStyle) => {
@@ -159,7 +160,10 @@ const buildMemorySummary = (
       return `Q${item.questionNumber}: ${item.score ?? 0}/${item.maxScore ?? 1}.${question}${uAns}${feedback}`;
     });
 
+  const metadataBlock = `[[TEST_SCORE:${score}/${total};PERCENTAGE:${percentage};GRADE:${grade}]]`;
+
   return [
+    metadataBlock,
     `Core test result for "${payload.title}": ${score}/${total} (${percentage}%), estimated ${grade}, grading style ${gradingStyle}.`,
     strengths.length ? `Strong questions:\n- ${strengths.join('\n- ')}` : '',
     weakItems.length ? `Review targets:\n- ${weakItems.join('\n- ')}` : 'No major review targets were detected from this test.',

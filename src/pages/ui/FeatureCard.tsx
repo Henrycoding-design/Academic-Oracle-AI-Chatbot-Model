@@ -1,6 +1,6 @@
 import React, { useRef } from "react";
 import { motion, useMotionValue , useMotionTemplate , useSpring } from "framer-motion";
-import { Brain, ClipboardCheck, Shield, Sparkles, Database, FileText, LayoutDashboard } from "lucide-react";
+import { Brain, ClipboardCheck, Shield, Sparkles, Database, FileText, LayoutDashboard } from "lucide-react-motion";
 
 const FEATURES = [
   { id: 1, icon: Database, title: "Structured Memory" },
@@ -82,6 +82,7 @@ export function FeatureCard({ icon: Icon, title, span }: { icon: any; title: str
         hover:scale-[1.00]
         ${span ?? ""}
       `}
+      data-motion-icon-group
     >
       {/* 4. The Spotlight Layer */}
       <motion.div
@@ -95,7 +96,7 @@ export function FeatureCard({ icon: Icon, title, span }: { icon: any; title: str
       {/* Content */}
       <div className="relative z-10 h-full w-full flex flex-col items-start justify-end p-8">
         <div className="p-3 rounded-xl bg-blue-500/10 border border-blue-500/20 mb-4 group-hover:scale-110 transition-transform duration-300">
-          <Icon size={24} className="text-blue-400" />
+          <Icon size={24} className="text-blue-400" trigger="parent-hover" duration={0.5}/>
         </div>
         <div className="text-xl font-medium tracking-tight text-white/90">{title}</div>
       </div>

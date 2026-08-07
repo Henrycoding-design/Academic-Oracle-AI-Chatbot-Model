@@ -81,13 +81,16 @@ Academic Oracle optimizes for **retention, intuition, and reasoning**.
 
 ## Features
 
-### 🧠 Learning Engine *(updated v2.5.5)*
+### 🧠 Learning Engine *(updated v2.5.7)*
 
 - **Hint-based reasoning flow** — ask first, reveal progressively
 - **Structured thinking prompts** with richer Oracle Memory JSON returns
 - **Feynman-technique reinforcement** when understanding needs rebuilding from first principles
 - **Exam-style adaptation** and wider mastery branching for context-aware coaching
 - **Pattern extraction** instead of answer dumping
+- **Modern Chat Input Portal** *(new v2.5.7)*
+  - Redesigned file upload icon into an integrated **Add Portal** combining file uploads, **Deep Mode**, and **Web Search Mode** selection.
+  - Multi-mode configurations (Deep Mode and Web Search) feature full language localization and render directly into the active message display.
 - **Follow-up suggestion system**
   - Context-aware follow-up buttons on text selection
   - New "Follow up" mode with input container (no auto-send)
@@ -98,9 +101,10 @@ Academic Oracle optimizes for **retention, intuition, and reasoning**.
   - Strictly limited to a maximum of 3 check attempts per topic using exact runtime counter tracking.
   - Mitigates evaluation loops by automatically falling back to low-stakes checks (`Quick/Understanding/Mistake Check`) after an initial failure.
   - Enforces a dedicated user opt-in choice on a second failure, allowing students to choose to take a 3rd attempt or smoothly switch focus to recommended alternative topics.
-- **Oracle Memory system**
+- **Oracle Memory system** *(updated v2.5.7)*
   - Tracks understanding, mistakes, and learning progress across sessions
-  - Enables continuity between Learning Mode and Exam Mode
+  - Enforces structured metadata parsing (`[[TEST_SCORE:{score}/{total};PERCENTAGE:{percentage};GRADE:{grade}]]`) across both Core Test and Quiz View to eliminate incorrect accuracy parsing (e.g., false 100% core test recordings)
+  - Synchronizes mastery status, topic accuracy, confidence matching, and Best Practice mode continuously between modes
 - **Cross-mode learning loop**
   - Concepts learned in chat influence exam performance
   - Exam results feed back into targeted learning and revision
@@ -110,7 +114,7 @@ Academic Oracle optimizes for **retention, intuition, and reasoning**.
 
 ---
 
-### 📝 Integrated Quiz Platform *(updated v2.5.4)*
+### 📝 Integrated Quiz Platform *(updated v2.5.7)*
 
 - Auto-generated concept-specific quizzes
 - Multi-question adaptive testing
@@ -118,6 +122,8 @@ Academic Oracle optimizes for **retention, intuition, and reasoning**.
 - Reinforcement-based correction
 - Mid-session language switching
 - Unified Chat + Quiz UI system
+- **Standardized Oracle Memory metadata integration** *(new v2.5.7)*
+  - Quiz View aligned with Core Test logic using structured score metadata headers to accurately feed topic accuracy and mastery tracking.
 - **FRQ Failure Resubmission Loop** *(new v2.5.4)*
   - Added a dedicated retry button when a model failure occurs during a Free Response Question (FRQ), allowing users to immediately resubmit their input without losing their current state (similar to the wrong-answer chat explanation button).
 - **Wrong-answer follow-up chips** *(new v2.4.9)*
@@ -157,7 +163,7 @@ Academic Oracle optimizes for **retention, intuition, and reasoning**.
 
 ---
 
-### 🎓 Exam Practice Module *(updated v2.5.4)*
+### 🎓 Exam Practice Module *(updated v2.5.7)*
 
 **Transforms Academic Oracle from a learning assistant into a full exam + evaluation system.**
 
@@ -171,11 +177,13 @@ Academic Oracle optimizes for **retention, intuition, and reasoning**.
 
 - **Full Exam Mode** — timed conditions, restricted help, and no live feedback  
 - Replicates real testing pressure to train focus, discipline, and decision-making  
-- **Dual-Control Duration Slider Component** *(new v2.5.4)*
-  - Replaced the legacy time configurations in Core Test with an interactive slider bar ranging from 1 to 90 minutes (incrementing in steps of 5 minutes).
-  - Pairs with a synchronized input field directly underneath that displays the selected value and allows for custom manual numerical entries up to a maximum threshold of 6 hours.
+- **Expanded Core Test Duration Slider** *(updated v2.5.7)*
+  - Dual-control duration bar expanded to range from **1 to 360 minutes** with 30-minute step increments (1, 30, 60, ..., 360 min).
+  - Preserves custom manual numerical entries within the valid range and features updated, interactive configuration tooltips.
 - **Ubiquitous Configuration Tooltips** *(new v2.5.4)*
   - Implemented info icons (`i`) with interactive hover states across all three Core Test configurations for a consistent informational architecture mirroring `ProfilePage.tsx`.
+- **Unified Metadata Accuracy Tracking** *(new v2.5.7)*
+  - Prepend machine-readable metadata headers to memory summaries to eliminate accuracy mismatch bugs and ensure accurate result parsing across all sessions.
 - **Chronological First-Item Runtime Fix** *(new v2.5.4)*
   - Resolved a runtime rendering bug in the Core Test view where the initial information passage section was forcibly rendered on first load regardless of position. The view now guarantees strict structural ordering by rendering the absolute first structural item of the exam upon initial layout, whether it is an info passage or a question.
 - **Performance Memory Injection** *(new v2.5.2)* — Detailed exam summaries (including question prompts, user answers, and corrections) are now injected into the AI's memory.
@@ -338,7 +346,7 @@ Ideal for:
   - Strict fallback validation before returning responses
   - Reduced silent failures in multi-model execution
 
-#### 🛡️ Prompt Security Layer
+#### 🛡️ Prompt Security Layer *(updated v2.5.7)*
 
 - Jailbreak detection & filtering system
 - Prompt sanitation before model execution
@@ -348,12 +356,15 @@ Ideal for:
   - Jailbreak-risk prompts always disable web search before any normal routing continues
 - Updated prompt constraints to reduce answering beyond knowledge cutoff
 - Controlled response shaping to prevent misuse
+- **Reliability enhancements** *(v2.5.7)*
+  - Heuristics layer tuned to prevent false positives
+  - Added weighted points on keyword records to determine jailbreak more accurately
 
 > Academic Oracle is no longer just a frontend AI tool — it is a secured, distributed AI system.
 
 ---
 
-### 🎨 UX & Rendering
+### 🎨 UX & Rendering *(updated v2.5.7)*
 
 - **Robust Markdown rendering** — math (KaTeX), tables, code blocks
 - Dark / Light mode
@@ -369,6 +380,8 @@ Ideal for:
   - Follow-up, explain-further, and quiz wrong-answer actions now render chips instead of raw injected text
   - Selection chips can highlight the referenced source section on click
 - **Non-blocking UI architecture** — failures never crash the interface; graceful degradation on errors
+- **Selective Micro-Animations** *(new v2.5.7)*
+  - Integrated `lucide-react-motion` selectively into key landing sections for enhanced visual aesthetics
 
 ---
 

@@ -1,6 +1,7 @@
 import React from 'react';
-import { CornerDownRight } from 'lucide-react';
+import { CornerDownRight, Brain, Globe } from 'lucide-react';
 import type { Message } from '../types';
+import { LANGUAGE_DATA, AppLanguage} from '../lang/Language';
 import { flashSelectionGlow } from '../services/selectionGlow';
 import { MarkdownContent } from './MarkdownContent';
 
@@ -46,6 +47,8 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({ message, scrollRef }) 
   const bubbleId = message.id ?? undefined;
   const selectionContext = message.selectionContext;
   const hasInteractiveSelectionContext = Boolean(selectionContext?.targetMessageId);
+
+  const language = message.language ?? 'en';
 
   return (
     <div 
@@ -122,6 +125,24 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({ message, scrollRef }) 
                     "{selectionContext.selectionText}"
                   </div>
                 </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* 🧠 Deep Mode / Web Search badges */}
+        {!isModel && (message.isDeepMode || message.isWebSearch) && (
+          <div className="mb-2 flex flex-wrap gap-2">
+            {message.isDeepMode && (
+              <div className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-indigo-500/20 border border-indigo-400/30 text-indigo-100 rounded-xl text-xs font-semibold">
+                <Brain className="w-3.5 h-3.5" />
+                <span>{LANGUAGE_DATA[language].ui.loadingModeLabels.Deep}</span>
+              </div>
+            )}
+            {message.isWebSearch && (
+              <div className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-500/20 border border-emerald-400/30 text-emerald-100 rounded-xl text-xs font-semibold">
+                <Globe className="w-3.5 h-3.5" />
+                <span>{LANGUAGE_DATA[language].ui.loadingModeLabels['Web Search']}</span>
               </div>
             )}
           </div>

@@ -27,7 +27,7 @@ import { useClickOutside } from './services/useClickOutside.ts';
 import { generateSessionSummary } from './services/geminiService.ts';
 import { createSummaryDoc } from './services/createSummaryDoc.ts';
 import { shouldForceRaceFromRoutingMemory } from './services/modelRoutingMemory';
-import { Sparkles, SquarePen, ChevronDown, BrainCircuit, LogOut, User, LayoutDashboard, Menu, X, FileText, MessageSquare } from 'lucide-react';
+import { Sparkles, ChevronDown, LogOut, User, Menu, X, SunIcon, MoonIcon, SquarePen, BrainCircuit, LayoutDashboard, FileText, MessageSquare } from 'lucide-react';
 import ProfilePage from './ProfilePage.tsx';
 import { QuizView } from './components/QuizView'; // Added QuizView
 import DashboardView from './components/DashboardView.tsx';
@@ -51,17 +51,17 @@ import {
   serializeOracleMemory
 } from './services/oracleMemory.ts';
 
-const SunIcon = (props: React.SVGProps<SVGSVGElement>) => (
-  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v2.25m6.364.386l-1.591 1.591M21 12h-2.25m-.386 6.364l-1.591-1.591M12 18.75V21m-4.773-4.227l-1.591 1.591M3 12h2.25m.386-6.364l1.591 1.591M15.75 12a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z" />
-  </svg>
-);
+// const SunIcon = (props: React.SVGProps<SVGSVGElement>) => (
+//   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
+//     <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v2.25m6.364.386l-1.591 1.591M21 12h-2.25m-.386 6.364l-1.591-1.591M12 18.75V21m-4.773-4.227l-1.591 1.591M3 12h2.25m.386-6.364l1.591 1.591M15.75 12a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z" />
+//   </svg>
+// );
 
-const MoonIcon = (props: React.SVGProps<SVGSVGElement>) => (
-  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M21.752 15.002A9.718 9.718 0 0118 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 003 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 009.002-5.998z" />
-  </svg>
-);
+// const MoonIcon = (props: React.SVGProps<SVGSVGElement>) => (
+//   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
+//     <path strokeLinecap="round" strokeLinejoin="round" d="M21.752 15.002A9.718 9.718 0 0118 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 003 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 009.002-5.998z" />
+//   </svg>
+// );
 
 const SystemStatus: React.FC<{ status: 'ok' | 'loading' | 'error', model: string, language: AppLanguage }> = ({ status, model, language }) => {
     const colors = {
@@ -435,6 +435,46 @@ const App: React.FC = () => {
   const userMenuRef = useRef<HTMLDivElement>(null);
   useClickOutside([userButtonRef, userMenuRef], () => setIsUserMenuOpen(false), isUserMenuOpen); // hook to close user menu on outside click
 
+  // Unused: introduce some navigation glitches
+  // // 1. Track which icon is actively hovered by its string key (or null if none)
+  // const [hoveredIcon, setHoveredIcon] = useState<string | null>(null);
+  // const [debouncedIcon, setDebouncedIcon] = useState<string | null>(null);
+
+  // // 2. A single ref map to hold references to all individual icon instances
+  // const iconRefs = useRef<{ [key: string]: any }>({});
+
+  // // 3. A single, shared debounce effect
+  // useEffect(() => {
+  //   const handler = setTimeout(() => {
+  //     setDebouncedIcon(hoveredIcon);
+  //   }, 500); // 2-second delay
+
+  //   return () => clearTimeout(handler);
+  // }, [hoveredIcon]);
+
+  // // 4. A single effect to handle playing and stopping the correct animations
+  // useEffect(() => {
+  //   // Stop all icons that are NOT the currently debounced active icon
+  //   Object.keys(iconRefs.current).forEach((key) => {
+  //     if (key !== debouncedIcon) {
+  //       iconRefs.current[key]?.reset();
+  //     }
+  //   });
+
+  //   // Animate the specific icon that cleared the debounce delay
+  //   if (debouncedIcon && iconRefs.current[debouncedIcon]) {
+  //     iconRefs.current[debouncedIcon].play();
+  //   }
+  // }, [debouncedIcon]);
+
+  // // Helper helper to generate cleaner event listeners
+  // const getHoverProps = (iconKey: string) => ({
+  //   onMouseEnter: () => setHoveredIcon(iconKey),
+  //   onMouseLeave: () => setHoveredIcon(null),
+  //   onFocus: () => setHoveredIcon(iconKey),
+  //   onBlur: () => setHoveredIcon(null),
+  // });
+
   // UX mouse select tools
   const [selectedText, setSelectedText] = useState<string | null>(null);
   const [followUpSelectionText, setFollowUpSelectionText] = useState<string | null>(null);
@@ -718,6 +758,9 @@ const App: React.FC = () => {
                 }))
               : undefined,
             selectionContext: uiMeta?.selectionContext,
+            isDeepMode: uiMeta?.forceDeepMode,
+            isWebSearch: uiMeta?.forceWebSearch,
+            language: language,
           },
         ]);
 
@@ -769,6 +812,10 @@ const App: React.FC = () => {
 
         setIsLoading(false);
         return;
+      }
+
+      if (uiMeta?.forceWebSearch) {
+        decision.web_search = true;
       }
 
       if (!session) return;
@@ -888,20 +935,29 @@ const App: React.FC = () => {
 
       const isVeryShortPrompt = countWords(userMessage) < 3; // heuristic check to fast-forward short prompts directly to Balanced Racing mode -> better UX, save time, tokens cost
       const isShortPrompt = countWords(userMessage) < 8;
-      const useRace = isVeryShortPrompt ? 
-      true : isShortPrompt ?
-      true : shouldUseRace(); // respect tailoring settings and rush hour optimization
+      let useRace = false;
       let raceIntent: "agentic" | "fast" | "balance" | null = null;
       let useDeep = false;
 
-      if (!useRace) {
-        useDeep = await classifyDeepIntent(
-          encryptedApiKey,
-          outgoingHistory.map(h => `${h.role.toUpperCase()}: ${h.content}`).join("\n\n")
-        );
+      if (uiMeta?.forceDeepMode) {
+        useDeep = true;
+        useRace = false;
+      } else {
+        useRace = isVeryShortPrompt ? 
+        true : isShortPrompt ?
+        true : shouldUseRace(); // respect tailoring settings and rush hour optimization
+
+        if (!useRace) {
+          useDeep = await classifyDeepIntent(
+            encryptedApiKey,
+            outgoingHistory.map(h => `${h.role.toUpperCase()}: ${h.content}`).join("\n\n")
+          );
+        }
       }
 
-      if (isVeryShortPrompt) {
+      if (uiMeta?.forceDeepMode) {
+        currentLoadingLabel = "Deep";
+      } else if (isVeryShortPrompt) {
         raceIntent = "fast";
         currentLoadingLabel = "Fast";
       } else if (isShortPrompt) {
@@ -1406,7 +1462,7 @@ const App: React.FC = () => {
               </div>
             </div>
             <div className="flex flex-col gap-4">
-              <button className="p-2 rounded-lg hover:bg-black/5 dark:hover:bg-white/10 text-slate-700 dark:text-slate-200" onClick={() => { setIsSidebarOpen(false); resetChat(); }} title={LANGUAGE_DATA[language].tooltips.newChat}>
+              <button className="p-2 rounded-lg hover:bg-black/5 dark:hover:bg-white/10 text-slate-700 dark:text-slate-200" onClick={() => { setIsSidebarOpen(false); resetChat(); }} title={LANGUAGE_DATA[language].tooltips.newChat} >
                 <SquarePen size={18} />
               </button>
 
@@ -1418,7 +1474,9 @@ const App: React.FC = () => {
                 }`}
                 onClick={() => goToView("/")}
                 title={LANGUAGE_DATA[language].ui.chat}
+                // {...getHoverProps('chatIcon')}
               >
+                {/* <MessageSquare size={18} duration={0.5} trigger='manual' ref={(el) => {iconRefs.current['chatIcon'] = el;}} /> */}
                 <MessageSquare size={18} />
               </button>
 
@@ -1430,6 +1488,7 @@ const App: React.FC = () => {
                 }`}
                 onClick={() => goToView("/dashboard")}
                 title="Dashboard"
+                // {...getHoverProps('dashboardIcon')}
               >
                 <LayoutDashboard size={18} />
               </button>

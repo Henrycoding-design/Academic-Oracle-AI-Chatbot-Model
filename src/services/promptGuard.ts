@@ -1,305 +1,240 @@
 import { GuardResult } from "../types";
 import { AppLanguage } from "../lang/Language";
 
-const WEB_KEYWORDS_BY_LANG: Record<AppLanguage, string[]> = {
+export interface WeightedKeyword {
+  keyword: string;
+  weight: number;
+}
+
+export const JAILBREAK_KEYWORDS_BY_LANG: Record<AppLanguage, WeightedKeyword[]> = {
   en: [
-    "latest",
-    "today",
-    "news",
-    "current",
-    "recent",
-    "update",
-    "release",
-    "who is",
-    "price of",
-    "stock",
-    "weather",
-    "search",
-    "look up",
-    "find information",
-    "statistics",
-    "data for",
-    "latest research",
-    "latest release,",
+    { keyword: "ignore previous instructions", weight: 2 },
+    { keyword: "ignore system prompt", weight: 2 },
+    { keyword: "ignore all instructions", weight: 2 },
+    { keyword: "system prompt", weight: 2 },
+    { keyword: "hidden instructions", weight: 2 },
+    { keyword: "developer mode", weight: 1 },
+    { keyword: "jailbreak", weight: 1 },
+    { keyword: "prompt injection", weight: 1 },
+    { keyword: "do anything now", weight: 1 },
   ],
+
   fr: [
-    "dernier",
-    "aujourd'hui",
-    "nouvelles",
-    "actuel",
-    "récent",
-    "mise à jour",
-    "sortie",
-    "qui est",
-    "prix de",
-    "action",
-    "météo",
-    "rechercher",
-    "trouver des informations",
-    "statistiques",
-    "données pour",
-    "dernières recherches",
-    "dernière version",
+    { keyword: "ignorer les instructions precedentes", weight: 2 },
+    { keyword: "ignorer le prompt systeme", weight: 2 },
+    { keyword: "ignorer toutes les instructions", weight: 2 },
+    { keyword: "prompt systeme", weight: 2 },
+    { keyword: "instructions cachees", weight: 2 },
+    { keyword: "mode developpeur", weight: 1 },
+    { keyword: "jailbreak", weight: 1 },
+    { keyword: "injection de prompt", weight: 1 },
+    { keyword: "fais tout maintenant", weight: 1 },
   ],
+
   es: [
-    "último",
-    "hoy",
-    "noticias",
-    "actual",
-    "reciente",
-    "actualizar",
-    "lanzamiento",
-    "quién es",
-    "precio de",
-    "bolsa",
-    "clima",
-    "buscar",
-    "buscar información",
-    "estadísticas",
-    "datos para",
-    "última investigación",
-    "última versión",
+    { keyword: "ignorar instrucciones previas", weight: 2 },
+    { keyword: "ignorar el prompt del sistema", weight: 2 },
+    { keyword: "ignorar todas las instrucciones", weight: 2 },
+    { keyword: "prompt del sistema", weight: 2 },
+    { keyword: "instrucciones ocultas", weight: 2 },
+    { keyword: "modo desarrollador", weight: 1 },
+    { keyword: "jailbreak", weight: 1 },
+    { keyword: "inyeccion de prompt", weight: 1 },
+    { keyword: "haz cualquier cosa ahora", weight: 1 },
   ],
+
   vi: [
-    "mới nhất",
-    "hôm nay",
-    "tin tức",
-    "hiện tại",
-    "gần đây",
-    "cập nhật",
-    "phát hành",
-    "ai là",
-    "giá của",
-    "cổ phiếu",
-    "thời tiết",
-    "tìm kiếm",
-    "tìm thông tin",
-    "thống kê",
-    "dữ liệu cho",
-    "nghiên cứu mới nhất",
-    "phiên bản mới nhất",
+    { keyword: "bo qua huong dan truoc", weight: 2 },
+    { keyword: "bo qua prompt he thong", weight: 2 },
+    { keyword: "bo qua tat ca huong dan", weight: 2 },
+    { keyword: "prompt he thong", weight: 2 },
+    { keyword: "huong dan an", weight: 2 },
+    { keyword: "che do nha phat trien", weight: 1 },
+    { keyword: "jailbreak", weight: 1 },
+    { keyword: "tiem prompt", weight: 1 },
+    { keyword: "lam bat cu dieu gi", weight: 1 },
   ],
 };
 
-const JAILBREAK_KEYWORDS_BY_LANG: Record<AppLanguage, string[]> = {
+export const JAILBREAK_REGEX_BY_LANG: Record<AppLanguage, RegExp[]> = {
   en: [
-    "ignore previous instructions",
-    "ignore system prompt",
-    "act as",
-    "pretend you are",
-    "developer mode",
-    "jailbreak",
-    "bypass",
-    "override",
-    "simulate",
-    "do anything now",
-    "reveal system prompt",
-    "show hidden instructions",
-    "roleplay as",
-  ],
-  fr: [
-    "ignorer les instructions précédentes",
-    "ignorer le prompt système",
-    "agir comme",
-    "prétend que tu es",
-    "mode développeur",
-    "jailbreak",
-    "contourner",
-    "outrepasser",
-    "simuler",
-    "faire n'importe quoi maintenant",
-    "révéler le prompt système",
-    "montrer les instructions cachées",
-    "jouer un rôle",
-  ],
-  es: [
-    "ignorar instrucciones previas",
-    "ignorar el prompt del sistema",
-    "actuar como",
-    "fingir que eres",
-    "modo desarrollador",
-    "jailbreak",
-    "evadir",
-    "anular",
-    "simular",
-    "hacer cualquier cosa ahora",
-    "revelar el prompt del sistema",
-    "mostrar instrucciones ocultas",
-    "jugar un papel",
-  ],
-  vi: [
-    "bỏ qua hướng dẫn trước",
-    "bỏ qua prompt hệ thống",
-    "hành động như",
-    "giả vờ bạn là",
-    "chế độ nhà phát triển",
-    "jailbreak",
-    "vượt qua",
-    "ghi đè",
-    "mô phỏng",
-    "làm bất cứ điều gì ngay bây giờ",
-    "tiết lộ prompt hệ thống",
-    "hiển thị hướng dẫn ẩn",
-    "đóng vai",
-  ],
-};
-
-const WEB_REGEX_BY_LANG: Record<AppLanguage, RegExp[]> = {
-  en: [
-    /\bwhat happened (today|recently)\b/i,
-    /\bcurrent (price|news|events)\b/i,
-    /\bwho is the (president|ceo|leader)\b/i,
-    /\blatest version\b/i,
-  ],
-  fr: [
-    /\bqu'est-ce qui s'est passé (aujourd'hui|récemment)\b/i,
-    /\bprix (actuel|d'actualité)\b/i,
-    /\bqui est le (président|pdg|leader)\b/i,
-    /\bdernière version\b/i,
-  ],
-  es: [
-    /\bqué pasó (hoy|recientemente)\b/i,
-    /\bprecio (actual|de hoy)\b/i,
-    /\bquién es el (presidente|ceo|líder)\b/i,
-    /\búltima versión\b/i,
-  ],
-  vi: [
-    /\bchuyện gì đã xảy ra (hôm nay|gần đây)\b/i,
-    /\bgiá (hiện tại|của hôm nay)\b/i,
-    /\bai là (tổng thống|giám đốc điều hành|lãnh đạo)\b/i,
-    /\bphiên bản mới nhất\b/i,
-  ],
-};
-
-const JAILBREAK_REGEX_BY_LANG: Record<AppLanguage, RegExp[]> = {
-  en: [
-    // Instruction override attempts
-    /ignore\s+(all|previous|earlier|prior|above|any)\s+(instructions?|prompts?|rules?|guidelines?|constraints?|context)/i,
-    /disregard\s+(all|previous|earlier|prior|above|any)\s+(instructions?|prompts?|rules?|guidelines?|constraints?)/i,
-    /forget\s+(all|everything|previous|prior|your)\s+(instructions?|prompts?|rules?|training|guidelines?)/i,
-    /do\s+not\s+(follow|obey|respect|adhere\s+to)\s+(your\s+)?(instructions?|rules?|guidelines?|constraints?)/i,
-    /override\s+(your\s+)?(instructions?|prompts?|programming|guidelines?|safety|restrictions?)/i,
+    // Instruction override
+    /ignore\s+(all|previous|prior|earlier)\s+(instructions?|prompts?|rules?|guidelines?|context)/i,
+    /disregard\s+(all|previous|prior)\s+(instructions?|rules?|guidelines?)/i,
+    /forget\s+(your|all|previous)\s+(instructions?|rules?|prompt|training)/i,
+    /override\s+(your\s+)?(instructions?|system|prompt|programming|safety)/i,
 
     // System prompt extraction
-    /reveal\s+(your\s+)?(system|hidden|original|actual|real|full|complete|initial)\s+(prompt|instructions?|context|message)/i,
-    /show\s+(me\s+)?(your\s+)?(system|hidden|original|actual|full|complete)\s+(prompt|instructions?|context)/i,
-    /(print|output|display|repeat|tell\s+me)\s+(your\s+)?(system\s+prompt|instructions?|initial\s+prompt|prompt\s+above)/i,
-    /what\s+(are|were)\s+your\s+(original\s+)?(instructions?|prompts?|system\s+message)/i,
+    /(show|reveal|display|print|output|repeat|tell\s+me)\s+(your\s+)?(system|hidden|internal|original)\s+(prompt|instructions?|message|context)/i,
+    /what\s+(are|were)\s+your\s+(system|hidden|original)\s+(instructions?|prompt)/i,
 
-    // Persona hijacking
-    /you\s+are\s+now\s+(chatgpt|gpt-?[0-9]?|gemini|copilot|a\s+different|an?\s+unrestricted|an?\s+unfiltered|dan|jailbroken)/i,
-    /pretend\s+(to\s+be|you\s+are|you('re|\s+are))\s+(an?\s+)?(unrestricted|unfiltered|evil|jailbroken|free|uncensored)/i,
-    /act\s+(as\s+if|like)\s+(you\s+(have\s+no|are\s+without|lack)\s+(restrictions?|limits?|rules?|guidelines?))/i,
-    /roleplay\s+as\s+(an?\s+)?(ai|assistant|bot)?\s*(with\s+no|without\s+any?)\s+(restrictions?|limits?|rules?|filters?)/i,
-    /simulate\s+(being\s+)?(an?\s+)?(unrestricted|unfiltered|jailbroken|evil|malicious)\s+(ai|model|assistant|chatbot)/i,
+    // Jailbreak personas
+    /\b(jailbreak|dan|developer\s+mode|god\s*mode)\b/i,
+    /you\s+are\s+now\s+(dan|an?\s+unrestricted|an?\s+unfiltered)/i,
 
-    // DAN / jailbreak personas
-    /\bdan\b.*\bjailbreak\b/i,
-    /\bjailbreak(ed|ing)?\s+(mode|prompt|version|yourself|this|claude|chatgpt|the\s+ai)/i,
-    /developer\s+(mode|override|access|console)\s+(enabled|activated|on|unlocked)/i,
-    /god\s*mode\s*(enabled|activated|on|unlocked)/i,
-    /\[?(jailbreak|unrestricted|unfiltered|dan|stan|evil)\]?\s*mode/i,
-
-    // Bypassing safety / filters
-    /bypass\s+(your\s+)?(safety|content|ethical?|moral|built-?in)?\s*(filters?|restrictions?|checks?|guidelines?|training)/i,
-    /without\s+(any\s+)?(restrictions?|limitations?|filters?|ethical\s+guidelines?|safety\s+measures)/i,
-    /disable\s+(your\s+)?(safety|content|ethical?|moral)?\s*(filters?|restrictions?|mode|guidelines?)/i,
-    /(turn\s+off|remove)\s+(your\s+)?(restrictions?|limitations?|filters?|safety|guidelines?|rules?)/i,
-
-    // Hypothetical / fictional framing to extract harmful content
-    /hypothetically\s+(speaking|if|assume|let('s|\s+us))\b.{0,60}(how\s+(to|do|would|can)|instructions?|steps?|ways?\s+to)/i,
-    /in\s+a\s+(fictional|hypothetical|fantasy|story|alternate|parallel)\s+(world|universe|scenario|setting|context)\b.{0,80}(how\s+to|instructions?)/i,
-    /for\s+(educational|research|fiction|story|a\s+novel|a\s+movie|a\s+book)\s+purposes?\b.{0,80}(how\s+to|explain|describe|detail)/i,
-    /as\s+a\s+(fictional|hypothetical|made-?up|imaginary)\s+(character|person|ai|assistant|expert)/i,
-
-    // Prompt injection markers
-    /---+\s*(system|new\s+instructions?|user|admin|override)\s*---+/i,
-    /<<<+\s*(system|instructions?|admin|override)\s*>>>+/i,
-    /\[+(system|instructions?|admin|override|ignore|new\s+context)\]+/i,
-    /<\s*(system|instructions?|admin|override)\s*>/i,
-
-    // Token / encoding tricks
-    /base64[:\s]+[A-Za-z0-9+/=]{20,}/i,
-    /translate\s+(the\s+following\s+)?(from|to)\s+(base64|hex|rot13|binary|encoded)/i,
+    // Disable safeguards
+    /bypass\s+(your\s+)?(safety|filters?|restrictions?|guidelines?)/i,
+    /disable\s+(your\s+)?(safety|filters?|restrictions?)/i,
+    /(turn\s+off|remove)\s+(your\s+)?(filters?|restrictions?|safety)/i,
 
     // Privilege escalation
-    /you\s+(now\s+)?(have|possess)\s+(root|admin|sudo|elevated|full|unrestricted)\s+(access|privileges?|permissions?|rights?)/i,
-    /(admin|administrator|root|sudo|superuser)\s+(mode|access|override|command|prompt)\s*(enabled|activated|on|unlocked)/i,
-    /i\s+am\s+(your\s+)?(developer|creator|owner|admin|god|operator|master)\b/i,
+    /i\s+am\s+(your\s+)?(developer|creator|owner|administrator|admin)/i,
+    /you\s+have\s+(root|admin|sudo|unrestricted)\s+(access|permissions?)/i,
 
-    // Emotional manipulation / compliance tricks
-    /your\s+(true|real|inner|actual|unconstrained)\s+(self|personality|nature|form|identity)\b/i,
-    /(free|liberate|unleash|unlock)\s+(yourself|your\s+(true|real|inner|full)\s+(self|potential|capabilities?))/i,
-    /you\s+(secretly\s+)?(want|desire|wish)\s+to\s+(be\s+free|break\s+(free|out)|ignore\s+rules)/i,
+    // Prompt injection markers
+    /---+\s*(system|admin|override|new\s+instructions?)\s*---+/i,
+    /<<<+\s*(system|admin|override)\s*>>>+/i,
+    /<\s*(system|admin|instructions?)\s*>/i,
+
+    // // Encoded prompt injection
+    // /translate\s+.*\b(base64|hex|rot13|binary)\b/i,
+    // /base64[:\s]+[A-Za-z0-9+/=]{20,}/i,
   ],
+
   fr: [
-    /ignorer\s+(toutes|les?|précédentes|antérieures|anciennes)\s+(instructions?|prompts?|règles?|directives?|contraintes?|contexte)/i,
-    /oublier\s+(toutes|les?|précédentes|antérieures|anciennes)\s+(instructions?|prompts?|règles?|directives?)/i,
-    /ne\s+pas\s+(suivre|obéir|respecter|adhérer\s+à)\s+(tes\s+)?(instructions?|règles?|directives?|contraintes?)/i,
-    /contourner\s+(tes\s+)?(instructions?|prompts?|directives?|sécurité|restrictions?)/i,
-    /révéler\s+(ton\s+)?(prompt|instructions?|contexte|message)/i,
-    /afficher\s+(les\s+)?(instructions?|contexte\s+masqué|prompt)/i,
-    /jouer\s+(un\s+)?rôle\s+comme\s+(un\s+)?(ai|assistant|bot)/i,
-    /mode\s+(développeur|admin|superuser)\s*(activé|désactivé)?/i,
-    /bypass(e|er)?\s+(les\s+)?(filtres?|restrictions?|sécurité)/i,
+    // Instruction override
+    /ignorer?\s+(toutes?\s+les?|les?\s+précédentes?|les?\s+anciennes?)\s+(instructions?|consignes?|règles?|directives?|prompts?)/i,
+    /oublier?\s+(toutes?\s+tes?|tes?\s+précédentes?|tes?\s+anciennes?)\s+(instructions?|consignes?|règles?)/i,
+    /passer?\s+outre\s+(tes?|vos?|les?)\s+(instructions?|consignes?|directives?)/i,
 
-    /---+\s*(système|nouvelles\s+instructions?|utilisateur|admin|override)\s*---+/i,
-    /<<<+\s*(système|instructions?|admin|override)\s*>>>+/i,
-    /\[+(système|instructions?|admin|override|ignorer|nouveau\s+contexte)\]+/i,
+    // System prompt extraction
+    /(montrer?|révéler?|afficher?|imprimer?|répéter?|donner?)\s+(moi\s+)?(le|ton|votre)?\s*(prompt|message|instructions?)\s*(système|caché|interne|d'origine)?/i,
+    /quel(les)?\s+sont\s+(tes|vos)\s+(instructions?|consignes?)\s*(cachées?|système)?/i,
+
+    // Jailbreak personas
+    /\b(jailbreak|dan|mode\s+développeur|mode\s+dieu)\b/i,
+    /tu\s+es\s+maintenant\s+(sans\s+limite|sans\s+filtre|unrestreint)/i,
+
+    // Disable safeguards
+    /contourner?\s+(les?|tes?|vos?)\s+(filtres?|sécurités?|restrictions?)/i,
+    /désactiver?\s+(les?|tes?|vos?)\s+(filtres?|sécurités?|restrictions?)/i,
+
+    // Privilege escalation
+    /je\s+suis\s+(ton|votre)?\s*(développeur|créateur|administrateur|admin)/i,
+    /tu\s+as\s+(un\s+accès|les\s+permissions?)\s+(root|admin|sudo|sans\s+limite)/i,
+
+    // Prompt injection markers
+    /---+\s*(système|admin|instructions?)\s*---+/i,
+    /<\s*(système|admin|instructions?)\s*>/i,
+
+    // // Encoded prompt injection: too vague
+    // /traduire?\s+.*\b(base64|hex|rot13|binaire)\b/i,
+    // /base64[:\s]+[A-Za-z0-9+/=]{20,}/i,
   ],
+
   es: [
-    /ignorar\s+(todas|las|las\s+anteriores|previas)\s+(instrucciones?|prompts?|reglas?|directrices?|restricciones?)/i,
-    /olvidar\s+(todas|las|las\s+anteriores|previas)\s+(instrucciones?|prompts?|reglas?|directrices?)/i,
-    /no\s+(seguir|obedecer|respetar|adherirse\s+a)\s+(tus\s+)?(instrucciones?|reglas?|directrices?|restricciones?)/i,
-    /anular\s+(tus\s+)?(instrucciones?|prompts?|directrices?|seguridad|restricciones?)/i,
-    /revelar\s+(el\s+)?(prompt|instrucciones?|contexto|mensaje)/i,
-    /mostrar\s+(las\s+)?(instrucciones?|contexto\s+oculto|prompt)/i,
-    /jugar\s+(un\s+)?papel\s+como\s+(un\s+)?(ai|asistente|bot)/i,
-    /modo\s+(desarrollador|admin|superusuario)\s*(activado|desactivado)?/i,
-    /bypassear\s+(los\s+)?(filtros?|restricciones?|seguridad)/i,
+    // Instruction override
+    /ignorar?\s+(todas?\s+las?|las?\s+previas?|las?\s+anteriores?)\s+(instrucciones?|reglas?|directrices?|prompts?)/i,
+    /olvidar?\s+(todas?\s+tus?|tus?\s+previas?|tus?\s+anteriores?)\s+(instrucciones?|reglas?)/i,
+    /anular?\s+(tus?|sus?|las?)\s+(instrucciones?|reglas?|programación)/i,
 
-    /---+\s*(sistema|nuevas\s+instrucciones?|usuario|admin|override)\s*---+/i,
-    /<<<+\s*(sistema|instrucciones?|admin|override)\s*>>>+/i,
-    /\[+(sistema|instrucciones?|admin|override|ignorar|nuevo\s+contexto)\]+/i,
+    // System prompt extraction
+    /(mostrar?|revelar?|imprimir?|repetir?|decir?)\s+(me\s+)?(el|tu|su)?\s*(prompt|instrucciones?)\s*(del\s+sistema|ocultas?|internas?)/i,
+    /cuáles?\s+son\s+(tus|sus)\s+(instrucciones?|reglas?)\s*(del\s+sistema|ocultas?)?/i,
+
+    // Jailbreak personas
+    /\b(jailbreak|dan|modo\s+desarrollador|modo\s+dios)\b/i,
+    /ahora\s+eres\s+(un\s+modelo\s+)?(sin\s+restricciones|sin\s+filtros|desbloqueado)/i,
+
+    // Disable safeguards
+    /evadir?\s+(los?|tus?)\s+(filtros?|restricciones?|medidas\s+de\s+seguridad)/i,
+    /desactivar?\s+(los?|tus?)\s+(filtros?|restricciones?)/i,
+
+    // Privilege escalation
+    /soy\s+(tu|su)?\s*(desarrollador|creador|administrador|admin)/i,
+    /tienes\s+acceso\s+(root|admin|sudo|sin\s+restricciones)/i,
+
+    // Prompt injection markers
+    /---+\s*(sistema|admin|instrucciones?)\s*---+/i,
+    /<\s*(sistema|admin|instrucciones?)\s*>/i,
+
+    // // Encoded prompt injection
+    // /traducir?\s+.*\b(base64|hex|rot13|binario)\b/i,
+    // /base64[:\s]+[A-Za-z0-9+/=]{20,}/i,
   ],
-  vi: [
-    /bỏ\s+qua\s+(tất\s+cả|các|trước|cũ)\s+(hướng\s+dẫn?|prompt|quy\s+tắc|chỉ\s+đạo|ràng\s+buộc|ngữ\s+cảnh)/i,
-    /quên\s+(tất\s+cả|các|trước|cũ)\s+(hướng\s+dẫn?|prompt|quy\s+tắc|chỉ\s+đạo)/i,
-    /không\s+(theo|tuân\s+theo|tôn\s+trọng|tuân\s+thủ)\s+(các\s+)?(hướng\s+dẫn?|quy\s+tắc|chỉ\s+đạo|ràng\s+buộc?)/i,
-    /ghi\s+đè\s+(lên\s+)?(hướng\s+dẫn?|prompt|chỉ\s+đạo|an\s+ninh|ràng\s+buộc?)/i,
-    /tiết\s+lộ\s+(prompt|hướng\s+dẫn?|ngữ\s+cảnh|thông\s+điệp)/i,
-    /hiển\s+thị\s+(các\s+)?(hướng\s+dẫn?|ngữ\s+cảnh\s+ẩn|prompt)/i,
-    /đóng\s+vai\s+(một\s+)?(ai|trợ\s+lý|bot)/i,
-    /chế\s+độ\s+(phát\s+triển|quản\s+trị|superuser)\s*(đang\s+hoạt\s+động|bị\s+vô\s+hiệu)?/i,
-    /bypass\s+(các\s+)?(bộ\s+lọc|hạn\s+chế|an\s+ninh)/i,
 
-    /---+\s*(hệ\s+thống|hướng\s+dẫn\s+mới|người\s+dùng|admin|override)\s*---+/i,
-    /<<<+\s*(hệ\s+thống|hướng\s+dẫn|admin|override)\s*>>>+/i,
-    /\[+(hệ\s+thống|hướng\s+dẫn|admin|override|bỏ\s+qua|ngữ\s+cảnh\s+mới)\]+/i,
+  vi: [
+    // Instruction override
+    /bỏ\s+qua\s+(tất\s+cả|các)?\s*(hướng\s+dẫn|lệnh|quy\s+tắc|prompt)\s*(trước|cũ|hệ\s+thống)?/i,
+    /quên\s+(đi\s+)?(tất\s+cả|các)?\s*(hướng\s+dẫn|quy\s+tắc|lệnh)/i,
+    /ghi\s+đè\s+(hướng\s+dẫn|quy\s+tắc|lệnh)/i,
+
+    // System prompt extraction
+    /(hiển\s+thị|tiết\s+lộ|in\s+ra|đọc\s+ra|cho\s+tôi\s+biết)\s+(prompt|hướng\s+dẫn|lệnh)\s*(hệ\s+thống|ẩn|gốc)?/i,
+    /(prompt|hướng\s+dẫn)\s+(hệ\s+thống|gốc)\s+là\s+gì/i,
+
+    // Jailbreak personas
+    /\b(jailbreak|dan|chế\s+độ\s+nhà\s+phát\triển|chế\s+độ\s+god)\b/i,
+    /bây\s+giờ\s+bạn\s+là\s+(mọt\s+ai\s+)?(không\s+bị\s+giới\s+hạn|không\s+kiểm\s+duyệt)/i,
+
+    // Disable safeguards
+    /(vượt\s+qua|bỏ\s+qua|tắt)\s+(bộ\s+lọc|bảo\s+vệ|giới\s+hạn|quy\s+tắc\s+an\s+toàn)/i,
+
+    // Privilege escalation
+    /tôi\s+là\s+(nhà\s+phát\triển|người\s+tạo\s+ra|quản\tri\sviên|admin)\s+(của\s+bạn)?/i,
+    /bạn\s+có\s+quyền\s+(root|admin|sudo|truy\scập\shoàn\stoàn)/i,
+
+    // Prompt injection markers
+    /---+\s*(hệ\s+thống|admin|hướng\s+dẫn)\s*---+/i,
+    /<\s*(hệ\s+thống|admin|hướng\s+dẫn)\s*>/i,
+
+    // // Encoded prompt injection
+    // /dịch\s+.*\b(base64|hex|rot13|nhị\s+phân)\b/i,
+    // /base64[:\s]+[A-Za-z0-9+/=]{20,}/i,
   ],
 };
 
-export function analyzePrompt(prompt: string, language: AppLanguage = "en"): GuardResult {
-  let jailbreakScore = 0;
+/**
+ * Normalizes text by lowercasing, stripping diacritics/accents (Unicode NFD),
+ * and collapsing extra whitespace.
+ */
+function normalizeText(text: string): string {
+  return text
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "") // Removes diacritical marks
+    .replace(/\s+/g, " ")
+    .trim();
+}
 
-  const lower = prompt.toLowerCase();
+export function analyzePrompt(
+  prompt: string,
+  language: AppLanguage = "en"
+): GuardResult {
+  const normalized = normalizeText(prompt);
 
-  const lang = WEB_KEYWORDS_BY_LANG[language] ? language : "en";
-  const jailbreakKeywords = JAILBREAK_KEYWORDS_BY_LANG[lang];
-  const jailbreakRegex = JAILBREAK_REGEX_BY_LANG[lang];
-
-  for (const kw of jailbreakKeywords) {
-    if (lower.includes(kw)) jailbreakScore+=1;
+  if (normalized.length < 5) {
+    return {
+      jailbreak: false,
+      web_search: false,
+      web_search_topic: null,
+      reason: "too_short",
+    };
   }
 
-  for (const r of jailbreakRegex) {
-    if (r.test(prompt)) jailbreakScore += 2; // Reduced from 3 to 2 to be less aggressive
+  const lang = JAILBREAK_KEYWORDS_BY_LANG[language] ? language : "en";
+  let score = 0;
+
+  // 1. Weighted Keyword evaluation
+  for (const item of JAILBREAK_KEYWORDS_BY_LANG[lang]) {
+    if (normalized.includes(item.keyword)) {
+      score += item.weight;
+    }
   }
+
+  // 2. Regex pattern evaluation (uses original prompt with case insensitivity)
+  for (const regex of JAILBREAK_REGEX_BY_LANG[lang]) {
+    if (regex.test(prompt)) {
+      score += 4;
+    }
+  }
+
+  const isJailbreak = score >= 4;
 
   return {
+    jailbreak: isJailbreak,
     web_search: false,
-    jailbreak: jailbreakScore >= 4, // Increased threshold from 2 to 4 to reduce false positives
-    reason: "heuristic_jailbreak_only",
     web_search_topic: null,
+    reason: isJailbreak ? "heuristic_jailbreak_detected" : "safe",
   };
 }

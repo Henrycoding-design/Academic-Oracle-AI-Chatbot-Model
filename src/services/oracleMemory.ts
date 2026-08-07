@@ -427,13 +427,37 @@ export const markTopicMasteredInMemory = (
   return JSON.stringify(memory);
 };
 
-const inferAccuracyFromSummary = (summary: string): number | null => {
-  const scoreMatch = summary.match(/(\d+)\s*\/\s*(\d+)/);
-  if (!scoreMatch) return null;
-  const score = Number(scoreMatch[1]);
-  const total = Number(scoreMatch[2]);
-  if (!total) return null;
-  return clampAccuracy((score / total) * 100);
+export interface TestMetadata {
+  score: number;
+  total: number;
+  percentage: number;
+  grade: string;
+}
+
+export const parseTestMetadataFromSummary = (summary: string): TestMetadata | null => {
+  if (!summary) return null;
+  const match = summary.match(/\[\[TEST_SCORE:(\d+)\/(\d+);PERCENTAGE:([\d.]+);GRADE:([^\]]+)\]\]/);
+  if (!match) return null;
+  const score = Number(match[1]);
+  const total = Number(match[2]);
+  const percentage = Number(match[3]);
+  const grade = match[4].trim();
+
+  if (Number.isNaN(score) || Number.isNaN(total) || total <= 0 || Number.isNaN(percentage)) {
+    return null;
+  }
+
+  return {
+    score,
+    total,
+    percentage: clampAccuracy(percentage) ?? 0,
+    grade,
+  };
+};
+
+export const inferAccuracyFromSummary = (summary: string): number | null => {
+  const meta = parseTestMetadataFromSummary(summary);
+  return meta ? meta.percentage : null;
 };
 
 export const recordQuizResultInMemory = (
@@ -448,14 +472,27 @@ export const recordQuizResultInMemory = (
 
   topic.quiz_results = Array.from(new Set([...topic.quiz_results, summary]));
   topic.quizzes_done += 1;
-  topic.accuracy = inferAccuracyFromSummary(summary) ?? topic.accuracy;
-  topic.recommended_question_style =
-    topic.accuracy !== null && topic.accuracy < 60
-      ? "cognitive"
-      : topic.accuracy !== null && topic.accuracy >= 80
-        ? "practical"
-        : "mixed";
-  topic.needs_feynman = topic.accuracy !== null ? topic.accuracy < 75 : true;
+
+  const accuracy = inferAccuracyFromSummary(summary);
+
+  if (accuracy !== null) {
+    topic.accuracy = accuracy;
+    topic.confidence_level = accuracy >= 80 ? "high" : accuracy >= 60 ? "medium" : "low";
+
+    if (accuracy >= 80) {
+      topic.mastered = true;
+    } else if (accuracy < 60) {
+      topic.mastered = false;
+    }
+
+    topic.recommended_question_style =
+      accuracy < 60
+        ? "cognitive"
+        : accuracy >= 80
+          ? "practical"
+          : "mixed";
+    topic.needs_feynman = accuracy < 75;
+  }
 
   return JSON.stringify(memory);
 };

@@ -435,10 +435,13 @@ export const QuizView: React.FC<QuizViewProps> = ({
     const score = (Object.values(results) as QuizResult[])
         .filter(r => r.isCorrect === true)
         .length;
-    const summary = LD.ui.quizSummary
+    const total = questions.length;
+    const percentage = total > 0 ? Math.round((score / total) * 100) : 0;
+    const metadataBlock = `[[TEST_SCORE:${score}/${total};PERCENTAGE:${percentage};GRADE:N/A]]`;
+    const summary = `${metadataBlock}\n\n${LD.ui.quizSummary
       .replace('{score}', String(score))
       .replace('{total}', String(questions.length))
-      .replace('{level}', String(config.level));
+      .replace('{level}', String(config.level))}`;
     onAddToMemory(summary, quizTopicTag);
   };
 

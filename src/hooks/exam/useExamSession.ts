@@ -83,9 +83,9 @@ type UseExamSessionOptions = {
 };
 
 const STORAGE_KEY = 'academic-oracle-professional-exam-state';
-const MIN_EXAM_DURATION_SECONDS = 60;
-const MAX_EXAM_DURATION_SECONDS = 6 * 60 * 60;
-const DEFAULT_EXAM_DURATION_SECONDS = 60 * 60;
+const MIN_EXAM_DURATION_SECONDS = 60; // 1 min
+const MAX_EXAM_DURATION_SECONDS = 6 * 60 * 60; // 6 hours = 360 mins
+const DEFAULT_EXAM_DURATION_SECONDS = 60 * 60; // 1 hour = 60 mins
 
 const clampExamDurationSeconds = (durationSeconds: number) => {
   const safeDurationSeconds = Number.isFinite(durationSeconds)
