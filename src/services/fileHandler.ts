@@ -1,4 +1,7 @@
 import { readFileAsText } from "./fileReader";
+import { GeminiModelFlag } from "./models";
+
+export type ModelCapabilityId = GeminiModelFlag | "openrouter/free";
 
 export interface GeminiPart {
   text?: string;
@@ -16,52 +19,52 @@ export interface ModelCapabilities {
 }
 
 export interface ModelCapabilityConfig {
-  id: string;
+  id: ModelCapabilityId;
   capabilities: ModelCapabilities;
 }
 
-export const MODEL_CAPABILITIES: Record<string, ModelCapabilities> = {
+export const MODEL_CAPABILITIES: Record<ModelCapabilityId, ModelCapabilities> = {
   swift: {
     pdf: true,
     image: true,
     video: true,
-    audio: false,
+    audio: true,
   },
   core: {
     pdf: true,
     image: true,
     video: true,
-    audio: false,
+    audio: true,
   },
   lite: {
     pdf: true,
     image: true,
     video: true,
-    audio: false,
+    audio: true,
   },
   mini: {
     pdf: true,
     image: true,
     video: false,
-    audio: false,
+    audio: true,
   },
   nano: {
-    pdf: false,
-    image: false,
-    video: false,
-    audio: false,
-  },
-  pro: {
     pdf: true,
     image: true,
     video: true,
-    audio: false,
+    audio: true,
+  },
+  pro: {
+    pdf: false,
+    image: true,
+    video: true,
+    audio: true,
   },
   deep: {
     pdf: true,
     image: true,
     video: true,
-    audio: false,
+    audio: true,
   },
   "openrouter/free": {
     pdf: false,
@@ -71,8 +74,8 @@ export const MODEL_CAPABILITIES: Record<string, ModelCapabilities> = {
   },
 };
 
-export const MODEL_CAPABILITY_CONFIGS: ModelCapabilityConfig[] = Object.entries(
-  MODEL_CAPABILITIES
+export const MODEL_CAPABILITY_CONFIGS: ModelCapabilityConfig[] = (
+  Object.entries(MODEL_CAPABILITIES) as [ModelCapabilityId, ModelCapabilities][]
 ).map(([id, capabilities]) => ({
   id,
   capabilities,
