@@ -30,6 +30,7 @@ import {
   parseOracleMemory,
 } from "./oracleMemory";
 import { encryptApiKey } from "./edgeCrypto";
+import { prepareModelPayload, type GeminiPart } from "./fileHandler";
 import {
   type ModelFailureType,
   recordStandardModelAttempt,
@@ -596,7 +597,8 @@ export const sleep = (ms: number) =>
   new Promise<void>(resolve => setTimeout(resolve, ms));
 
 type EdgeCallBaseParams = {
-  prompt: string;
+  prompt?: string;
+  parts?: GeminiPart[];
   temp?: number;
   systemInstruction?: string;
   mode?: "chat" | "quiz" | "summary" | "exam-structure" | "exam-enrich" | "exam-grade" | "checklist";
@@ -775,13 +777,14 @@ const runOpenRouterFallback = async (
 
 export const sendMessageToBotRace = async (params: {
   history: { role: "user" | "model"; content: string }[];
+  files?: File[];
   memory?: string | null;
   encryptedKeyPayload: any;
   language: AppLanguage;
   intent?: "agentic" | "fast" | "balance";
   webSearchFailed?: boolean;
 }): Promise<OracleResponse> => {
-  const { history, memory, encryptedKeyPayload, language, intent: providedIntent, webSearchFailed } = params;
+  const { history, files, memory, encryptedKeyPayload, language, intent: providedIntent, webSearchFailed } = params;
 
   const memoryBlock = memory
     ? `ORACLE MEMORY (Persistent Student Profile):
@@ -808,9 +811,11 @@ export const sendMessageToBotRace = async (params: {
   const intent = providedIntent ?? await classifyIntent(encryptedKeyPayload, prompt);
 
   const callGemini = async (model: GeminiModelFlag) => {
+    const { parts, fallbackPrompt } = await prepareModelPayload(prompt, files, model);
     const text = await getGeminiTextFromEdge({
       model,
-      prompt,
+      // prompt: fallbackPrompt,
+      parts,
       temp,
       mode: "chat",
       language: resolvedLanguage,
@@ -879,9 +884,10 @@ export const sendMessageToBotRace = async (params: {
 
     return parseOracleChatResponse(raceResult.text, memory, history, raceResult.model);
   } catch (err: any) {
+    const { fallbackPrompt } = await prepareModelPayload(prompt, files, "openrouter/free");
     if (err.message && err.message.includes("Race timeout")) {
       return runOpenRouterFallback({
-        prompt,
+        prompt: fallbackPrompt,
         temp,
         language: resolvedLanguage,
         memory,
@@ -891,7 +897,7 @@ export const sendMessageToBotRace = async (params: {
     }
     if (err.message && err.message.includes("All models in race failed")) { // fail fast if all models responsed with errors
       return runOpenRouterFallback({
-        prompt,
+        prompt: fallbackPrompt,
         temp,
         language: resolvedLanguage,
         memory,
@@ -906,12 +912,13 @@ export const sendMessageToBotRace = async (params: {
 
 export const sendMessageToBot = async (params: {
   history: { role: "user" | "model"; content: string }[];
+  files?: File[];
   memory?: string | null;
   encryptedKeyPayload: any;
   language: AppLanguage;
   webSearchFailed?: boolean;
 }): Promise<OracleResponse> => {
-  const { history, memory, encryptedKeyPayload, language, webSearchFailed } = params;
+  const { history, files, memory, encryptedKeyPayload, language, webSearchFailed } = params;
 
   const memoryBlock = memory
     ? `ORACLE MEMORY (Persistent Student Profile):
@@ -979,14 +986,18 @@ export const sendMessageToBot = async (params: {
 
       // const response: GenerateContentResponse = await chat.sendMessage({ message: prompt });
 
+      const { parts, fallbackPrompt } = await prepareModelPayload(prompt, files, model);
+
       const response = await invokeEdgeAI({
         provider: "gemini",
         model,
-        prompt,
+        // prompt: fallbackPrompt,
+        parts,
         temp,
         mode: "chat",
         language: resolvedLanguage,
         encryptedKeyPayload,
+        responseMimeType: "application/json",
         webSearchFailed,
       });
 
@@ -1035,8 +1046,9 @@ export const sendMessageToBot = async (params: {
     }
   }
   // last resort for openrouter/free fallback
+  const { fallbackPrompt } = await prepareModelPayload(prompt, files, "openrouter/free");
   return runOpenRouterFallback({
-    prompt,
+    prompt: fallbackPrompt,
     temp,
     language: resolvedLanguage,
     memory,
@@ -1047,12 +1059,13 @@ export const sendMessageToBot = async (params: {
 
 export const sendMessageToBotDeep = async (params: {
   history: { role: "user" | "model"; content: string }[];
+  files?: File[];
   memory?: string | null;
   encryptedKeyPayload: any;
   language: AppLanguage;
   webSearchFailed?: boolean;
 }): Promise<OracleResponse> => {
-  const { history, memory, encryptedKeyPayload, language, webSearchFailed } = params;
+  const { history, files, memory, encryptedKeyPayload, language, webSearchFailed } = params;
 
   const memoryBlock = memory
     ? `ORACLE MEMORY (Persistent Student Profile):
@@ -1075,14 +1088,17 @@ export const sendMessageToBotDeep = async (params: {
 
   try {
     recordStandardModelAttempt("deep");
+    const { parts, fallbackPrompt } = await prepareModelPayload(prompt, files, "deep");
     const response = await invokeEdgeAI({
       provider: "gemini",
       model: "deep",
-      prompt,
+      prompt: fallbackPrompt,
+      parts,
       temp: 0.2,
       mode: "chat",
       language: resolvedLanguage,
       encryptedKeyPayload,
+      responseMimeType: "application/json",
       webSearchFailed,
     });
 
