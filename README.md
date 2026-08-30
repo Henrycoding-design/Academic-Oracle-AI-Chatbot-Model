@@ -275,17 +275,22 @@ Ideal for:
 
 ---
 
-### ⚙️ Intelligent Request Routing *(major update v2.4.0, refined v2.5.6)*
+### ⚙️ Intelligent Request Routing *(major update v2.4.0, refined v2.5.8)*
 
 - **Gemini-first orchestration pipeline** — Chat / Quiz / Summary / Crons all prioritize Gemini models
-- **7-tier model capability map** *(new v2.5.6)*
-  - `swift` — Gemini 3.6 Flash for primary high-speed chat and checklist racing
-  - `core` — Gemini 3 Flash for strong general reasoning and race pairing
-  - `lite` — Gemini 3.5 Flash Lite for efficient fast and balanced paths
-  - `mini` — Gemini 3.1 Lite for lightweight routing, guard, and fallback tasks
-  - `nano` — Gemini 2.5 Lite for small classification and query generation calls
-  - `pro` — Gemini 2.5 Flash for structured exam, quiz, and validation-heavy work
-  - `deep` — Gemini 3.5 Flash for highly advanced reasoning
+- **7-tier model capability map** *(refined v2.5.8)*
+  - `swift` — Gemini 3.6 Flash for primary high-speed chat and checklist racing (multimodal: PDF, image, video, audio)
+  - `core` — Gemini 3 Flash for strong general reasoning and race pairing (multimodal: PDF, image, video, audio)
+  - `lite` — Gemini 3.5 Flash Lite for efficient fast and balanced paths (multimodal: PDF, image, video, audio)
+  - `mini` — Gemini 3.1 Lite for lightweight routing, guard, and fallback tasks (multimodal: PDF, image, audio)
+  - `nano` — Gemini 2.5 Lite for small classification and query generation calls (multimodal: PDF, image, video, audio)
+  - `pro` — Gemini 2.5 Flash for structured exam, quiz, and validation-heavy work (multimodal: image, video, audio)
+  - `deep` — Gemini 3.5 Flash for highly advanced reasoning (multimodal: PDF, image, video, audio)
+- **Native Multimodal File Processing** *(new v2.5.8)*
+  - Injects native Base64 `inlineData` parts for supported files (PDFs < 50MB, images < 100MB) directly into capable Gemini models via Supabase Edge gateways.
+  - Granular capability checks (`ModelCapabilities`) automatically route unsupported formats (e.g. DOCX) or models lacking native capabilities through local extraction fallbacks (Mammoth / OCR / `fileReader`).
+- **Upfront Quota & Rate-Limit Gate** *(new v2.5.8)*
+  - Free-tier rate limiting and session verification are executed prior to running security prompt guards or web search queries, preventing token quota loss on the `mini` utility model for unservable requests.
 - **DEEP chat mode** *(new v2.5.6)*
   - Detects hard proofs, advanced derivations, complex scientific reasoning, and advanced algorithms
   - Uses the `deep` tier first, then falls back to Standard chat routing if the deep call fails
@@ -326,7 +331,7 @@ Ideal for:
 
 ---
 
-### 🔐 Security & Architecture *(major update v2.3.0, reinforced v2.4.9)*
+### 🔐 Security & Architecture *(major update v2.3.0, reinforced v2.5.8)*
 
 
 > [!IMPORTANT]
@@ -346,8 +351,9 @@ Ideal for:
   - Strict fallback validation before returning responses
   - Reduced silent failures in multi-model execution
 
-#### 🛡️ Prompt Security Layer *(updated v2.5.7)*
+#### 🛡️ Prompt Security & Quota Gate *(updated v2.5.8)*
 
+- **Upfront Quota Verification** *(new v2.5.8)* — session limits are validated before triggering remote LLM guard checks to prevent quota depletion on unservable queries
 - Jailbreak detection & filtering system
 - Prompt sanitation before model execution
 - **Prompt guard flow** *(updated v2.4.9)*
@@ -364,9 +370,10 @@ Ideal for:
 
 ---
 
-### 🎨 UX & Rendering *(updated v2.5.7)*
+### 🎨 UX & Rendering *(updated v2.5.8)*
 
 - **Robust Markdown rendering** — math (KaTeX), tables, code blocks
+- **Horizontal Delimiter Header Support** *(new v2.5.8)* — parses `--- header ---` syntax into styled `<h3>` section headings
 - Dark / Light mode
 - Responsive design (desktop & mobile)
 - Structured session summary generation backed by Oracle Memory data

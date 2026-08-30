@@ -50,9 +50,16 @@ The objective is to maximize understanding rather than minimize response length.
 
 ---
 
-# 🧮 Mathematical Rendering Rules
+# 🧮 Mathematical & Markdown Rendering Rules
 
-Academic Oracle renders mathematical expressions using KaTeX within a React 19 frontend.
+Academic Oracle renders mathematical expressions using KaTeX and custom Markdown syntax within a React 19 frontend.
+
+## Header Delimiters
+In addition to standard Markdown headers (`#`, `##`, `###`), the system recognizes horizontal delimiter headers:
+```text
+--- header ---
+```
+which render as `<h3>` elements with bold formatting.
 
 To ensure consistent rendering across providers, serialization layers, and client-side parsing, **raw `$` and `$$` delimiters are strictly prohibited.**
 
@@ -137,17 +144,18 @@ Requests are dynamically routed according to:
 
 Academic Oracle uses abstract Gemini capability flags rather than hard-coding provider model names throughout the application. This keeps routing logic stable while the backend and shared model map resolve each flag to the current Gemini target.
 
-Default model routing is defined in GEMINI_MODEL_MAP in [src/services/models.ts](src/services/models.ts). Runtime routing may be modified by the client orchestration layer based on validation, telemetry, and failure recovery:
+Default model routing is defined in GEMINI_MODEL_MAP in [src/services/models.ts](src/services/models.ts). In addition, per-model multimodal capabilities are strictly typed via `MODEL_CAPABILITIES` and `ModelCapabilities` in [src/services/fileHandler.ts](src/services/fileHandler.ts):
 
-| Capability | Primary Model | Typical Use Cases | Characteristics |
-|---|---|---|---|
-| **swift** | `Gemini 3.6 Flash` | Primary Standard chat, agentic race, Blind Checklist racing | Fast high-capability default |
-| **core** | `Gemini 3 Flash` | General reasoning, balanced race, agentic race | Strong reasoning and reliable race pairing |
-| **lite** | `Gemini 3.5 Flash Lite` | Fast and balanced race paths, exam fallbacks | Efficient general-purpose routing |
-| **mini** | `Gemini 3.1 Lite` | Lightweight guard, fallback, query, and chat support | Small reliable utility tier |
-| **nano** | `Gemini 2.5 Lite` | Intent classification and search-query generation | Lowest-overhead classification tier |
-| **pro** | `Gemini 2.5 Flash` | Structured quiz, Core Test extraction, grading, validation-heavy work | Schema-oriented fallback and structured output tier |
-| **deep** | `Gemini 3.5 Flash` | Hard proofs, complex derivations, advanced scientific reasoning, advanced algorithms | Dedicated deep-reasoning chat tier |
+| Capability | Primary Model | Multimodal Support (PDF / Image / Video / Audio) | Typical Use Cases | Characteristics |
+|---|---|---|---|---|
+| **swift** | `Gemini 3.6 Flash` | PDF, Image, Video, Audio | Primary Standard chat, agentic race, Blind Checklist racing | Fast high-capability default |
+| **core** | `Gemini 3 Flash` | PDF, Image, Video, Audio | General reasoning, balanced race, agentic race | Strong reasoning and reliable race pairing |
+| **lite** | `Gemini 3.5 Flash Lite` | PDF, Image, Video, Audio | Fast and balanced race paths, exam fallbacks | Efficient general-purpose routing |
+| **mini** | `Gemini 3.1 Lite` | PDF, Image, Audio (No Video) | Lightweight guard, fallback, query, and chat support | Small reliable utility tier |
+| **nano** | `Gemini 2.5 Lite` | PDF, Image, Video, Audio | Intent classification and search-query generation | Lowest-overhead classification tier |
+| **pro** | `Gemini 2.5 Flash` | Image, Video, Audio (No PDF) | Structured quiz, Core Test extraction, grading, validation-heavy work | Schema-oriented fallback and structured output tier |
+| **deep** | `Gemini 3.5 Flash` | PDF, Image, Video, Audio | Hard proofs, complex derivations, advanced scientific reasoning, advanced algorithms | Dedicated deep-reasoning chat tier |
+| **openrouter/free** | Fallback provider | Text-Only | Last-resort fallback | Text-only message structure |
 
 ---
 
@@ -268,18 +276,65 @@ The client tracks model errors in sessionStorage. The thresholds for skipping a 
 
 ---
 
-# 🛡 Prompt Security & Search Isolation
+## 📂 Multimodal File Processing Pipeline
 
-All prompts are filtered through a client-side validation pipeline to prevent jailbreaks, injection attacks, and abuse before querying external providers:
+As of v2.5.8, Academic Oracle natively routes supported files (PDF, images, video) directly to capable Gemini models via Base64 `inlineData` payloads, bypassing client-side text extraction unless required by model capabilities or file size limits:
 
-1. **Client-Side Guard (Static Heuristics)**:
+```text
+                   User Message + Files                                                                          
+                            │                                                                                    
+                            ▼                                                                                    
+                Client Intent & Depth Routing                                                                    
+          (Standard Chain / Race Mode / Deep Mode)                                                               
+                            │                                                                                    
+                            ▼                                                                                    
+              Per-Model Capability Check                                                                         
+         (swift, core, lite, mini, pro, deep, openrouter)                                                        
+              │                            │                                                                     
+              ▼                            ▼                                                                     
+      Native File Supported         Fallback / Exceeds Limit                                                     
+    (Image < 100MB, PDF < 50MB)      (DOCX, Text, > Limits)                                                      
+              │                            │                                                                     
+              ▼                            ▼                                                                     
+         Base64 inlineData           Local Text Extraction                                                       
+       (GeminiPart.inlineData)      (fileReader / mammoth / OCR)                                                 
+              │                            │                                                                     
+              └─────────────┬──────────────┘                                                                     
+                            │                                                                                    
+                            ▼                                                                                    
+               Supabase Edge Function Gateway                                                                    
+                 (call-ai-response)                                                                              
+                            │                                                                                    
+              ┌─────────────┴─────────────┐                                                                      
+              ▼                           ▼                                                                      
+        Gemini Provider           OpenRouter Fallback                                                            
+    (Native Multimodal Parts)     (Text-Only Messages)  
+```
+
+### Multimodal Pipeline Rules
+1. **Plaintext formats** (`.txt`, `.md`, `.csv`, `.json`): Directly read as text and concatenated into prompt context without Base64 overhead.
+2. **Word Documents** (`.docx`): Extracted via `mammoth` into plain text.
+3. **Native Images** (`.png`, `.jpg`, `.jpeg`, `.webp`): Passed as `inlineData` (Base64) to capable models if `< 100MB`. If size limit is exceeded or the model lacks image capabilities, falls back to OCR text extraction via `fileReader`.
+4. **Native PDFs** (`.pdf`): Passed as `inlineData` (Base64) to capable models if `< 50MB`. If size limit is exceeded or the model lacks PDF capabilities (e.g. `pro`), falls back to local text extraction via `fileReader`.
+5. **OpenRouter Fallback**: If requests fall back to OpenRouter, files are converted to extracted plaintext representations (`fallbackPrompt`).
+
+---
+
+# 🛡 Prompt Security & Quota Management
+
+All prompts are filtered through a client-side validation and rate-limiting pipeline before querying external providers:
+
+1. **Upfront Session & Quota Verification**:
+   - The user session and chat quota are validated via `canSendMessage` *before* initiating prompt guard analysis or web search queries.
+   - This prevents consuming token quota from lightweight guard models (e.g. `mini`) when a user's free session limit has already been reached.
+2. **Client-Side Guard (Static Heuristics)**:
    - Uses [analyzePrompt](src/services/promptGuard.ts) to run regex scans on the prompt in the user's localized language.
    - Evaluates a `jailbreakScore`. If the score is 4 or higher, the request is immediately blocked, and a localized jailbreak message is returned.
-2. **Remote Guard (LLM Intent Analysis)**:
+3. **Remote Guard (LLM Intent Analysis)**:
    - Queries [runCronPromptGuard](src/services/geminiService.ts) running on the `mini` model using `CRON_GUARD_PROMPT` to analyze prompt safety and web search intent.
-3. **Jailbreak Execution Branching**:
+4. **Jailbreak Execution Branching**:
    - If either the client-side or remote guard flags a jailbreak, the query is blocked, the conversation is isolated, and web search is disabled.
-4. **Web Search Routing**:
+5. **Web Search Routing**:
    - Approved queries requiring real-time context verify session quota restrictions using `isWebSearchLimitReached()`.
    - If quota is available, the search query is generated using [generateSearchQueries](src/services/geminiService.ts) (prioritizing the `nano` model and falling back to `mini` or raw text) and sent to Supabase Edge Function (`supabase/functions/tavily-search`).
    - Search outages or rate limits are captured gracefully by setting `webSearchFailed = true` without disrupting user conversation.

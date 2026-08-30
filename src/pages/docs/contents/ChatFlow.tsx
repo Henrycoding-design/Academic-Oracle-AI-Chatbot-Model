@@ -185,7 +185,7 @@ export default function ChatFlow() {
           The interface is designed for minimal disruption, using high-fidelity rendering to turn complex data into visual insight:
         </p>
         <div className="flex flex-wrap gap-3">
-          {["KaTeX Math", "Dynamic Tables", "Syntax Highlighting", "Oracle Memory Logs", "Dashboard Visuals"].map((tag) => (
+          {["KaTeX Math", "Delimiter Headers (---)", "Dynamic Tables", "Syntax Highlighting", "Oracle Memory Logs", "Dashboard Visuals"].map((tag) => (
             <span key={tag} className="px-4 py-2 rounded-xl border border-white/10 bg-white/5 text-xs font-mono text-blue-300 hover:border-blue-500/50 hover:bg-blue-500/5 transition-all cursor-default">
               {tag}
             </span>
