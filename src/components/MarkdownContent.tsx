@@ -449,6 +449,13 @@ export const MarkdownContent: React.FC<MarkdownContentProps> = ({ content, ismcq
     }
 
     // 3. Headers
+    if (/^---\s+.+\s+---$/.test(trimmedLine)) { 
+      flushList(i); 
+      const text = trimmedLine.replace(/^---\s+|\s+---$/g, ''); 
+      elements.push(<h3 key={`header-${i}`} className="text-lg font-bold mt-6 mb-3 text-slate-900 dark:text-white">{parseInline(text)}</h3>); 
+      continue; 
+    }
+
     if (trimmedLine.startsWith('#')) {
       flushList(i);
       const level = trimmedLine.match(/^#+/)?.[0].length || 1;
