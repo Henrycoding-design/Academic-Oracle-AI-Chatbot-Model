@@ -771,6 +771,17 @@ const App: React.FC = () => {
           });
         });
       }
+
+      if (!session) return;
+      const token = session?.access_token;
+      // increment quota here
+      if (!encryptedApiKey){
+        const result = await canSendMessage(currentChatIdRef, token!);
+        if (!result.allowed) {
+          setError(LANGUAGE_DATA[language].ui.freeSessionLimit);
+          return;
+        }
+      }
       
       const guard = analyzePrompt(userMessage, language);
       let decision = { ...guard };
@@ -816,17 +827,6 @@ const App: React.FC = () => {
 
       if (uiMeta?.forceWebSearch) {
         decision.web_search = true;
-      }
-
-      if (!session) return;
-      const token = session?.access_token;
-      // increment quota here
-      if (!encryptedApiKey){
-        const result = await canSendMessage(currentChatIdRef, token!);
-        if (!result.allowed) {
-          setError(LANGUAGE_DATA[language].ui.freeSessionLimit);
-          return;
-        }
       }
 
       // web search
@@ -897,6 +897,7 @@ const App: React.FC = () => {
         }
       }
 
+      // For Chat History storage
       let fileContext = "";
 
       if (files.length > 0) {
@@ -992,6 +993,7 @@ const App: React.FC = () => {
           useRace
             ? sendMessageToBotRace({
                 history: outgoingHistory,
+                files,
                 memory: oracleMemory,
                 encryptedKeyPayload: encryptedApiKey,
                 language: language,
@@ -1001,6 +1003,7 @@ const App: React.FC = () => {
             : useDeep
               ? sendMessageToBotDeep({
                   history: outgoingHistory,
+                  files,
                   memory: oracleMemory,
                   encryptedKeyPayload: encryptedApiKey,
                   language: language,
@@ -1008,6 +1011,7 @@ const App: React.FC = () => {
                 })
               : sendMessageToBot({
                   history: outgoingHistory,
+                  files,
                   memory: oracleMemory,
                   encryptedKeyPayload: encryptedApiKey,
                   language: language,

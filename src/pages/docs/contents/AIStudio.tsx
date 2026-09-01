@@ -10,13 +10,13 @@ export default function AIStudio() {
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
             <span className="relative inline-flex rounded-full h-2 w-2 bg-indigo-500"></span>
           </span>
-          <span className="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-400">Orchestration: Gemini-First (v2.5.6)</span>
+          <span className="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-400">Orchestration: Gemini-First (v2.5.8)</span>
         </div>
         <h1 className="bg-gradient-to-r from-indigo-400 via-purple-400 to-blue-400 bg-clip-text pb-4 text-4xl font-black tracking-tighter text-transparent sm:text-5xl">
           Intelligence Infrastructure
         </h1>
         <p className="max-w-3xl text-lg font-medium leading-relaxed text-slate-400 sm:text-xl">
-          Academic Oracle is powered by a <span className="text-white">Gemini-first orchestration pipeline</span>. We prioritize direct Google GenAI integration with OpenRouter as a validated, last-resort fallback for pedagogical continuity.
+          Academic Oracle is powered by a <span className="text-white">Gemini-first orchestration pipeline</span>. We prioritize direct Google GenAI integration with native multimodal file understanding and OpenRouter as a validated, last-resort fallback for pedagogical continuity.
         </p>
       </section>
 
@@ -38,7 +38,7 @@ export default function AIStudio() {
             Architectural Stability
           </h2>
           <p className="text-slate-400 max-w-2xl leading-relaxed">
-            Using <span className="text-indigo-300">validated racing logic</span>, seven Gemini capability tiers, and a dedicated Deep path, the system ensures that only structurally valid responses advance the learning loop.
+            Using <span className="text-indigo-300">validated racing logic</span>, seven Gemini capability tiers with native multimodal processing, and a dedicated Deep path, the system ensures that only structurally valid responses advance the learning loop.
           </p>
         </div>
         
@@ -47,49 +47,49 @@ export default function AIStudio() {
             { 
               name: "swift · gemini-3.6-flash", 
               role: "Swift Tier", 
-              desc: "Primary high-speed tier for Standard chat and agentic race paths.",
+              desc: "Primary high-speed tier for Standard chat and agentic race paths with native PDF, image, and video support.",
               color: "text-blue-400",
               border: "border-blue-500/20"
             },
             { 
               name: "core · gemini-3-flash", 
               role: "Core Tier", 
-              desc: "General reasoning tier paired with swift or lite during validated racing.",
+              desc: "General reasoning tier paired with swift or lite during validated racing with native multimodal support.",
               color: "text-emerald-400",
               border: "border-emerald-500/20"
             },
             { 
               name: "lite · gemini-3.5-flash-lite", 
               role: "Lite Tier", 
-              desc: "Efficient fast-path model for quick responses and selected structured fallbacks.",
+              desc: "Efficient fast-path model for quick responses and selected structured fallbacks with native multimodal support.",
               color: "text-purple-400",
               border: "border-purple-500/20"
             },
             { 
               name: "mini · gemini-3.1-lite", 
               role: "Mini Tier", 
-              desc: "Lightweight support for guard decisions, fallback calls, and utility routing.",
+              desc: "Lightweight support for guard decisions, fallback calls, and utility routing (native PDF, image, audio).",
               color: "text-cyan-400",
               border: "border-cyan-500/20"
             },
-            {
-              name: "nano · gemini-2.5-lite",
-              role: "Nano Tier",
-              desc: "Lowest-overhead tier for intent checks and search-query generation.",
+            { 
+              name: "nano · gemini-2.5-lite", 
+              role: "Nano Tier", 
+              desc: "Lowest-overhead tier for intent checks and search-query generation with native multimodal support.",
               color: "text-sky-400",
               border: "border-sky-500/20"
             },
-            {
-              name: "pro · gemini-2.5-flash",
-              role: "Pro Tier",
-              desc: "Structured-output tier for quiz, Core Test, and validation-heavy workflows.",
+            { 
+              name: "pro · gemini-2.5-flash", 
+              role: "Pro Tier", 
+              desc: "Structured-output tier for quiz, Core Test, and validation-heavy workflows (native image, video, audio).",
               color: "text-amber-400",
               border: "border-amber-500/20"
             },
-            {
-              name: "deep · gemini-3.5-flash",
-              role: "Deep Mode",
-              desc: "Dedicated chat route for proofs, formal derivations, advanced science, and complex algorithms.",
+            { 
+              name: "deep · gemini-3.5-flash", 
+              role: "Deep Mode", 
+              desc: "Dedicated chat route for proofs, formal derivations, advanced science, and complex algorithms with full multimodal support.",
               color: "text-rose-400",
               border: "border-rose-500/20"
             }
@@ -97,7 +97,7 @@ export default function AIStudio() {
             <div key={model.name} className={`p-6 rounded-2xl bg-[#0a0f1a] border ${model.border} hover:bg-white/[0.04] transition-all duration-300 group/card`}>
               <div className="flex justify-between items-start mb-6">
                 <div className={`w-2 h-2 rounded-full bg-current ${model.color} animate-pulse`} />
-                <code className={`text-[10px] ${model.color} font-mono font-black tracking-tighter uppercase`}>v2.5.6.build</code>
+                <code className={`text-[10px] ${model.color} font-mono font-black tracking-tighter uppercase`}>v2.5.8.build</code>
               </div>
               <div>
                 <h5 className="text-white text-sm font-bold mb-1 group-hover/card:text-indigo-300 transition-colors">{model.role}</h5>
@@ -169,7 +169,7 @@ export default function AIStudio() {
           <div className="absolute -left-10 top-0 bottom-0 w-1 bg-gradient-to-b from-indigo-500 to-transparent rounded-full opacity-20" />
           <h3 className="text-3xl font-bold text-white tracking-tight">Backend Orchestration</h3>
           <p className="text-slate-400 leading-relaxed text-lg">
-            API calls are secured via <span className="text-white">Supabase Edge Functions</span>. v2.5.6 extends routing resilience with stricter Gemini flag validation and broader model telemetry, while preserving backend-controlled prompt sanitation, jailbreak detection, and fallback logic.
+            API calls are secured via <span className="text-white">Supabase Edge Functions</span>. v2.5.8 introduces native Base64 multimodal payload routing directly to capable Gemini tiers, upfront quota verification to eliminate token drain on utility guard models, and strictly typed model capabilities.
           </p>
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
             <div className="p-4 rounded-xl bg-white/5 border border-white/5">
@@ -189,7 +189,7 @@ export default function AIStudio() {
              Real-time State Visibility
            </h4>
            <p className="text-sm text-slate-400 leading-relaxed">
-             The v2.5.6 routing updates pair the dynamic Loading Status Bar with Standard, Race, and Deep strategy labels, making advanced reasoning and fallback behavior easier to follow while reducing stale model calls.
+             The v2.5.8 routing pipeline combines native multimodal injection with the dynamic Loading Status Bar, Standard, Race, and Deep strategy labels, giving clear transparency while preventing wasted utility checks.
            </p>
            <div className="h-2 w-full bg-white/5 rounded-full overflow-hidden">
               <div className="h-full w-[94%] bg-indigo-500 shadow-[0_0_15px_rgba(99,102,241,0.5)]" />
@@ -209,7 +209,7 @@ export default function AIStudio() {
             <div className="flex flex-col md:flex-row items-center gap-6">
               <span className="text-indigo-400 font-mono text-sm font-bold flex items-center gap-2 px-4 py-2 bg-indigo-500/10 rounded-full border border-indigo-500/20">
                 <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-ping" />
-                Deployed: v2.5.6-Stable
+                Deployed: v2.5.8-Stable
               </span>
               <a 
                 href="/docs/chatflow"

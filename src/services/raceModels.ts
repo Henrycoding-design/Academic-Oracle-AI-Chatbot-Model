@@ -5,7 +5,7 @@ type RaceResult = { model: string; text: string };
 const raceModels = async (
   tasks: (() => Promise<RaceResult>)[],
   isValid: (result: RaceResult) => boolean | Promise<boolean> = async () => true,
-  timeoutMs: number = 50000 // abort if no model responds within 25 seconds
+  timeoutMs: number = 60000 // abort if no model responds within 60 seconds
 ): Promise<RaceResult> => {
 
   return new Promise((resolve, reject) => {
@@ -14,7 +14,14 @@ const raceModels = async (
     let lastError: unknown = null;
 
     const timeout = setTimeout(() => {
+      
       if (!settled) {
+        console.warn("[Race] Timeout", {
+          timeoutMs,
+          completed: countCompleted,
+          total: tasks.length,
+        });
+
         settled = true;
         reject(new Error("Race timeout"));
       }
@@ -39,9 +46,11 @@ const raceModels = async (
 
             countCompleted++;
             lastError = new Error(`Model ${result.model} returned an invalid race response`);
+            console.warn(`Race model ${result.model} failed response validation`);
           } catch (error) {
             countCompleted++;
             lastError = error;
+            console.warn("Race validation check error:", error);
           }
 
           if (countCompleted === tasks.length && !settled) {
@@ -57,6 +66,7 @@ const raceModels = async (
 
           countCompleted++;
           lastError = error;
+          console.warn("Race model execution failed:", error);
 
           if (countCompleted === tasks.length) {
             settled = true;

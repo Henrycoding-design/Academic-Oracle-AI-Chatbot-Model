@@ -1,5 +1,27 @@
 [
   {
+    "version": "2.5.8",
+    "date": "2026-09-01",
+    "changes": [
+      {
+        "type": "feature",
+        "text": "Integrated native multimodal file reading (PDFs, images, videos) into supported Gemini models via Base64 inline payloads, bypassing client-side text extraction unless required as a fallback."
+      },
+      {
+        "type": "improve",
+        "text": "Introduced granular per-model capability metadata and strict TypeScript typing for capability flags to ensure reliable multimodal routing across all execution modes."
+      },
+      {
+        "type": "fix",
+        "text": "Relocated the rate-limit and quota verification check ahead of prompt security and web search detection, preventing unnecessary quota consumption on utility guard models for unservable requests."
+      },
+      {
+        "type": "feature",
+        "text": "Added Markdown rendering support for horizontal delimiter headers ('--- header ---'), formatting them as styled h3 headings."
+      }
+    ]
+  },
+  {
     "version": "2.5.7",
     "date": "2026-08-07",
     "changes": [
