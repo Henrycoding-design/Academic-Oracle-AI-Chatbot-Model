@@ -5,7 +5,8 @@ export type ModelFailureType =
   | "retriable"
   | "rate_limited"
   | "unavailable"
-  | "wrong_format";
+  | "wrong_format"
+  | "timeout";
 
 type ModelFailureCounts = Record<ModelFailureType, number>;
 
@@ -34,6 +35,7 @@ const FAILURE_TYPES: ModelFailureType[] = [
   "rate_limited",
   "unavailable",
   "wrong_format",
+  "timeout",
 ];
 
 const SKIP_THRESHOLDS: Record<ModelFailureType, number> = {
@@ -42,6 +44,7 @@ const SKIP_THRESHOLDS: Record<ModelFailureType, number> = {
   rate_limited: 2,
   unavailable: 2,
   wrong_format: 2,
+  timeout: 2,
 };
 
 const createEmptyFailureCounts = (): ModelFailureCounts => ({
@@ -50,6 +53,7 @@ const createEmptyFailureCounts = (): ModelFailureCounts => ({
   rate_limited: 0,
   unavailable: 0,
   wrong_format: 0,
+  timeout: 0,
 });
 
 const createEmptyRoutingMemory = (): ModelRoutingMemory => {

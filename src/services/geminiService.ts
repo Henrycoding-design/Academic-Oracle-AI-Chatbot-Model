@@ -502,6 +502,7 @@ const isInvalidApiKeyError = (err: unknown): boolean => {
 };
 
 const getStandardRoutingFailureType = (err: unknown): ModelFailureType => {
+  if (err instanceof ModelTimeoutError) return "timeout";
   if (isRateLimitError(err)) return "rate_limited";
   if (isUnavailableError(err)) return "unavailable";
   if (err instanceof InvalidAIResponseError || err instanceof SyntaxError) return "wrong_format";
@@ -652,6 +653,15 @@ const throwIfProviderErrorDetails = (response: any) => {
   }
 };
 
+const EDGE_CALL_TIMEOUT_MS = 35_000;
+
+class ModelTimeoutError extends Error {
+  constructor(provider: EdgeCallParams["provider"], model: string) {
+    super(`${provider} model ${model} timed out after ${EDGE_CALL_TIMEOUT_MS}ms`);
+    this.name = "ModelTimeoutError";
+  }
+}
+
 const invokeEdgeAI = async (params: EdgeCallParams) => {
   const { data, error } = await supabase.functions.invoke("call-ai-response", {
     method: "POST",
@@ -676,8 +686,25 @@ const invokeEdgeAI = async (params: EdgeCallParams) => {
   return data?.data;
 };
 
+const invokeEdgeAIWithTimeout = async (params: EdgeCallParams) => {
+  let timeoutId: ReturnType<typeof setTimeout> | undefined;
+
+  try {
+    return await Promise.race([
+      invokeEdgeAI(params),
+      new Promise<never>((_, reject) => {
+        timeoutId = setTimeout(() => {
+          reject(new ModelTimeoutError(params.provider, params.model));
+        }, EDGE_CALL_TIMEOUT_MS);
+      }),
+    ]);
+  } finally {
+    if (timeoutId !== undefined) clearTimeout(timeoutId);
+  }
+};
+
 const getGeminiTextFromEdge = async (params: Omit<GeminiEdgeCallParams, "provider">) => {
-  const response = await invokeEdgeAI({
+  const response = await invokeEdgeAIWithTimeout({
     provider: "gemini",
     ...params,
   });
@@ -693,7 +720,7 @@ const getGeminiTextFromEdge = async (params: Omit<GeminiEdgeCallParams, "provide
 };
 
 const getOpenRouterTextFromEdge = async (params: Omit<OpenRouterEdgeCallParams, "provider">) => {
-  const response= await invokeEdgeAI({
+  const response = await invokeEdgeAIWithTimeout({
     provider: "openrouter",
     ...params,
   });
@@ -988,10 +1015,8 @@ export const sendMessageToBot = async (params: {
 
       const { parts, fallbackPrompt } = await prepareModelPayload(prompt, files, model);
 
-      const response = await invokeEdgeAI({
-        provider: "gemini",
+      const text = await getGeminiTextFromEdge({
         model,
-        // prompt: fallbackPrompt,
         parts,
         temp,
         mode: "chat",
@@ -1001,20 +1026,6 @@ export const sendMessageToBot = async (params: {
         webSearchFailed,
       });
 
-      throwIfProviderErrorDetails(response);
-
-      // console.log("RAW AI TEXT:", response); // debug only
-
-      const text = // this throws invalid ai response
-        response?.candidates?.[0]?.content?.parts?.[0]?.text;
-
-      if (!text) {
-        throw new InvalidAIResponseError("Empty model response");
-      }
-
-      // Debug only
-      // console.log(`Raw response from model ${model}:`, response.text);
-      
       // USE THE HYBRID PARSER HERE
       // Debug Only
       // console.log(`Response from model ${model}:`, text);
@@ -1035,6 +1046,7 @@ export const sendMessageToBot = async (params: {
         failureType === "unavailable" ||
         failureType === "wrong_format" ||
         failureType === "retriable" ||
+        failureType === "timeout" ||
         shouldSkipStandardModel(model)
       ) {
         await sleep(200 + Math.random() * 300); // small random backoff to reduce thundering herd
