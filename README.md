@@ -275,7 +275,7 @@ Ideal for:
 
 ---
 
-### ⚙️ Intelligent Request Routing *(major update v2.4.0, refined v2.5.8)*
+### ⚙️ Intelligent Request Routing *(major update v2.4.0, refined v2.5.9)*
 
 - **Gemini-first orchestration pipeline** — Chat / Quiz / Summary / Crons all prioritize Gemini models
 - **7-tier model capability map** *(refined v2.5.8)*
@@ -294,11 +294,13 @@ Ideal for:
 - **DEEP chat mode** *(new v2.5.6)*
   - Detects hard proofs, advanced derivations, complex scientific reasoning, and advanced algorithms
   - Uses the `deep` tier first, then falls back to Standard chat routing if the deep call fails
-- **Failure Tracking & Real-time Recovery** *(expanded v2.5.6)*
+- **Failure Tracking & Real-time Recovery** *(updated v2.5.9)*
   - Monitors unretriable errors, rate limits (429/503), and format mismatches per model
   - Automatically skips failing models in real-time, falling back to other providers or OpenRouter
   - Routing telemetry now covers chat and selected non-chat callers where possible, reducing stale or repeatedly rate-limited requests
   - **Automatic Race Mode** triggers when multiple primary models experience unusual failure rates
+  - Timeout failures are tracked as `ModelFailureType timeout` and a model is skipped after 2 timeout failures.
+  - `invokeEdgeAIWithTimeout()` applies a timeout race around both Gemini and OpenRouter text-from-edge calls, while `sendMessageToBot()` now uses the unified `getGeminiTextFromEdge()` path.
 - OpenRouter used strictly as last-resort fallback with validation
 - **Multi-mode chat execution pipeline**
   - Standard
@@ -420,6 +422,14 @@ VITE_JIGSAWSTACK_KEY=YOUR_JIGSAWSTACK_API_KEY
 ```bash
 npm run dev
 ```
+
+5. Run the TypeScript lint check:
+```bash
+npm run lint
+```
+
+For temporary ESM TypeScript files, use `npx tsx path/to/file.ts`.
+This replaces the older `node --loader ts-node/esm path/to/file.ts` command.
 
 
 > [!WARNING]

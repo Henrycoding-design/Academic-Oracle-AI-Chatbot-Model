@@ -1,5 +1,27 @@
 [
   {
+    "version": "2.5.9",
+    "date": "2026-10-01",
+    "changes": [
+      {
+        "type": "improve",
+        "text": "Added timeout-aware edge invocation for Gemini and OpenRouter text requests by racing the original invokeEdgeAI call against a timeout promise, keeping individual model calls within the configured limit."
+      },
+      {
+        "type": "fix",
+        "text": "Added timeout as a ModelFailureType with a skip threshold of 2, allowing repeatedly timing-out models to be bypassed by routing recovery."
+      },
+      {
+        "type": "improve",
+        "text": "Migrated sendMessageToBot() to the unified getGeminiTextFromEdge() path for consistent Gemini edge execution and timeout handling."
+      },
+      {
+        "type": "internal",
+        "text": "Resolved npm setup issues, added tsx for running temporary ESM TypeScript files, and added the npm run lint command for TypeScript verification."
+      }
+    ]
+  },
+  {
     "version": "2.5.8",
     "date": "2026-09-01",
     "changes": [
