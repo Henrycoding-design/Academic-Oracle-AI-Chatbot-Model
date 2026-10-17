@@ -87,7 +87,7 @@ export default function AIStudio() {
               border: "border-amber-500/20"
             },
             { 
-              name: "deep · gemini-3.5-flash", 
+              name: "deep · gemini-3.8-flash", 
               role: "Deep Mode", 
               desc: "Dedicated chat route for proofs, formal derivations, advanced science, and complex algorithms with full multimodal support.",
               color: "text-rose-400",

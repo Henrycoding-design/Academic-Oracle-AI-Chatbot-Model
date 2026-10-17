@@ -5,7 +5,7 @@ export const GEMINI_MODEL_MAP = {
   mini: "Gemini 3.1 Lite",
   nano: "Gemini 2.5 Lite",
   pro: "Gemini 2.5 Flash",
-  deep: "Gemini 3.5 Flash", // new
+  deep: "Gemini 3.8 Flash", // new
 } as const;
 
 export type GeminiModelFlag = keyof typeof GEMINI_MODEL_MAP;

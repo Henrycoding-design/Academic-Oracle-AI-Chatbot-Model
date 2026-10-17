@@ -602,7 +602,7 @@ type EdgeCallBaseParams = {
   parts?: GeminiPart[];
   temp?: number;
   systemInstruction?: string;
-  mode?: "chat" | "quiz" | "summary" | "exam-structure" | "exam-enrich" | "exam-grade" | "checklist";
+  mode?: "chat" | "quiz" | "summary" | "exam-structure" | "exam-enrich" | "exam-grade" | "checklist" | "deep";
   language?: string;
   responseMimeType?: string;
   promptVariables?: Record<string, string>;
@@ -1101,25 +1101,37 @@ export const sendMessageToBotDeep = async (params: {
   try {
     recordStandardModelAttempt("deep");
     const { parts, fallbackPrompt } = await prepareModelPayload(prompt, files, "deep");
-    const response = await invokeEdgeAI({
-      provider: "gemini",
+
+    const text = await getGeminiTextFromEdge({
       model: "deep",
-      prompt: fallbackPrompt,
       parts,
       temp: 0.2,
-      mode: "chat",
+      mode: "deep",
       language: resolvedLanguage,
       encryptedKeyPayload,
       responseMimeType: "application/json",
       webSearchFailed,
     });
 
-    throwIfProviderErrorDetails(response);
+    // const response = await invokeEdgeAI({
+    //   provider: "gemini",
+    //   model: "deep",
+    //   prompt: fallbackPrompt,
+    //   parts,
+    //   temp: 0.2,
+    //   mode: "chat",
+    //   language: resolvedLanguage,
+    //   encryptedKeyPayload,
+    //   responseMimeType: "application/json",
+    //   webSearchFailed,
+    // });
 
-    const text = response?.candidates?.[0]?.content?.parts?.[0]?.text;
-    if (!text) {
-      throw new InvalidAIResponseError("Empty model response");
-    }
+    // throwIfProviderErrorDetails(response);
+
+    // const text = response?.candidates?.[0]?.content?.parts?.[0]?.text;
+    // if (!text) {
+    //   throw new InvalidAIResponseError("Empty model response");
+    // }
 
     const parsedResponse = parseOracleChatResponse(text, memory, history, "deep");
     recordStandardModelSuccess("deep");
