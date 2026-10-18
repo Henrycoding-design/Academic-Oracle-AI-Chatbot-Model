@@ -61,7 +61,7 @@ export default function Developers() {
             </h3>
 
             <h4 className="text-sm text-white/60">
-              Gemini 3.6 / 3.5 / 3 · Deep Mode · Fallback
+              Gemini 3.8 / 3.6 / 3.5 / 3 · Deep Mode · Fallback
             </h4>
 
             <p className="text-sm text-white/70 leading-relaxed">
