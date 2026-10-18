@@ -19,7 +19,7 @@
       <img src="https://img.shields.io/badge/code-Apache--2.0%20with%20exceptions-blue.svg" alt="Code: Apache-2.0 with exceptions" />
     </a>
     <img src="https://img.shields.io/badge/status-deployed-brightgreen.svg" />
-    <img src="https://img.shields.io/badge/Academic_Oracle-v2.5.x-3B82F6.svg" />
+    <img src="https://img.shields.io/badge/Academic_Oracle-v2.6.x-3B82F6.svg" />
     <img src="https://img.shields.io/github/stars/Henrycoding-design/Academic-Oracle-AI-Chatbot-Model?cacheSeconds=3600" />
     <img src="https://img.shields.io/github/last-commit/Henrycoding-design/Academic-Oracle-AI-Chatbot-Model" />
   </p>
@@ -81,7 +81,7 @@ Academic Oracle optimizes for **retention, intuition, and reasoning**.
 
 ## Features
 
-### 🧠 Learning Engine *(updated v2.5.7)*
+### 🧠 Learning Engine *(updated v2.6.0)*
 
 - **Hint-based reasoning flow** — ask first, reveal progressively
 - **Structured thinking prompts** with richer Oracle Memory JSON returns
@@ -91,6 +91,9 @@ Academic Oracle optimizes for **retention, intuition, and reasoning**.
 - **Modern Chat Input Portal** *(new v2.5.7)*
   - Redesigned file upload icon into an integrated **Add Portal** combining file uploads, **Deep Mode**, and **Web Search Mode** selection.
   - Multi-mode configurations (Deep Mode and Web Search) feature full language localization and render directly into the active message display.
+- **Dedicated Deep chat mode** *(updated v2.6.0)*
+  - Routes Deep mode requests to `call-ai-response` with the dedicated `deep` mode value and `DEEP_CHAT_PROMPT`.
+  - Extends the standard chat guidance with extra-deep mathematical explanations, scientific integration, and advanced reasoning where applicable.
 - **Follow-up suggestion system**
   - Context-aware follow-up buttons on text selection
   - New "Follow up" mode with input container (no auto-send)
@@ -275,7 +278,7 @@ Ideal for:
 
 ---
 
-### ⚙️ Intelligent Request Routing *(major update v2.4.0, refined v2.5.9)*
+### ⚙️ Intelligent Request Routing *(major update v2.4.0, refined v2.6.0)*
 
 - **Gemini-first orchestration pipeline** — Chat / Quiz / Summary / Crons all prioritize Gemini models
 - **7-tier model capability map** *(refined v2.5.8)*
@@ -285,15 +288,16 @@ Ideal for:
   - `mini` — Gemini 3.1 Lite for lightweight routing, guard, and fallback tasks (multimodal: PDF, image, audio)
   - `nano` — Gemini 2.5 Lite for small classification and query generation calls (multimodal: PDF, image, video, audio)
   - `pro` — Gemini 2.5 Flash for structured exam, quiz, and validation-heavy work (multimodal: image, video, audio)
-  - `deep` — Gemini 3.5 Flash for highly advanced reasoning (multimodal: PDF, image, video, audio)
+  - `deep` — Gemini 3.8 Flash for highly advanced reasoning (multimodal: PDF, image, video, audio)
 - **Native Multimodal File Processing** *(new v2.5.8)*
   - Injects native Base64 `inlineData` parts for supported files (PDFs < 50MB, images < 100MB) directly into capable Gemini models via Supabase Edge gateways.
   - Granular capability checks (`ModelCapabilities`) automatically route unsupported formats (e.g. DOCX) or models lacking native capabilities through local extraction fallbacks (Mammoth / OCR / `fileReader`).
 - **Upfront Quota & Rate-Limit Gate** *(new v2.5.8)*
   - Free-tier rate limiting and session verification are executed prior to running security prompt guards or web search queries, preventing token quota loss on the `mini` utility model for unservable requests.
-- **DEEP chat mode** *(new v2.5.6)*
+- **DEEP chat mode** *(updated v2.6.0)*
   - Detects hard proofs, advanced derivations, complex scientific reasoning, and advanced algorithms
-  - Uses the `deep` tier first, then falls back to Standard chat routing if the deep call fails
+  - Sends `mode: "deep"` to the `call-ai-response` edge function, which applies the dedicated `DEEP_CHAT_PROMPT`
+  - Uses the `deep` tier (`gemini-3.8-flash`) first, then falls back to Standard chat routing if the deep call fails
 - **Failure Tracking & Real-time Recovery** *(updated v2.5.9)*
   - Monitors unretriable errors, rate limits (429/503), and format mismatches per model
   - Automatically skips failing models in real-time, falling back to other providers or OpenRouter

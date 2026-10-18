@@ -1,5 +1,23 @@
 [
   {
+    "version": "2.6.0",
+    "date": "2026-10-18",
+    "changes": [
+      {
+        "type": "feature",
+        "text": "Added a dedicated deep mode to the call-ai-response edge function, with its own mode value routed to a new DEEP_CHAT_PROMPT."
+      },
+      {
+        "type": "improve",
+        "text": "Created DEEP_CHAT_PROMPT as an extension of CHAT_SYSTEM_PROMPT, keeping all existing chat rules intact and adding guidance for extra-deep mathematical explanations, scientific integration, and advanced reasoning where applicable."
+      },
+      {
+        "type": "improve",
+        "text": "Upgraded Deep mode from the deprecated gemini-3.5-flash to gemini-3.8-flash, the latest available model."
+      }
+    ]
+  },
+  {
     "version": "2.5.9",
     "date": "2026-10-01",
     "changes": [

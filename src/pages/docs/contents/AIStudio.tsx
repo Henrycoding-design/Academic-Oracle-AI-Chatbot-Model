@@ -10,7 +10,7 @@ export default function AIStudio() {
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
             <span className="relative inline-flex rounded-full h-2 w-2 bg-indigo-500"></span>
           </span>
-          <span className="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-400">Orchestration: Gemini-First (v2.5.8)</span>
+          <span className="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-400">Orchestration: Gemini-First (v2.6.x)</span>
         </div>
         <h1 className="bg-gradient-to-r from-indigo-400 via-purple-400 to-blue-400 bg-clip-text pb-4 text-4xl font-black tracking-tighter text-transparent sm:text-5xl">
           Intelligence Infrastructure
@@ -87,7 +87,7 @@ export default function AIStudio() {
               border: "border-amber-500/20"
             },
             { 
-              name: "deep · gemini-3.5-flash", 
+              name: "deep · gemini-3.8-flash", 
               role: "Deep Mode", 
               desc: "Dedicated chat route for proofs, formal derivations, advanced science, and complex algorithms with full multimodal support.",
               color: "text-rose-400",
@@ -97,7 +97,7 @@ export default function AIStudio() {
             <div key={model.name} className={`p-6 rounded-2xl bg-[#0a0f1a] border ${model.border} hover:bg-white/[0.04] transition-all duration-300 group/card`}>
               <div className="flex justify-between items-start mb-6">
                 <div className={`w-2 h-2 rounded-full bg-current ${model.color} animate-pulse`} />
-                <code className={`text-[10px] ${model.color} font-mono font-black tracking-tighter uppercase`}>v2.5.8.build</code>
+                <code className={`text-[10px] ${model.color} font-mono font-black tracking-tighter uppercase`}>v2.6.x.build</code>
               </div>
               <div>
                 <h5 className="text-white text-sm font-bold mb-1 group-hover/card:text-indigo-300 transition-colors">{model.role}</h5>
@@ -169,7 +169,7 @@ export default function AIStudio() {
           <div className="absolute -left-10 top-0 bottom-0 w-1 bg-gradient-to-b from-indigo-500 to-transparent rounded-full opacity-20" />
           <h3 className="text-3xl font-bold text-white tracking-tight">Backend Orchestration</h3>
           <p className="text-slate-400 leading-relaxed text-lg">
-            API calls are secured via <span className="text-white">Supabase Edge Functions</span>. v2.5.8 introduces native Base64 multimodal payload routing directly to capable Gemini tiers, upfront quota verification to eliminate token drain on utility guard models, and strictly typed model capabilities.
+            API calls are secured via <span className="text-white">Supabase Edge Functions</span>. v2.6.0 adds a dedicated Deep chat prompt and edge-function mode while retaining native Base64 multimodal payload routing, upfront quota verification, and strictly typed model capabilities.
           </p>
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
             <div className="p-4 rounded-xl bg-white/5 border border-white/5">
@@ -189,7 +189,7 @@ export default function AIStudio() {
              Real-time State Visibility
            </h4>
            <p className="text-sm text-slate-400 leading-relaxed">
-             The v2.5.8 routing pipeline combines native multimodal injection with the dynamic Loading Status Bar, Standard, Race, and Deep strategy labels, giving clear transparency while preventing wasted utility checks.
+             The v2.6.x routing pipeline combines native multimodal injection with the dynamic Loading Status Bar, Standard, Race, and Deep strategy labels. Deep requests use the dedicated `deep` mode and extra-depth guidance while preventing wasted utility checks.
            </p>
            <div className="h-2 w-full bg-white/5 rounded-full overflow-hidden">
               <div className="h-full w-[94%] bg-indigo-500 shadow-[0_0_15px_rgba(99,102,241,0.5)]" />
@@ -209,7 +209,7 @@ export default function AIStudio() {
             <div className="flex flex-col md:flex-row items-center gap-6">
               <span className="text-indigo-400 font-mono text-sm font-bold flex items-center gap-2 px-4 py-2 bg-indigo-500/10 rounded-full border border-indigo-500/20">
                 <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-ping" />
-                Deployed: v2.5.8-Stable
+                Deployed: v2.6.x-Stable
               </span>
               <a 
                 href="/docs/chatflow"
