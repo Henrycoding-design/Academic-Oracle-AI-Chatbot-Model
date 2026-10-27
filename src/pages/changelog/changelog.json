@@ -1,5 +1,27 @@
 [
   {
+    "version": "2.6.1",
+    "date": "2026-10-28",
+    "changes": [
+      {
+        "type": "improve",
+        "text": "Introduced differentiated edge invocation timeouts based on job complexity: set standard chat and utility calls to 40s and established a dedicated 60s timeout for heavy Exam and Core Test workloads (structuring, enrichment, grading, and blind checklist generation)."
+      },
+      {
+        "type": "fix",
+        "text": "Added a standardized +5s race timeout buffer via getRaceTimeoutMs(), preventing models that complete near their individual deadlines from being prematurely swallowed by outer race cancellation before response validation finishes."
+      },
+      {
+        "type": "improve",
+        "text": "Updated ModelTimeoutError to dynamically report the exact applied timeout duration in error messages and failure telemetry instead of a hardcoded value."
+      },
+      {
+        "type": "fix",
+        "text": "Unified generateBlindChecklist to consistently apply exam-tier timeouts across both the initial model race and subsequent fallback attempts."
+      }
+    ]
+  },
+  {
     "version": "2.6.0",
     "date": "2026-10-18",
     "changes": [
