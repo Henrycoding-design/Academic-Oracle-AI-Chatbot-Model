@@ -5,7 +5,7 @@ type RaceResult = { model: string; text: string };
 const raceModels = async (
   tasks: (() => Promise<RaceResult>)[],
   isValid: (result: RaceResult) => boolean | Promise<boolean> = async () => true,
-  timeoutMs: number = 60000 // abort if no model responds within 60 seconds
+  timeoutMs: number = 60000 // abort if no model responds within 60 seconds (default)
 ): Promise<RaceResult> => {
 
   return new Promise((resolve, reject) => {
@@ -80,4 +80,9 @@ const raceModels = async (
   });
 };
 
-export {raceModels};
+const getRaceTimeoutMs = (modelTimeoutMs: number) : number => {
+  // +5s to the model timeout, ensure models that return at the END of the timeouts ms won't get missed out
+  return modelTimeoutMs + 5000;
+}
+
+export {raceModels, getRaceTimeoutMs};
