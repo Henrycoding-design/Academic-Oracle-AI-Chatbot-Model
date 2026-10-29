@@ -15,7 +15,7 @@ import type { ChatHistoryItem, CoreTestGradingStyle, CoreTestPayload, Message, O
 import { InvalidAIResponseError , InvalidAPIError, GuardResult} from "../types";
 import { AppLanguage } from "../lang/Language";
 import { classifyIntent } from "./chatIntentClassifier";
-import { raceModels } from "./raceModels";
+import { raceModels, getRaceTimeoutMs } from "./raceModels";
 import { isRushHourUTC } from "./rushHours";
 import {
   type ClientModelLabel,
@@ -613,6 +613,7 @@ type EdgeCallBaseParams = {
 type GeminiEdgeCallParams = EdgeCallBaseParams & {
   provider: "gemini";
   model: GeminiModelFlag;
+  isExam?: boolean;
 };
 
 type OpenRouterEdgeCallParams = EdgeCallBaseParams & {
@@ -653,11 +654,12 @@ const throwIfProviderErrorDetails = (response: any) => {
   }
 };
 
-const EDGE_CALL_TIMEOUT_MS = 35_000;
+const EDGE_CALL_TIMEOUT_MS = 40_000;
+const EXAM_EDGE_CALL_TIMEOUT_MS = 60_000;
 
 class ModelTimeoutError extends Error {
-  constructor(provider: EdgeCallParams["provider"], model: string) {
-    super(`${provider} model ${model} timed out after ${EDGE_CALL_TIMEOUT_MS}ms`);
+  constructor(provider: EdgeCallParams["provider"], model: string, timeoutMs: number) {
+    super(`${provider} model ${model} timed out after ${timeoutMs}ms`);
     this.name = "ModelTimeoutError";
   }
 }
@@ -686,7 +688,7 @@ const invokeEdgeAI = async (params: EdgeCallParams) => {
   return data?.data;
 };
 
-const invokeEdgeAIWithTimeout = async (params: EdgeCallParams) => {
+const invokeEdgeAIWithTimeout = async (params: EdgeCallParams, timeout = EDGE_CALL_TIMEOUT_MS) => {
   let timeoutId: ReturnType<typeof setTimeout> | undefined;
 
   try {
@@ -694,8 +696,8 @@ const invokeEdgeAIWithTimeout = async (params: EdgeCallParams) => {
       invokeEdgeAI(params),
       new Promise<never>((_, reject) => {
         timeoutId = setTimeout(() => {
-          reject(new ModelTimeoutError(params.provider, params.model));
-        }, EDGE_CALL_TIMEOUT_MS);
+          reject(new ModelTimeoutError(params.provider, params.model, timeout));
+        }, timeout);
       }),
     ]);
   } finally {
@@ -703,11 +705,16 @@ const invokeEdgeAIWithTimeout = async (params: EdgeCallParams) => {
   }
 };
 
-const getGeminiTextFromEdge = async (params: Omit<GeminiEdgeCallParams, "provider">) => {
+const getGeminiTextFromEdge = async ({ 
+  isExam = false, 
+  ...params 
+}: Omit<GeminiEdgeCallParams, "provider">) => {
+  const timeoutMS = isExam ? EXAM_EDGE_CALL_TIMEOUT_MS : EDGE_CALL_TIMEOUT_MS; 
+  
   const response = await invokeEdgeAIWithTimeout({
     provider: "gemini",
     ...params,
-  });
+  }, timeoutMS);
 
   throwIfProviderErrorDetails(response);
 
@@ -890,21 +897,21 @@ export const sendMessageToBotRace = async (params: {
       raceResult = await raceModels([
         () => callGemini("swift"),
         () => callGemini("core")
-      ], isValidRaceResult);
+      ], isValidRaceResult, getRaceTimeoutMs(EDGE_CALL_TIMEOUT_MS));
     }
     else if (intent === "fast") {
       console.log("Using fast strategy for this request");
       raceResult = await raceModels([
         () => callGemini("lite"),
         () => callGemini("mini"),
-      ], isValidRaceResult);
+      ], isValidRaceResult, getRaceTimeoutMs(EDGE_CALL_TIMEOUT_MS));
     }
     else {
       console.log("Using balanced strategy for this request");
       raceResult = await raceModels([
         () => callGemini("lite"),
         () => callGemini("core"),
-      ], isValidRaceResult);
+      ], isValidRaceResult, getRaceTimeoutMs(EDGE_CALL_TIMEOUT_MS));
     }
 
     // console.log(raceResult.text);
@@ -1479,6 +1486,7 @@ ${markSchemeText ?? "No mark scheme provided."}
       mode: "exam-structure",
       responseMimeType: "application/json",
       encryptedKeyPayload,
+      isExam: true,
     }).then(text => ({ model: "pro", text })),
     () => getGeminiTextFromEdge({
       model: "lite",
@@ -1487,8 +1495,9 @@ ${markSchemeText ?? "No mark scheme provided."}
       mode: "exam-structure",
       responseMimeType: "application/json",
       encryptedKeyPayload,
+      isExam: true,
     }).then(text => ({ model: "lite", text })),
-  ], isValid);
+  ], isValid, getRaceTimeoutMs(EXAM_EDGE_CALL_TIMEOUT_MS));
 
   return tryParse(raceResult.text);
 };
@@ -1521,6 +1530,7 @@ ${markSchemeText ?? "No mark scheme provided."}
       mode: "exam-structure",
       responseMimeType: "application/json",
       encryptedKeyPayload,
+      isExam: true,
     });
 
     const parsed = tryParse(text);
@@ -1537,6 +1547,7 @@ ${markSchemeText ?? "No mark scheme provided."}
         mode: "exam-structure",
         responseMimeType: "application/json",
         encryptedKeyPayload,
+        isExam: true,
       });
 
       const parsed = tryParse(retryText);
@@ -1596,6 +1607,7 @@ ${JSON.stringify(payload)}
       mode: "exam-enrich",
       responseMimeType: "application/json",
       encryptedKeyPayload,
+      isExam: true,
     });
 
     const parsed = tryParse(text);
@@ -1612,6 +1624,7 @@ ${JSON.stringify(payload)}
         mode: "exam-enrich",
         responseMimeType: "application/json",
         encryptedKeyPayload,
+        isExam: true,
       });
 
       const parsed = tryParse(retryText);
@@ -1675,6 +1688,7 @@ ${JSON.stringify(payload)}
         stylePolicy,
       },
       encryptedKeyPayload,
+      isExam: true,
     }).then(text => ({ model: "pro", text })),
     () => getGeminiTextFromEdge({
       model: "lite",
@@ -1688,8 +1702,9 @@ ${JSON.stringify(payload)}
         stylePolicy,
       },
       encryptedKeyPayload,
+      isExam: true,
     }).then(text => ({ model: "lite", text })),
-  ], isValid);
+  ], isValid, getRaceTimeoutMs(EXAM_EDGE_CALL_TIMEOUT_MS));
 
   return tryParse(raceResult.text);
 };
@@ -1760,6 +1775,7 @@ ${JSON.stringify(payload)}
         stylePolicy,
       },
       encryptedKeyPayload,
+      isExam: true,
     });
 
     const parsed = tryParse(text);
@@ -1781,6 +1797,7 @@ ${JSON.stringify(payload)}
           stylePolicy,
         },
         encryptedKeyPayload,
+        isExam: true,
       });
 
       const parsed = tryParse(retryText);
@@ -2028,6 +2045,7 @@ export const generateBlindChecklist = async (
         language: resolvedLanguage,
         responseMimeType: "application/json",
         encryptedKeyPayload,
+        isExam: true,
       }).then(text => ({ model: "swift", text })),
       () => getGeminiTextFromEdge({
         model: "core",
@@ -2037,8 +2055,9 @@ export const generateBlindChecklist = async (
         language: resolvedLanguage,
         responseMimeType: "application/json",
         encryptedKeyPayload,
+        isExam: true,
       }).then(text => ({ model: "core", text })),
-    ], isValid);
+    ], isValid, getRaceTimeoutMs(EXAM_EDGE_CALL_TIMEOUT_MS));
 
     return JSON.parse(raceResult.text).checklist;
   } catch (err) {
@@ -2052,6 +2071,7 @@ export const generateBlindChecklist = async (
         language: resolvedLanguage,
         responseMimeType: "application/json",
         encryptedKeyPayload,
+        isExam: true,
       });
 
       const parsed = extractAndParseJSONSafe(text);
@@ -2068,6 +2088,7 @@ export const generateBlindChecklist = async (
         language: resolvedLanguage,
         responseMimeType: "application/json",
         encryptedKeyPayload,
+        isExam: true,
       });
 
       const parsed = extractAndParseJSONSafe(text);

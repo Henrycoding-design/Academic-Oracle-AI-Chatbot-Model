@@ -278,7 +278,7 @@ Ideal for:
 
 ---
 
-### ⚙️ Intelligent Request Routing *(major update v2.4.0, refined v2.6.0)*
+### ⚙️ Intelligent Request Routing *(major update v2.4.0, refined v2.6.1)*
 
 - **Gemini-first orchestration pipeline** — Chat / Quiz / Summary / Crons all prioritize Gemini models
 - **7-tier model capability map** *(refined v2.5.8)*
@@ -298,13 +298,14 @@ Ideal for:
   - Detects hard proofs, advanced derivations, complex scientific reasoning, and advanced algorithms
   - Sends `mode: "deep"` to the `call-ai-response` edge function, which applies the dedicated `DEEP_CHAT_PROMPT`
   - Uses the `deep` tier (`gemini-3.8-flash`) first, then falls back to Standard chat routing if the deep call fails
-- **Failure Tracking & Real-time Recovery** *(updated v2.5.9)*
+- **Failure Tracking & Real-time Recovery** *(updated v2.6.1)*
   - Monitors unretriable errors, rate limits (429/503), and format mismatches per model
   - Automatically skips failing models in real-time, falling back to other providers or OpenRouter
   - Routing telemetry now covers chat and selected non-chat callers where possible, reducing stale or repeatedly rate-limited requests
   - **Automatic Race Mode** triggers when multiple primary models experience unusual failure rates
   - Timeout failures are tracked as `ModelFailureType timeout` and a model is skipped after 2 timeout failures.
-  - `invokeEdgeAIWithTimeout()` applies a timeout race around both Gemini and OpenRouter text-from-edge calls, while `sendMessageToBot()` now uses the unified `getGeminiTextFromEdge()` path.
+  - `invokeEdgeAIWithTimeout()` applies a timeout race around both Gemini and OpenRouter text-from-edge calls, with dynamically reported failure durations via `ModelTimeoutError`.
+  - **Job-Differentiated Timeouts & Race Buffer** *(new v2.6.1)*: Standard chat and utility callers use a 40s individual limit (45s race), while complex Exam and Core Test callers scale to 60s (65s race). Outer race timers incorporate a mandatory 5s buffer via `getRaceTimeoutMs()` to ensure responses settling right at the model deadline are fully validated without being cut off.
 - OpenRouter used strictly as last-resort fallback with validation
 - **Multi-mode chat execution pipeline**
   - Standard
