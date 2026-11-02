@@ -755,6 +755,9 @@ const App: React.FC = () => {
                   name: file.name,
                   type: file.type,
                   size: file.size,
+                  previewUrl: file.type.startsWith("image/")
+                    ? URL.createObjectURL(file)
+                    : undefined,
                 }))
               : undefined,
             selectionContext: uiMeta?.selectionContext,
@@ -1155,6 +1158,19 @@ const App: React.FC = () => {
     return 'ok';
   };
 
+  const revokeMessagePreviewUrls = (messagesToClear: Message[]) => {
+    const previewUrls = new Set(
+      messagesToClear.flatMap((message) => {
+        const attachments = message.attachments ?? (message.attachment ? [message.attachment] : []);
+        return attachments
+          .map((attachment) => attachment.previewUrl)
+          .filter((previewUrl): previewUrl is string => Boolean(previewUrl));
+      })
+    );
+
+    previewUrls.forEach((previewUrl) => URL.revokeObjectURL(previewUrl));
+  };
+
   const resetChat = () => { // for new chat
 
     if (isLoading) return; // prevent reset during loading
@@ -1166,6 +1182,8 @@ const App: React.FC = () => {
     if (!window.confirm(LANGUAGE_DATA[language].ui.confirmReset)) {
       return; // user cancelled
     }
+
+    revokeMessagePreviewUrls(messages);
 
     // 🧹 wipe persisted chat state
     sessionStorage.removeItem("academic-oracle-chat");

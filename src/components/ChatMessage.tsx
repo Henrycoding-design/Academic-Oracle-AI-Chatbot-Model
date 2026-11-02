@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { CornerDownRight, Brain, Globe } from 'lucide-react';
 import type { Message } from '../types';
 import { LANGUAGE_DATA, AppLanguage} from '../lang/Language';
 import { flashSelectionGlow } from '../services/selectionGlow';
 import { MarkdownContent } from './MarkdownContent';
+import { ImagePreviewModal } from './ImagePreviewModal';
 
 interface ChatMessageProps {
   message: Message;
@@ -41,6 +42,7 @@ const fileIconFor = (type?: string, name?: string) => {
 };
 
 export const ChatMessage: React.FC<ChatMessageProps> = ({ message, scrollRef }) => {
+  const [previewImage, setPreviewImage] = useState<{ src: string; alt: string } | null>(null);
   const isModel = message.role === 'model';
   const attachments = message.attachments ?? (message.attachment ? [message.attachment] : []);
   const hasUserText = !isModel && message.content.trim().length > 0;
@@ -83,9 +85,30 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({ message, scrollRef }) 
                   }
                 `}
               >
-                <span>
-                  {fileIconFor(attachment.type, attachment.name)}
-                </span>
+                {attachment.previewUrl ? (
+                  <img
+                    src={attachment.previewUrl}
+                    alt={attachment.name}
+                    className="h-12 w-12 rounded-lg object-cover"
+                    onClick={() => setPreviewImage({
+                      src: attachment.previewUrl!,
+                      alt: attachment.name,
+                    })}
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(event) => {
+                      if (event.key === 'Enter' || event.key === ' ') {
+                        event.preventDefault();
+                        setPreviewImage({
+                          src: attachment.previewUrl!,
+                          alt: attachment.name,
+                        });
+                      }
+                    }}
+                  />
+                ) : (
+                  <span>{fileIconFor(attachment.type, attachment.name)}</span>
+                )}
                 <span className="font-medium truncate max-w-[160px]">
                   {attachment.name}
                 </span>
@@ -159,6 +182,13 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({ message, scrollRef }) 
       </div>
 
       {!isModel && <UserAvatar />}
+      {previewImage && (
+        <ImagePreviewModal
+          src={previewImage.src}
+          alt={previewImage.alt}
+          onClose={() => setPreviewImage(null)}
+        />
+      )}
     </div>
   );
 };

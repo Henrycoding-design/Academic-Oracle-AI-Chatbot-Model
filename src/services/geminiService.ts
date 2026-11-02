@@ -656,6 +656,12 @@ const throwIfProviderErrorDetails = (response: any) => {
 
 const EDGE_CALL_TIMEOUT_MS = 40_000;
 const EXAM_EDGE_CALL_TIMEOUT_MS = 60_000;
+const RUSH_HOUR_TIMEOUT_BONUS_MS = 40_000;
+
+const getEdgeCallTimeoutMs = (isExam = false) => {
+  const documentedTimeout = isExam ? EXAM_EDGE_CALL_TIMEOUT_MS : EDGE_CALL_TIMEOUT_MS;
+  return documentedTimeout + (isRushHourUTC() ? RUSH_HOUR_TIMEOUT_BONUS_MS : 0);
+};
 
 class ModelTimeoutError extends Error {
   constructor(provider: EdgeCallParams["provider"], model: string, timeoutMs: number) {
@@ -668,6 +674,14 @@ const invokeEdgeAI = async (params: EdgeCallParams) => {
   const { data, error } = await supabase.functions.invoke("call-ai-response", {
     method: "POST",
     body: params,
+  });
+
+  console.log("[Edge][Client] response received", {
+    provider: params.provider,
+    model: params.model,
+    requestId: data?.requestId ?? null,
+    hasData: Boolean(data?.data),
+    hasError: Boolean(error || data?.error),
   });
 
   const errorPayload =
@@ -688,7 +702,7 @@ const invokeEdgeAI = async (params: EdgeCallParams) => {
   return data?.data;
 };
 
-const invokeEdgeAIWithTimeout = async (params: EdgeCallParams, timeout = EDGE_CALL_TIMEOUT_MS) => {
+const invokeEdgeAIWithTimeout = async (params: EdgeCallParams, timeout = getEdgeCallTimeoutMs()) => {
   let timeoutId: ReturnType<typeof setTimeout> | undefined;
 
   try {
@@ -696,6 +710,11 @@ const invokeEdgeAIWithTimeout = async (params: EdgeCallParams, timeout = EDGE_CA
       invokeEdgeAI(params),
       new Promise<never>((_, reject) => {
         timeoutId = setTimeout(() => {
+          console.warn("[Edge][ClientReject] Client-side timeout", {
+            provider: params.provider,
+            model: params.model,
+            timeoutMs: timeout,
+          });
           reject(new ModelTimeoutError(params.provider, params.model, timeout));
         }, timeout);
       }),
@@ -709,7 +728,7 @@ const getGeminiTextFromEdge = async ({
   isExam = false, 
   ...params 
 }: Omit<GeminiEdgeCallParams, "provider">) => {
-  const timeoutMS = isExam ? EXAM_EDGE_CALL_TIMEOUT_MS : EDGE_CALL_TIMEOUT_MS; 
+  const timeoutMS = getEdgeCallTimeoutMs(isExam);
   
   const response = await invokeEdgeAIWithTimeout({
     provider: "gemini",
@@ -720,6 +739,12 @@ const getGeminiTextFromEdge = async ({
 
   const text = response?.candidates?.[0]?.content?.parts?.[0]?.text;
   if (!text) {
+    console.warn("[Edge][ClientReject] Gemini response missing usable text", {
+      provider: "gemini",
+      model: params.model,
+      responseType: typeof response,
+      responseKeys: response && typeof response === "object" ? Object.keys(response) : [],
+    });
     throw new InvalidAIResponseError("Empty model response");
   }
 
@@ -730,12 +755,18 @@ const getOpenRouterTextFromEdge = async (params: Omit<OpenRouterEdgeCallParams, 
   const response = await invokeEdgeAIWithTimeout({
     provider: "openrouter",
     ...params,
-  });
+  }, getEdgeCallTimeoutMs());
 
   throwIfProviderErrorDetails(response);
 
   const text = response?.choices?.[0]?.message?.content;
   if (!text) {
+    console.warn("[Edge][ClientReject] OpenRouter response missing usable text", {
+      provider: "openrouter",
+      model: params.model,
+      responseType: typeof response,
+      responseKeys: response && typeof response === "object" ? Object.keys(response) : [],
+    });
     throw new InvalidAIResponseError("Empty model response");
   }
 
@@ -752,10 +783,20 @@ const parseOracleChatResponse = (
   const parsed = extractAndParseJSONSafe(text);
 
   if (!parsed.ok || parsed.data == null) {
+    console.warn("[Edge][ClientReject] Response failed JSON parsing", {
+      model,
+      textLength: text.length,
+    });
     throw new InvalidAIResponseError("Invalid Oracle JSON payload");
   }
 
   if (!isOraclePayload(parsed.data)) {
+    console.warn("[Edge][ClientReject] Response failed Oracle payload validation", {
+      model,
+      textLength: text.length,
+      hasAnswer: typeof parsed.data?.answer === "string",
+      hasMemory: parsed.data?.memory != null,
+    });
     throw new InvalidAIResponseError("Malformed Oracle payload");
   }
 
@@ -897,21 +938,21 @@ export const sendMessageToBotRace = async (params: {
       raceResult = await raceModels([
         () => callGemini("swift"),
         () => callGemini("core")
-      ], isValidRaceResult, getRaceTimeoutMs(EDGE_CALL_TIMEOUT_MS));
+      ], isValidRaceResult, getRaceTimeoutMs(getEdgeCallTimeoutMs()));
     }
     else if (intent === "fast") {
       console.log("Using fast strategy for this request");
       raceResult = await raceModels([
         () => callGemini("lite"),
         () => callGemini("mini"),
-      ], isValidRaceResult, getRaceTimeoutMs(EDGE_CALL_TIMEOUT_MS));
+      ], isValidRaceResult, getRaceTimeoutMs(getEdgeCallTimeoutMs()));
     }
     else {
       console.log("Using balanced strategy for this request");
       raceResult = await raceModels([
         () => callGemini("lite"),
         () => callGemini("core"),
-      ], isValidRaceResult, getRaceTimeoutMs(EDGE_CALL_TIMEOUT_MS));
+      ], isValidRaceResult, getRaceTimeoutMs(getEdgeCallTimeoutMs()));
     }
 
     // console.log(raceResult.text);
@@ -1497,7 +1538,7 @@ ${markSchemeText ?? "No mark scheme provided."}
       encryptedKeyPayload,
       isExam: true,
     }).then(text => ({ model: "lite", text })),
-  ], isValid, getRaceTimeoutMs(EXAM_EDGE_CALL_TIMEOUT_MS));
+  ], isValid, getRaceTimeoutMs(getEdgeCallTimeoutMs(true)));
 
   return tryParse(raceResult.text);
 };
@@ -1704,7 +1745,7 @@ ${JSON.stringify(payload)}
       encryptedKeyPayload,
       isExam: true,
     }).then(text => ({ model: "lite", text })),
-  ], isValid, getRaceTimeoutMs(EXAM_EDGE_CALL_TIMEOUT_MS));
+  ], isValid, getRaceTimeoutMs(getEdgeCallTimeoutMs(true)));
 
   return tryParse(raceResult.text);
 };
@@ -2057,7 +2098,7 @@ export const generateBlindChecklist = async (
         encryptedKeyPayload,
         isExam: true,
       }).then(text => ({ model: "core", text })),
-    ], isValid, getRaceTimeoutMs(EXAM_EDGE_CALL_TIMEOUT_MS));
+    ], isValid, getRaceTimeoutMs(getEdgeCallTimeoutMs(true)));
 
     return JSON.parse(raceResult.text).checklist;
   } catch (err) {

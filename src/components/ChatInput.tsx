@@ -4,6 +4,7 @@ import { CornerDownRight, Plus, Paperclip, Brain, Globe } from 'lucide-react';
 import { LANGUAGE_DATA, AppLanguage } from '../lang/Language.tsx';
 import { flashSelectionGlow } from '../services/selectionGlow';
 import type { UserMessageUiMeta } from '../types';
+import { ImagePreviewModal } from './ImagePreviewModal';
 
 interface ChatInputProps {
   onSendMessage: (message: string, files?: File[], uiMeta?: UserMessageUiMeta) => void;
@@ -45,6 +46,9 @@ export const ChatInput: React.FC<ChatInputProps> = ({
   const [inputValue, setInputValue] = useState('');
   const [isComposing, setIsComposing] = useState(false);
   const [attachedFiles, setAttachedFiles] = useState<File[]>([]);
+  const [attachedImagePreviews, setAttachedImagePreviews] = useState<Record<string, string>>({});
+  const [previewImage, setPreviewImage] = useState<{ src: string; alt: string } | null>(null);
+  const attachedImagePreviewsRef = useRef<Record<string, string>>({});
   const [isDeepMode, setIsDeepMode] = useState(false);
   const [isWebSearch, setIsWebSearch] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -141,7 +145,9 @@ export const ChatInput: React.FC<ChatInputProps> = ({
       forceDeepMode: isDeepMode,
       forceWebSearch: isWebSearch,
     });
+    Object.values(attachedImagePreviews).forEach((previewUrl) => URL.revokeObjectURL(previewUrl));
     setAttachedFiles([]);
+    setAttachedImagePreviews({});
     setInputValue('');
     setIsDeepMode(false);
     setIsWebSearch(false);
@@ -210,10 +216,21 @@ export const ChatInput: React.FC<ChatInputProps> = ({
   const appendFiles = (incomingFiles: FileList | null) => {
     if (!incomingFiles?.length) return;
 
+    const filesToAdd = Array.from(incomingFiles).filter((file) => {
+      return !attachedFiles.some(
+        (existing) =>
+          existing.name === file.name &&
+          existing.size === file.size &&
+          existing.lastModified === file.lastModified
+      );
+    });
+
+    if (filesToAdd.length === 0) return;
+
     setAttachedFiles((prev) => {
       const next = [...prev];
 
-      Array.from(incomingFiles).forEach((file) => {
+      filesToAdd.forEach((file) => {
         const exists = next.some(
           (existing) =>
             existing.name === file.name &&
@@ -228,15 +245,49 @@ export const ChatInput: React.FC<ChatInputProps> = ({
 
       return next;
     });
+
+    setAttachedImagePreviews((prev) => {
+      const next = { ...prev };
+      filesToAdd.forEach((file) => {
+        if (file.type.startsWith('image/')) {
+          next[`${file.name}-${file.size}-${file.lastModified}`] = URL.createObjectURL(file);
+        }
+      });
+      return next;
+    });
   };
 
   const removeAttachedFile = (index: number) => {
+    const file = attachedFiles[index];
+    if (file?.type.startsWith('image/')) {
+      const key = `${file.name}-${file.size}-${file.lastModified}`;
+      const previewUrl = attachedImagePreviews[key];
+      if (previewUrl) URL.revokeObjectURL(previewUrl);
+      setAttachedImagePreviews((prev) => {
+        const next = { ...prev };
+        delete next[key];
+        return next;
+      });
+    }
+
     setAttachedFiles((prev) => prev.filter((_, i) => i !== index));
     
     if (fileInputRef.current) { // this is to allow re-uploading the same file after deletion, as some browsers won't trigger onChange if the same file is selected again
       fileInputRef.current.value = '';
     }
   };
+
+  useEffect(() => {
+    attachedImagePreviewsRef.current = attachedImagePreviews;
+  }, [attachedImagePreviews]);
+
+  useEffect(() => {
+    return () => {
+      Object.values(attachedImagePreviewsRef.current).forEach((previewUrl) => {
+        URL.revokeObjectURL(previewUrl);
+      });
+    };
+  }, []);
 
   // Handle paste event to allow pasting images directly from clipboard
   const handlePaste: React.ClipboardEventHandler<HTMLTextAreaElement> = (e) => {
@@ -339,10 +390,32 @@ export const ChatInput: React.FC<ChatInputProps> = ({
                     key={`${file.name}-${file.size}-${file.lastModified}-${index}`}
                     className="inline-flex max-w-full items-center gap-2 px-3 py-1.5 bg-slate-200 dark:bg-slate-800 rounded-xl text-sm"
                   >
+                    {file.type.startsWith('image/') && attachedImagePreviews[`${file.name}-${file.size}-${file.lastModified}`] ? (
+                      <img
+                        src={attachedImagePreviews[`${file.name}-${file.size}-${file.lastModified}`]}
+                        alt={file.name}
+                        className="h-10 w-10 rounded-lg object-cover"
+                        onClick={() => setPreviewImage({
+                          src: attachedImagePreviews[`${file.name}-${file.size}-${file.lastModified}`],
+                          alt: file.name,
+                        })}
+                        role="button"
+                        tabIndex={0}
+                        onKeyDown={(event) => {
+                          if (event.key === 'Enter' || event.key === ' ') {
+                            event.preventDefault();
+                            setPreviewImage({
+                              src: attachedImagePreviews[`${file.name}-${file.size}-${file.lastModified}`],
+                              alt: file.name,
+                            });
+                          }
+                        }}
+                      />
+                    ) : (
+                      <span>{fileIconFor(file.name)}</span>
+                    )}
                     <span className="truncate max-w-[220px] text-slate-900 dark:text-slate-100">
-                      <span>
-                        {fileIconFor(file.name)}
-                      </span> {file.name}
+                      {file.name}
                     </span>
                     <button
                       type="button"
@@ -490,6 +563,13 @@ export const ChatInput: React.FC<ChatInputProps> = ({
           </button>
         </div>,
         document.body
+      )}
+      {previewImage && (
+        <ImagePreviewModal
+          src={previewImage.src}
+          alt={previewImage.alt}
+          onClose={() => setPreviewImage(null)}
+        />
       )}
     </div>
   );
