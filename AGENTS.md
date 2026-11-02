@@ -154,7 +154,7 @@ Default model routing is defined in GEMINI_MODEL_MAP in [src/services/models.ts]
 | **mini** | `Gemini 3.1 Lite` | PDF, Image, Audio (No Video) | Lightweight guard, fallback, query, and chat support | Small reliable utility tier |
 | **nano** | `Gemini 2.5 Lite` | PDF, Image, Video, Audio | Intent classification and search-query generation | Lowest-overhead classification tier |
 | **pro** | `Gemini 2.5 Flash` | Image, Video, Audio (No PDF) | Structured quiz, Core Test extraction, grading, validation-heavy work | Schema-oriented fallback and structured output tier |
-| **deep** | `Gemini 3.5 Flash` | PDF, Image, Video, Audio | Hard proofs, complex derivations, advanced scientific reasoning, advanced algorithms | Dedicated deep-reasoning chat tier |
+| **deep** | `Gemini 3.8 Flash` | PDF, Image, Video, Audio | Hard proofs, complex derivations, advanced scientific reasoning, advanced algorithms | Dedicated deep-reasoning chat tier |
 | **openrouter/free** | Fallback provider | Text-Only | Last-resort fallback | Text-only message structure |
 
 ---
@@ -165,7 +165,7 @@ Academic Oracle performs intent and depth classification on the client before di
 
 * **Standard Mode**: Sequential Gemini fallback chain using `swift -> core -> lite -> mini -> pro`.
 * **Race Mode**: Parallel validated racing selected for short prompts, rush hours, tailoring, or failure-telemetry escalation.
-* **Deep Mode**: Advanced-depth chat path using `deep` (`Gemini 3.5 Flash`) for hard, complex reasoning. If Deep fails, the request falls back to Standard Mode.
+* **Deep Mode**: Advanced-depth chat path using `deep` (`Gemini 3.8 Flash`) with dedicated `mode: "deep"` and `DEEP_CHAT_PROMPT` for hard, complex reasoning. If Deep fails, the request falls back to Standard Mode.
 * **OpenRouter emergency route**: Last-resort fallback after Gemini routes fail or time out.
 
 ---
@@ -250,7 +250,35 @@ If all raced models fail or a race timeout occurs, the orchestrator triggers a f
 
 ## 🧠 Deep Mode Strategy
 
-Deep Mode is selected when [classifyDeepIntent](src/services/deepIntentClassification.ts) detects hard academic reasoning, such as formal proofs, advanced derivations, complex scientific theory, or advanced algorithms. Deep Mode uses `deep` (`Gemini 3.5 Flash`) with lower temperature for rigorous reasoning. If the deep call fails, [sendMessageToBotDeep](src/services/geminiService.ts) records the failure telemetry and falls back to Standard Mode.
+Deep Mode is selected when [classifyDeepIntent](src/services/deepIntentClassification.ts) detects hard academic reasoning, such as formal proofs, advanced derivations, complex scientific theory, or advanced algorithms. 
+
+Deep Mode routes requests via [sendMessageToBotDeep](src/services/geminiService.ts) through the unified [getGeminiTextFromEdge](src/services/geminiService.ts) pipeline:
+* **Edge Mode Flag**: Dispatches `mode: "deep"` to the `call-ai-response` edge function.
+* **Server-side Prompting**: The edge gateway resolves `mode: "deep"` to `DEEP_CHAT_PROMPT`, which extends `CHAT_SYSTEM_PROMPT` with guidance for rigorous mathematical derivations, scientific integration, trade-off comparisons, and deep conceptual probing while strictly preserving JSON schema, KaTeX delimiters, and single-question pacing.
+* **Dedicated Tier**: Uses `deep` (`Gemini 3.8 Flash`) with lower temperature for rigorous reasoning.
+* **Telemetry & Fallback**: If the deep call fails or times out, failure telemetry is recorded and the request seamlessly falls back to Standard Mode.
+
+---
+
+## ⏱️ Edge Invocation Timeouts & Race Buffer
+
+To prevent hung network connections while accommodating heavy cognitive workloads, Academic Oracle implements differentiated edge timeouts and racing buffers:
+
+### Differentiated Timeouts
+* **Standard Chat & Utilities**: Individual model invocations are constrained by `EDGE_CALL_TIMEOUT_MS = 40_000` (40 seconds).
+* **Exam & Core Test Workloads**: Complex tasks (exam structuring, enrichment, question grading, and blind checklist generation) are granted `EXAM_EDGE_CALL_TIMEOUT_MS = 60_000` (60 seconds).
+* **Dynamic Timeout Reporting**: Invocations are wrapped in `invokeEdgeAIWithTimeout()`. If a model exceeds its limit, it rejects with a `ModelTimeoutError` reporting the exact applied duration (e.g. `gemini model deep timed out after 40000ms`), recording a `timeout` failure in telemetry.
+* **Consistent Workload Fallbacks**: Complex multi-stage workflows (such as `generateBlindChecklist`) consistently apply exam-tier timeouts across both initial model races and subsequent sequential fallbacks.
+
+### Race Timeout Buffer
+Parallel model races via [raceModels](src/services/raceModels.ts) apply an outer timeout calculated by [getRaceTimeoutMs](src/services/raceModels.ts):
+```text
+raceTimeoutMs = modelTimeoutMs + 5000 (5-second buffer)
+```
+* **Chat Races**: Race timeout is set to 45s (40s model limit + 5s buffer).
+* **Exam Races**: Race timeout is set to 65s (60s model limit + 5s buffer).
+
+This buffer ensures that if a model resolves right at its deadline (e.g., at 39.8s or 59.8s), outer race cancellation does not abort the operation before response parsing and validation can finish.
 
 ---
 
@@ -260,7 +288,7 @@ When Race Mode is not triggered, the client uses a sequential failover strategy 
 
 1. **Sequential Chain**: Requests attempt models in order: `swift` -> `core` -> `lite` -> `mini` -> `pro` as defined in `MODEL_FALLBACK_CHAIN`.
 2. **Telemetry Filter**: Before invoking any model, the system queries [shouldSkipStandardModel](src/services/modelRoutingMemory.ts). If the model has exceeded session failure limits, it is skipped.
-3. **Failover Execution**: If a model fails (rate limited, server unavailable, bad formatting, or network error), the system records the failure type via `recordStandardModelFailure`, triggers a randomized back-off delay (200ms - 500ms) to avoid thundering herds, and immediately proceeds to the next model in the fallback chain.
+3. **Failover Execution**: If a model fails (rate limited, server unavailable, bad formatting, network error, or timeout), the system records the failure type via `recordStandardModelFailure`, triggers a randomized back-off delay (200ms - 500ms) to avoid thundering herds, and immediately proceeds to the next model in the fallback chain.
 4. **Emergency Provider Fallback**: If the fallback chain is exhausted, the orchestrator directs the request to OpenRouter free (`openrouter/free`).
 
 ### Telemetry Skip Thresholds
@@ -272,6 +300,7 @@ The client tracks model errors in sessionStorage. The thresholds for skipping a 
 | `rate_limited` | 2 | API HTTP 429 response |
 | `unavailable` | 2 | API HTTP 503 response or network timeout |
 | `wrong_format` | 2 | JSON validation or KaTeX syntax schema failures |
+| `timeout` | 2 | Edge invocation exceeded duration limit (`ModelTimeoutError`) |
 | `retriable` | 3 | Soft temporary network or connection issues |
 
 ---
@@ -343,13 +372,13 @@ All prompts are filtered through a client-side validation and rate-limiting pipe
 
 # 🧪 Local TypeScript Verification
 
-For temporary `.ts` files, use the project ESM loader explicitly:
+Run project-wide TypeScript verification with `npm run lint`. For executing temporary `.ts` files, use `tsx`:
 
 ```bash
-node --loader ts-node/esm filepath
+npx tsx filepath
 ```
 
-Replace `filepath` with the temporary file path. This avoids the common terminal failure where Node tries to execute TypeScript directly without the ESM loader.
+Replace `filepath` with the temporary file path. This replaces the deprecated `node --loader ts-node/esm` loader pattern.
 
 ---
 

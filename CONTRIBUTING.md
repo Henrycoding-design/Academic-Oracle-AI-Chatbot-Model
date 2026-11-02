@@ -87,18 +87,24 @@ npm run build
 npm run preview
 ```
 
-### Temporary TypeScript Checks
-
-When testing a one-off `.ts` file directly from the terminal, run it through the
-project's ESM loader:
+### Lint & Type Check
 
 ```bash
-node --loader ts-node/esm filepath
+npm run lint
 ```
 
-Replace `filepath` with the temporary TypeScript file path. This avoids the
-common module-loader error that occurs when executing `.ts` files directly in an
-ESM project.
+### Temporary TypeScript Checks
+
+When testing a one-off `.ts` file directly from the terminal, execute it via `tsx`:
+
+
+```bash
+npx tsx filepath
+```
+
+Replace `filepath` with the temporary TypeScript file path. This replaces the older `node --loader ts-node/esm filepath` command.
+
+
 
 ---
 
@@ -187,6 +193,17 @@ For backend-adjacent and security-related work:
 - Preserve abuse-prevention and safety-related behavior
 - Document any public-facing setup or environment changes when relevant
 
+### AI Orchestration and Prompt Engineering Changes
+
+For prompt and AI orchestration contributions:
+
+- Reference models through abstract capability flags (`swift`, `core`, `lite`, `mini`, `nano`, `pro`, `deep`) rather than hardcoding model names. The `deep` capability flag maps to `Gemini 3.8 Flash`.
+- Strictly adhere to math escaping rules: use `\\\\(` and `\\\\)` for inline math, `\\\\[` and `\\\\]` for display math. Never use raw `$` or `$$`.
+- Respect workload-differentiated edge timeouts: standard chat and utility calls use 40s limits, while heavy Exam/Core Test calls use 60s limits. Race conditions must preserve the 5s validation buffer (`getRaceTimeoutMs`).
+- Preserve multimodal file routing: pass native formats (PDF < 50MB, images < 100MB) as Base64 `inlineData` to capable models and reserve local extraction for fallbacks or unsupported document types (DOCX).
+- Register routing telemetry failure tracking (`unretriable`, `rate_limited`, `unavailable`, `wrong_format`, `timeout`, `retriable`) for model recovery.
+- Consult [AGENTS.md](AGENTS.md) for full architecture standards, pedagogical principles, and execution modes.
+
 ---
 
 ## Suggested Workflow
@@ -205,7 +222,8 @@ Before opening a PR, please confirm:
 
 - The change has a clear purpose
 - The app runs locally
-- `npm run build` completes successfully
+- `npm run lint` and `npm run build` complete successfully
+- Prompt changes adhere to the 4-backslash KaTeX math escaping rules (`\\\\(` and `\\\\[`)
 - Related documentation was updated if needed
 - No secrets or local credentials were committed
 - UI changes were checked on more than one screen size
