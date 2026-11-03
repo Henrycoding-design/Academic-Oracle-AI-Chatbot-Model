@@ -41,6 +41,7 @@ import { analyzePrompt } from './services/promptGuard.ts';
 import { runQuotaSafeSearch } from './services/webSearchSafe.ts';
 import { isWebSearchLimitReached, incrementWebSearch } from './services/webSearchQuota.ts';
 import { classifyIntent } from './services/chatIntentClassifier.ts';
+import { clearImagePreviews, saveImagePreview } from './services/imagePreviewStore';
 import { DEFAULT_GEMINI_MODEL, type GeminiModelName } from './services/models.ts';
 import {
   deleteTopicFromOracleMemory,
@@ -148,6 +149,14 @@ function createMessageId() {
 }
 
 function normalizeMessages(messages: Message[]): Message[] {
+  const stripLegacyPreviewData = (attachment: NonNullable<Message["attachments"]>[number] & { previewDataUrl?: string }) => {
+    const { previewDataUrl: _legacyPreviewDataUrl, previewUrl, ...metadata } = attachment;
+    return {
+      ...metadata,
+      ...(previewUrl && !previewUrl.startsWith("blob:") ? { previewUrl } : {}),
+    };
+  };
+
   return messages.map((message) => {
     const legacySelectionContext = message.selectionContext as
       | (Message["selectionContext"] & { id?: string })
@@ -156,6 +165,12 @@ function normalizeMessages(messages: Message[]): Message[] {
     return {
       ...message,
       id: message.id ?? createMessageId(),
+      attachment: message.attachment
+        ? stripLegacyPreviewData(message.attachment as NonNullable<Message["attachments"]>[number] & { previewDataUrl?: string })
+        : undefined,
+      attachments: message.attachments?.map((attachment) =>
+        stripLegacyPreviewData(attachment as NonNullable<Message["attachments"]>[number] & { previewDataUrl?: string })
+      ),
       selectionContext: legacySelectionContext
         ? {
             ...legacySelectionContext,
@@ -743,21 +758,35 @@ const App: React.FC = () => {
 
     try {
       if (!isRetry) {
+        const messageId = createMessageId();
+        const attachmentPreviewKeys = await Promise.all(
+          files.map(async (file, index) => {
+            if (!file.type.startsWith("image/")) return undefined;
+
+            const previewKey = `${messageId}-${index}`;
+            try {
+              await saveImagePreview(previewKey, file);
+              return previewKey;
+            } catch (previewError) {
+              console.warn("Unable to persist compressed image preview", previewError);
+              return undefined;
+            }
+          })
+        );
+
         // 🖼️ UI update (unchanged, clean)
         setMessages(prev => [
           ...prev,
           {
-            id: createMessageId(),
+            id: messageId,
             role: "user",
             content: uiMeta?.displayContent ?? userMessage,
             attachments: files.length > 0
-              ? files.map((file) => ({
+              ? files.map((file, index) => ({
                   name: file.name,
                   type: file.type,
                   size: file.size,
-                  previewUrl: file.type.startsWith("image/")
-                    ? URL.createObjectURL(file)
-                    : undefined,
+                  previewKey: attachmentPreviewKeys[index],
                 }))
               : undefined,
             selectionContext: uiMeta?.selectionContext,
@@ -1164,7 +1193,7 @@ const App: React.FC = () => {
         const attachments = message.attachments ?? (message.attachment ? [message.attachment] : []);
         return attachments
           .map((attachment) => attachment.previewUrl)
-          .filter((previewUrl): previewUrl is string => Boolean(previewUrl));
+          .filter((previewUrl): previewUrl is string => Boolean(previewUrl?.startsWith("blob:")));
       })
     );
 
@@ -1187,6 +1216,7 @@ const App: React.FC = () => {
 
     // 🧹 wipe persisted chat state
     sessionStorage.removeItem("academic-oracle-chat");
+    void clearImagePreviews();
     sessionStorage.removeItem("academic-oracle-history");
     sessionStorage.removeItem("academic-oracle-quiz-state"); // Clear quiz cache on reset
     sessionStorage.removeItem("academic-oracle-professional-exam-state"); // Clear Core Test session on reset
@@ -1245,6 +1275,7 @@ const App: React.FC = () => {
     setSession(null); // reset supabase session
 
     sessionStorage.removeItem("academic-oracle-chat"); // 🧹 wipe chat
+    void clearImagePreviews();
     sessionStorage.removeItem("academic-oracle-history"); // wipe history
     sessionStorage.removeItem("oracle-api-key");
     sessionStorage.removeItem("academic-oracle-memory"); //wipe profile

@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { CornerDownRight, Brain, Globe } from 'lucide-react';
 import type { Message } from '../types';
 import { LANGUAGE_DATA, AppLanguage} from '../lang/Language';
 import { flashSelectionGlow } from '../services/selectionGlow';
 import { MarkdownContent } from './MarkdownContent';
 import { ImagePreviewModal } from './ImagePreviewModal';
+import { getImagePreview } from '../services/imagePreviewStore';
 
 interface ChatMessageProps {
   message: Message;
@@ -44,7 +45,53 @@ const fileIconFor = (type?: string, name?: string) => {
 export const ChatMessage: React.FC<ChatMessageProps> = ({ message, scrollRef }) => {
   const [previewImage, setPreviewImage] = useState<{ src: string; alt: string } | null>(null);
   const isModel = message.role === 'model';
-  const attachments = message.attachments ?? (message.attachment ? [message.attachment] : []);
+  const attachments = useMemo(
+    () => message.attachments ?? (message.attachment ? [message.attachment] : []),
+    [message.attachments, message.attachment]
+  );
+  const [resolvedPreviewUrls, setResolvedPreviewUrls] = useState<Record<string, string>>({});
+  const getAttachmentKey = (attachment: typeof attachments[number], index: number) =>
+    attachment.previewKey ?? attachment.previewUrl ?? `${attachment.name}-${attachment.size}-${index}`;
+
+  useEffect(() => {
+    let active = true;
+    const createdUrls: string[] = [];
+
+    if (!attachments.some((attachment) => attachment.previewKey)) {
+      setResolvedPreviewUrls((previous) =>
+        Object.keys(previous).length > 0 ? {} : previous
+      );
+      return;
+    }
+
+    const loadPreviews = async () => {
+      const entries = await Promise.all(
+        attachments.map(async (attachment, index) => {
+          if (!attachment.previewKey) return null;
+          const blob = await getImagePreview(attachment.previewKey);
+          if (!blob) return null;
+          const url = URL.createObjectURL(blob);
+          createdUrls.push(url);
+          return [getAttachmentKey(attachment, index), url] as const;
+        })
+      );
+
+      if (active) {
+        setResolvedPreviewUrls(Object.fromEntries(entries.filter(Boolean)));
+      } else {
+        createdUrls.forEach((url) => URL.revokeObjectURL(url));
+      }
+    };
+
+    void loadPreviews();
+    return () => {
+      active = false;
+      createdUrls.forEach((url) => URL.revokeObjectURL(url));
+    };
+  }, [attachments]);
+
+  const getAttachmentPreviewSrc = (attachment: typeof attachments[number], index: number) =>
+    attachment.previewUrl ?? resolvedPreviewUrls[getAttachmentKey(attachment, index)];
   const hasUserText = !isModel && message.content.trim().length > 0;
   const bubbleId = message.id ?? undefined;
   const selectionContext = message.selectionContext;
@@ -85,13 +132,13 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({ message, scrollRef }) 
                   }
                 `}
               >
-                {attachment.previewUrl ? (
+                {getAttachmentPreviewSrc(attachment, index) ? (
                   <img
-                    src={attachment.previewUrl}
+                    src={getAttachmentPreviewSrc(attachment, index)}
                     alt={attachment.name}
                     className="h-12 w-12 rounded-lg object-cover"
                     onClick={() => setPreviewImage({
-                      src: attachment.previewUrl!,
+                      src: getAttachmentPreviewSrc(attachment, index)!,
                       alt: attachment.name,
                     })}
                     role="button"
@@ -100,7 +147,7 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({ message, scrollRef }) 
                       if (event.key === 'Enter' || event.key === ' ') {
                         event.preventDefault();
                         setPreviewImage({
-                          src: attachment.previewUrl!,
+                          src: getAttachmentPreviewSrc(attachment, index)!,
                           alt: attachment.name,
                         });
                       }
