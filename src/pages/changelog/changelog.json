@@ -1,5 +1,27 @@
 [
   {
+    "version": "2.6.2",
+    "date": "2026-11-03",
+    "changes": [
+      {
+        "type": "feature",
+        "text": "Added persistent image attachment previews with full-screen lightbox viewing from both ChatInput and ChatMessage."
+      },
+      {
+        "type": "improve",
+        "text": "Added IndexedDB image preview storage through idb, using resized WebP blobs and lightweight attachment preview keys instead of embedding Base64 image data in sessionStorage."
+      },
+      {
+        "type": "improve",
+        "text": "Extended rush-hour edge timeouts by 40 seconds and added client-side diagnostics for response receipt, timeout, parsing, payload validation, and race rejection events."
+      },
+      {
+        "type": "internal",
+        "text": "Added idb as a frontend dependency for browser-local image preview persistence."
+      }
+    ]
+  },
+  {
     "version": "2.6.1",
     "date": "2026-10-29",
     "changes": [
