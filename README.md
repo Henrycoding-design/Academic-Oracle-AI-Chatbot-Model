@@ -114,6 +114,12 @@ Academic Oracle optimizes for **retention, intuition, and reasoning**.
 - **Lightweight educational visualizations**
   - Models may generate simple code-block diagrams and monochrome visual aids when useful for explanation
   - Helps communicate spatial, logical, or structural concepts without requiring images
+- **Persistent image attachments** *(new v2.6.2)*
+  - Paste or upload images directly in ChatInput and display them as attachment previews.
+  - Click image thumbnails to open a full-screen lightbox with backdrop, close-button, backdrop-click, and Escape-key support.
+  - Compresses image previews to resized WebP blobs before storing them in IndexedDB through `idb`.
+  - Stores only a lightweight `previewKey` in chat session metadata, avoiding `sessionStorage` quota failures from embedded Base64 image data.
+  - Recreates temporary `blob:` preview URLs when messages load and revokes them when no longer used.
 
 ---
 
@@ -278,7 +284,7 @@ Ideal for:
 
 ---
 
-### ⚙️ Intelligent Request Routing *(major update v2.4.0, refined v2.6.1)*
+### ⚙️ Intelligent Request Routing *(major update v2.4.0, refined v2.6.2)*
 
 - **Gemini-first orchestration pipeline** — Chat / Quiz / Summary / Crons all prioritize Gemini models
 - **7-tier model capability map** *(refined v2.5.8)*
@@ -298,7 +304,7 @@ Ideal for:
   - Detects hard proofs, advanced derivations, complex scientific reasoning, and advanced algorithms
   - Sends `mode: "deep"` to the `call-ai-response` edge function, which applies the dedicated `DEEP_CHAT_PROMPT`
   - Uses the `deep` tier (`gemini-3.8-flash`) first, then falls back to Standard chat routing if the deep call fails
-- **Failure Tracking & Real-time Recovery** *(updated v2.6.1)*
+- **Failure Tracking & Real-time Recovery** *(updated v2.6.2)*
   - Monitors unretriable errors, rate limits (429/503), and format mismatches per model
   - Automatically skips failing models in real-time, falling back to other providers or OpenRouter
   - Routing telemetry now covers chat and selected non-chat callers where possible, reducing stale or repeatedly rate-limited requests
@@ -306,6 +312,8 @@ Ideal for:
   - Timeout failures are tracked as `ModelFailureType timeout` and a model is skipped after 2 timeout failures.
   - `invokeEdgeAIWithTimeout()` applies a timeout race around both Gemini and OpenRouter text-from-edge calls, with dynamically reported failure durations via `ModelTimeoutError`.
   - **Job-Differentiated Timeouts & Race Buffer** *(new v2.6.1)*: Standard chat and utility callers use a 40s individual limit (45s race), while complex Exam and Core Test callers scale to 60s (65s race). Outer race timers incorporate a mandatory 5s buffer via `getRaceTimeoutMs()` to ensure responses settling right at the model deadline are fully validated without being cut off.
+  - Rush-hour timeout extension adds 40s to the documented individual timeout while preserving the 5s race buffer.
+  - Client-side diagnostics record received edge responses, timeout failures, invalid payloads, JSON parsing failures, and race validation rejections without logging prompt contents.
 - OpenRouter used strictly as last-resort fallback with validation
 - **Multi-mode chat execution pipeline**
   - Standard
@@ -458,6 +466,7 @@ This replaces the older `node --loader ts-node/esm path/to/file.ts` command.
 - **Auth & Database:** Supabase (Postgres + OAuth)
 - **Build Tool:** Vite 6
 - **Styling:** Tailwind CSS + Framer Motion
+- **Client Preview Storage:** IndexedDB via `idb` with compressed WebP image blobs
 - **Math Rendering:** KaTeX
 - **Document Handling:** docx, PDF.js, Mammoth, FileSaver
 - **OCR:** Tesseract.js
