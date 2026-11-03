@@ -6,6 +6,8 @@ export interface AttachmentMeta {
   name: string;
   type: string;   // mime or extension
   size: number;
+  previewUrl?: string;
+  previewKey?: string;
 }
 
 export interface UserMessageSelectionContext {

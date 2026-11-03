@@ -46,7 +46,12 @@ const raceModels = async (
 
             countCompleted++;
             lastError = new Error(`Model ${result.model} returned an invalid race response`);
-            console.warn(`Race model ${result.model} failed response validation`);
+            console.warn("[Race][ClientReject] Model response failed race validation", {
+              model: result.model,
+              completed: countCompleted,
+              total: tasks.length,
+              textLength: result.text.length,
+            });
           } catch (error) {
             countCompleted++;
             lastError = error;
