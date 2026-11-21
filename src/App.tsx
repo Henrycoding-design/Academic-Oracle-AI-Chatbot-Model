@@ -149,8 +149,8 @@ function createMessageId() {
 }
 
 function normalizeMessages(messages: Message[]): Message[] {
-  const stripLegacyPreviewData = (attachment: NonNullable<Message["attachments"]>[number] & { previewDataUrl?: string }) => {
-    const { previewDataUrl: _legacyPreviewDataUrl, previewUrl, ...metadata } = attachment;
+  const stripLegacyPreviewData = (attachment: NonNullable<Message["attachments"]>[number]) => {
+    const { previewUrl, ...metadata } = attachment;
     return {
       ...metadata,
       ...(previewUrl && !previewUrl.startsWith("blob:") ? { previewUrl } : {}),
@@ -166,10 +166,10 @@ function normalizeMessages(messages: Message[]): Message[] {
       ...message,
       id: message.id ?? createMessageId(),
       attachment: message.attachment
-        ? stripLegacyPreviewData(message.attachment as NonNullable<Message["attachments"]>[number] & { previewDataUrl?: string })
+        ? stripLegacyPreviewData(message.attachment as NonNullable<Message["attachments"]>[number])
         : undefined,
       attachments: message.attachments?.map((attachment) =>
-        stripLegacyPreviewData(attachment as NonNullable<Message["attachments"]>[number] & { previewDataUrl?: string })
+        stripLegacyPreviewData(attachment as NonNullable<Message["attachments"]>[number])
       ),
       selectionContext: legacySelectionContext
         ? {
