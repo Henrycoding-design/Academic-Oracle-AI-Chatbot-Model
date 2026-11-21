@@ -149,7 +149,7 @@ function createMessageId() {
 }
 
 function normalizeMessages(messages: Message[]): Message[] {
-  const stripLegacyPreviewData = (attachment: NonNullable<Message["attachments"]>[number]) => {
+  const normalizeAttachmentPreview = (attachment: NonNullable<Message["attachments"]>[number]) => {
     const { previewUrl, ...metadata } = attachment;
     return {
       ...metadata,
@@ -166,10 +166,10 @@ function normalizeMessages(messages: Message[]): Message[] {
       ...message,
       id: message.id ?? createMessageId(),
       attachment: message.attachment
-        ? stripLegacyPreviewData(message.attachment as NonNullable<Message["attachments"]>[number])
+        ? normalizeAttachmentPreview(message.attachment as NonNullable<Message["attachments"]>[number])
         : undefined,
       attachments: message.attachments?.map((attachment) =>
-        stripLegacyPreviewData(attachment as NonNullable<Message["attachments"]>[number])
+        normalizeAttachmentPreview(attachment as NonNullable<Message["attachments"]>[number])
       ),
       selectionContext: legacySelectionContext
         ? {
