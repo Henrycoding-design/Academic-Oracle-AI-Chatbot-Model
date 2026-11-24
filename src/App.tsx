@@ -51,6 +51,7 @@ import {
   recordQuizResultInMemory,
   serializeOracleMemory
 } from './services/oracleMemory.ts';
+import { ShareExportButton } from './components/ShareExportBtn.tsx';
 
 // const SunIcon = (props: React.SVGProps<SVGSVGElement>) => (
 //   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
@@ -149,7 +150,7 @@ function createMessageId() {
 }
 
 function normalizeMessages(messages: Message[]): Message[] {
-  const stripLegacyPreviewData = (attachment: NonNullable<Message["attachments"]>[number]) => {
+  const normalizeAttachmentPreview = (attachment: NonNullable<Message["attachments"]>[number]) => {
     const { previewUrl, ...metadata } = attachment;
     return {
       ...metadata,
@@ -166,10 +167,10 @@ function normalizeMessages(messages: Message[]): Message[] {
       ...message,
       id: message.id ?? createMessageId(),
       attachment: message.attachment
-        ? stripLegacyPreviewData(message.attachment as NonNullable<Message["attachments"]>[number])
+        ? normalizeAttachmentPreview(message.attachment as NonNullable<Message["attachments"]>[number])
         : undefined,
       attachments: message.attachments?.map((attachment) =>
-        stripLegacyPreviewData(attachment as NonNullable<Message["attachments"]>[number])
+        normalizeAttachmentPreview(attachment as NonNullable<Message["attachments"]>[number])
       ),
       selectionContext: legacySelectionContext
         ? {
@@ -1663,9 +1664,11 @@ const App: React.FC = () => {
               )
             }
             <div className="flex shrink-0 items-center">
+              <ShareExportButton messages={messages} oracleMemory={oracleMemory} lang={language} isLoading={isLoading}/> 
+
               <button
                 onClick={() => setIsDark(!isDark)}
-                className="p-1.5 mr-2 rounded-full bg-white/60 dark:bg-slate-950 
+                className="p-2 mr-2 rounded-lg bg-white/60 dark:bg-slate-950 
                 text-slate-700 dark:text-slate-200 
                 hover:bg-white/80 dark:hover:bg-slate-700 
                 transition-colors 
@@ -1675,7 +1678,7 @@ const App: React.FC = () => {
               </button>
 
               <button
-                className="p-1.5 rounded-full bg-white/60 dark:bg-slate-950 
+                className="p-2 rounded-lg bg-white/60 dark:bg-slate-950 
                 text-slate-700 dark:text-slate-200 
                 hover:bg-white/80 dark:hover:bg-slate-700 
                 transition-colors 
