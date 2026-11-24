@@ -194,35 +194,155 @@ export default function ChatFlow() {
       </section>
 
       {/* Export & Master Check */}
-      <section className="group relative grid items-center gap-10 overflow-hidden rounded-[3rem] border border-blue-500/20 bg-gradient-to-br from-blue-600/15 via-blue-600/5 to-transparent p-6 sm:p-8 lg:grid-cols-[1fr_minmax(0,350px)] lg:gap-12 lg:p-12">
-        <div className="space-y-6">
-          <div className="flex items-center gap-3">
-            <h2 className="text-3xl font-bold text-white tracking-tight">Session Summary</h2>
-            <span className="text-[10px] bg-blue-500/20 px-2 py-0.5 rounded text-blue-300 border border-blue-500/20 font-bold uppercase">v2.3.5+</span>
-          </div>
-          <p className="text-base leading-relaxed text-slate-400 sm:text-lg">
-            Directly from your <span className="text-white font-semibold">Learning Dashboard</span>, download a structured summary. v2.4.8 adds <strong>granular memory control</strong>—delete specific topics directly from the UI—and optimized summary views with "See More" expansion toggles.
-          </p>
-          <ul className="grid grid-cols-1 gap-4 text-sm text-white/70 sm:grid-cols-2">
-            <li className="flex items-center gap-2 font-medium"><span className="text-blue-400">✦</span> Learning Efficiency Index</li>
-            <li className="flex items-center gap-2 font-medium"><span className="text-blue-400">✦</span> Performance Scorecards</li>
-            <li className="flex items-center gap-2 font-medium"><span className="text-blue-400">✦</span> Adaptive Next-Focus</li>
-            <li className="flex items-center gap-2 font-medium"><span className="text-blue-400">✦</span> Structured Revision Docs</li>
-          </ul>
-        </div>
-        
-        <div className="relative">
-          <div className="p-8 bg-[#050810] rounded-3xl border border-white/10 text-center shadow-2xl transform group-hover:-translate-y-2 transition-transform duration-500">
-            <div className="w-16 h-16 bg-blue-600/20 rounded-2xl mx-auto mb-6 flex items-center justify-center">
-                <svg className="w-8 h-8 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                </svg>
+      <section className="relative overflow-hidden rounded-[3rem] border border-blue-500/20 bg-gradient-to-br from-blue-600/15 via-blue-600/5 to-transparent p-6 sm:p-10 lg:p-14">
+        {/* Subtle Ambient Background Glow */}
+        <div className="pointer-events-none absolute -top-24 -right-24 h-96 w-96 rounded-full bg-blue-500/10 blur-3xl" />
+        <div className="pointer-events-none absolute -bottom-24 -left-24 h-96 w-96 rounded-full bg-indigo-500/10 blur-3xl" />
+
+        <div className="relative space-y-16 lg:space-y-24">
+          
+          {/* ROW 1: Text (Left) -> Visual (Right) */}
+          <div className="group grid items-center gap-10 lg:grid-cols-[1fr_minmax(0,360px)] lg:gap-14">
+            <div className="space-y-6">
+              <div className="flex flex-wrap items-center gap-3">
+                <h2 className="text-3xl font-bold tracking-tight text-white">
+                  Exports & Session Summary
+                </h2>
+                <span className="rounded-full border border-blue-500/30 bg-blue-500/20 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-blue-300">
+                  v2.6.x
+                </span>
+              </div>
+
+              <p className="text-base leading-relaxed text-slate-400 sm:text-lg">
+                Directly from your <span className="font-semibold text-white">Learning Dashboard</span>, download a structured summary. v2.4.8 adds <strong className="text-slate-200">granular memory control</strong>—delete specific topics directly from the UI—and optimized summary views with "See More" expansion toggles.
+              </p>
+
+              <ul className="grid grid-cols-1 gap-3.5 pt-2 text-sm text-white/80 sm:grid-cols-2">
+                <li className="flex items-center gap-2.5 font-medium">
+                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-blue-500/20 text-xs text-blue-400">✦</span>
+                  Learning Efficiency Index
+                </li>
+                <li className="flex items-center gap-2.5 font-medium">
+                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-blue-500/20 text-xs text-blue-400">✦</span>
+                  Performance Scorecards
+                </li>
+                <li className="flex items-center gap-2.5 font-medium">
+                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-blue-500/20 text-xs text-blue-400">✦</span>
+                  Adaptive Next-Focus
+                </li>
+                <li className="flex items-center gap-2.5 font-medium">
+                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-blue-500/20 text-xs text-blue-400">✦</span>
+                  Structured Revision Docs
+                </li>
+              </ul>
             </div>
-            <p className="text-[10px] text-blue-400 uppercase tracking-[0.2em] mb-2 font-black">Dashboard Integrated</p>
-            <div className="text-xs font-mono text-white/60 truncate bg-white/5 p-2 rounded-lg">learner-profile.summary</div>
-            <button className="mt-6 w-full py-4 bg-blue-600 hover:bg-blue-500 text-white text-sm font-black rounded-xl transition-all shadow-lg shadow-blue-900/40 uppercase tracking-widest">
-              View Insights
-            </button>
+
+            {/* Visual 1: Dashboard Summary Card */}
+            <div className="relative">
+              <div className="rounded-3xl border border-white/10 bg-[#050810]/90 p-8 text-center shadow-2xl backdrop-blur-sm transition-all duration-500 group-hover:-translate-y-2 group-hover:border-blue-500/30 group-hover:shadow-blue-950/50">
+                <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-2xl border border-blue-500/20 bg-blue-600/20 shadow-inner">
+                  <svg className="h-8 w-8 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                  </svg>
+                </div>
+                <p className="mb-2 text-[10px] font-black uppercase tracking-[0.2em] text-blue-400">
+                  Dashboard Integrated
+                </p>
+                <div className="truncate rounded-lg border border-white/5 bg-white/5 px-3 py-2 font-mono text-xs text-white/70">
+                  learner-profile.summary
+                </div>
+                <button className="mt-6 w-full rounded-xl bg-blue-600 py-3.5 text-xs font-black uppercase tracking-widest text-white shadow-lg shadow-blue-900/40 transition-all hover:bg-blue-500 active:scale-[0.98]">
+                  View Insights
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Subtle Gradient Divider */}
+          <div className="h-px w-full bg-gradient-to-r from-transparent via-blue-500/20 to-transparent" />
+
+          {/* ROW 2: Visual (Left) -> Text (Right) */}
+          <div className="group grid items-center gap-10 lg:grid-cols-[minmax(0,360px)_1fr] lg:gap-14">
+            
+            {/* Visual 2: Chat Export Mockup (order-2 on mobile so text reads first, order-1 on desktop) */}
+            <div className="relative order-2 lg:order-1">
+              <div className="rounded-3xl border border-white/10 bg-[#050810]/90 p-8 shadow-2xl backdrop-blur-sm transition-all duration-500 group-hover:-translate-y-2 group-hover:border-indigo-500/30 group-hover:shadow-indigo-950/50">
+                <div className="mb-6 flex items-center justify-between">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-indigo-500/20 bg-indigo-500/20">
+                    <svg className="h-6 w-6 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                    </svg>
+                  </div>
+                  <span className="rounded-md border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-1 font-mono text-[10px] font-semibold text-emerald-400">
+                    FULL STATE SYNC
+                  </span>
+                </div>
+
+                <p className="mb-1 text-[10px] font-black uppercase tracking-[0.2em] text-indigo-400">
+                  Chat Export
+                </p>
+                <p className="mb-5 text-sm font-medium text-white/90">
+                  Export Conversation Thread
+                </p>
+
+                {/* Interactive-looking Format Pills */}
+                <div className="space-y-2.5">
+                  <div className="flex items-center justify-between rounded-xl border border-white/10 bg-white/5 px-3.5 py-2.5 transition-colors hover:border-blue-500/40 hover:bg-blue-500/10">
+                    <div className="flex items-center gap-2.5">
+                      <span className="rounded bg-slate-800 px-1.5 py-0.5 font-mono text-[10px] font-bold text-blue-300">.MD</span>
+                      <span className="text-xs font-medium text-white/80">Copy as Markdown</span>
+                    </div>
+                    <span className="text-[10px] font-semibold text-blue-400">Clipboard</span>
+                  </div>
+
+                  <div className="flex items-center justify-between rounded-xl border border-blue-500/30 bg-blue-600/15 px-3.5 py-2.5">
+                    <div className="flex items-center gap-2.5">
+                      <span className="rounded bg-blue-600 px-1.5 py-0.5 font-mono text-[10px] font-bold text-white">.DOCX</span>
+                      <span className="text-xs font-semibold text-white">Download Document</span>
+                    </div>
+                    <svg className="h-4 w-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                    </svg>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Text 2 (order-1 on mobile, order-2 on desktop) */}
+            <div className="order-1 space-y-6 lg:order-2">
+              <div className="flex flex-wrap items-center gap-3">
+                <h3 className="text-2xl font-bold tracking-tight text-white sm:text-3xl">
+                  Chat Conversation Export
+                </h3>
+                <span className="rounded-full border border-indigo-500/30 bg-indigo-500/20 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-indigo-300">
+                  v2.6.3 New
+                </span>
+              </div>
+
+              <p className="text-base leading-relaxed text-slate-400 sm:text-lg">
+                From the <span className="font-semibold text-white">chat view header</span>, use the share/export icon to copy the complete conversation as Markdown or download it as a DOCX document. The export reads the full conversation message state rather than trimmed chat history, so attachments, selected-text context, and message mode metadata remain represented in the result.
+              </p>
+
+              <ul className="grid grid-cols-1 gap-3.5 pt-2 text-sm text-white/80 sm:grid-cols-2">
+                <li className="flex items-center gap-2.5 font-medium">
+                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-indigo-500/20 text-xs text-indigo-400">✦</span>
+                  Markdown copied to clipboard
+                </li>
+                <li className="flex items-center gap-2.5 font-medium">
+                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-indigo-500/20 text-xs text-indigo-400">✦</span>
+                  Ready-to-download DOCX
+                </li>
+                <li className="flex items-center gap-2.5 font-medium">
+                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-indigo-500/20 text-xs text-indigo-400">✦</span>
+                  Attachment references preserved
+                </li>
+                <li className="flex items-center gap-2.5 font-medium">
+                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-indigo-500/20 text-xs text-indigo-400">✦</span>
+                  Deep and web-search context retained
+                </li>
+              </ul>
+            </div>
+
           </div>
         </div>
       </section>
