@@ -112,6 +112,13 @@ export const LANGUAGE_DATA: Record<AppLanguage, {
       description: string;
       preparingSummary: string;
       downloadSummary: string;
+      shareExport: string;
+      exportConversationAs: string;
+      markdownCopy: string;
+      wordDocx: string;
+      copiedToClipboard: string;
+      downloaded: string;
+      exportFailed: string;
       loadingMessages: string[];
       userData: string;
       name: string;
@@ -432,6 +439,13 @@ export const LANGUAGE_DATA: Record<AppLanguage, {
         description: "Track the learner profile, topic progress, weak spots, and next practice targets in one place.",
         preparingSummary: "Preparing Session Summary...",
         downloadSummary: "Download Session Summary",
+        shareExport: "Share or export conversation",
+        exportConversationAs: "Export conversation as",
+        markdownCopy: "Markdown (copy)",
+        wordDocx: "Word (.docx)",
+        copiedToClipboard: "Copied to clipboard",
+        downloaded: "Downloaded",
+        exportFailed: "Export failed. Please try again.",
         loadingMessages: ["Almost there", "Building insights", "Gathering analytics", "Preparing summary"],
         userData: "User Data",
         name: "Name",
@@ -759,6 +773,13 @@ export const LANGUAGE_DATA: Record<AppLanguage, {
         description: "Suivez le profil de l'apprenant, la progression des sujets, les points faibles et les prochaines cibles d'entraînement en un seul endroit.",
         preparingSummary: "Préparation du résumé de session...",
         downloadSummary: "Télécharger le résumé de session",
+        shareExport: "Partager ou exporter la conversation",
+        exportConversationAs: "Exporter la conversation en",
+        markdownCopy: "Markdown (copier)",
+        wordDocx: "Word (.docx)",
+        copiedToClipboard: "Copié dans le presse-papiers",
+        downloaded: "Téléchargé",
+        exportFailed: "Échec de l’exportation. Veuillez réessayer.",
         loadingMessages: ["Presque prêt", "Création des analyses", "Collecte des données", "Préparation du résumé"],
         userData: "Données utilisateur",
         name: "Nom",
@@ -1086,6 +1107,13 @@ export const LANGUAGE_DATA: Record<AppLanguage, {
         description: "Sigue el perfil del estudiante, el progreso por temas, los puntos débiles y los próximos objetivos de práctica en un solo lugar.",
         preparingSummary: "Preparando el resumen de la sesión...",
         downloadSummary: "Descargar resumen de la sesión",
+        shareExport: "Compartir o exportar la conversación",
+        exportConversationAs: "Exportar conversación como",
+        markdownCopy: "Markdown (copiar)",
+        wordDocx: "Word (.docx)",
+        copiedToClipboard: "Copiado al portapapeles",
+        downloaded: "Descargado",
+        exportFailed: "Error al exportar. Inténtalo de nuevo.",
         loadingMessages: ["Ya casi", "Creando análisis", "Reuniendo datos", "Preparando resumen"],
         userData: "Datos del usuario",
         name: "Nombre",
@@ -1413,6 +1441,13 @@ export const LANGUAGE_DATA: Record<AppLanguage, {
         description: "Theo dõi hồ sơ người học, tiến độ chủ đề, điểm yếu và mục tiêu luyện tập tiếp theo trong cùng một nơi.",
         preparingSummary: "Đang chuẩn bị bản tóm tắt phiên...",
         downloadSummary: "Tải bản tóm tắt phiên",
+        shareExport: "Chia sẻ hoặc xuất cuộc trò chuyện",
+        exportConversationAs: "Xuất cuộc trò chuyện dưới dạng",
+        markdownCopy: "Markdown (sao chép)",
+        wordDocx: "Word (.docx)",
+        copiedToClipboard: "Đã sao chép vào bộ nhớ tạm",
+        downloaded: "Đã tải xuống",
+        exportFailed: "Xuất không thành công. Vui lòng thử lại.",
         loadingMessages: ["Sắp xong", "Đang tạo phân tích", "Đang gom dữ liệu", "Đang chuẩn bị tóm tắt"],
         userData: "Dữ liệu người dùng",
         name: "Tên",
