@@ -1,5 +1,27 @@
 [
   {
+    "version": "2.6.3",
+    "date": "2026-11-24",
+    "changes": [
+      {
+        "type": "feature",
+        "text": "Added a chat-header export action with options for Markdown copy to clipboarrd and DOCX for downloading the complete chat conversation."
+      },
+      {
+        "type": "improve",
+        "text": "Chat exports use the full Message[] state from the academic-oracle-chat sessionStorage entry, preserving attachments and message metadata that may not be present in trimmed chat history."
+      },
+      {
+        "type": "internal",
+        "text": "Added ShareExportBtn.tsx and exportMessages.ts with localized UI labels, portal-based export options, Markdown conversion, DOCX generation, and typed ExportResult error handling."
+      },
+      {
+        "type": "fix",
+        "text": "Removed obsolete previewUrlData cleanup from persisted messages and corrected the normalizedMessages helper name to reflect its operation."
+      }
+    ]
+  },
+  {
     "version": "2.6.2",
     "date": "2026-11-03",
     "changes": [

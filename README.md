@@ -120,6 +120,10 @@ Academic Oracle optimizes for **retention, intuition, and reasoning**.
   - Compresses image previews to resized WebP blobs before storing them in IndexedDB through `idb`.
   - Stores only a lightweight `previewKey` in chat session metadata, avoiding `sessionStorage` quota failures from embedded Base64 image data.
   - Recreates temporary `blob:` preview URLs when messages load and revokes them when no longer used.
+- **Chat conversation export** *(new v2.6.3)*
+  - Export the complete conversation from the `/chat` view header as Markdown or a ready-to-download DOCX file.
+  - Uses the full `Message[]` state stored in `sessionStorage` under `academic-oracle-chat`, preserving attachments and message metadata that may be omitted from trimmed chat history.
+  - Generates DOCX output through the similar document-generation pipeline used by session summaries, with localized export controls.
 
 ---
 

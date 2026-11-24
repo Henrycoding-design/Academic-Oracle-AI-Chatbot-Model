@@ -83,7 +83,7 @@ export function ShareExportButton({ messages, oracleMemory, lang, isLoading }: P
       fallbackName
     );
     const fileName = `Academic_Oracle_Learning_Conversation_${studentName}.docx`;
-    const res = await exportMessages(messages, type, fileName);
+    const res = await exportMessages(messages, type, fileName, lang);
     if (res.status === "ok") {
       setPhase("done"); // caller-side UI update: show confirmation
       setTimeout(close, 1000);

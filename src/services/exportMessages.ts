@@ -7,14 +7,14 @@ import {
 } from "docx";
 import { saveAs } from "file-saver";
 import type { AttachmentMeta, Message } from "../types";
-import { AppLanguage } from "../lang/Language";
+import { AppLanguage, LANGUAGE_DATA } from "../lang/Language";
 
 export type ExportType = "docx" | "md";
 export type ExportResult = { status: "ok" } | { status: "error"; error: string };
 
 // ---------- helpers ----------
 
-const roleLabel = (role: Message["role"]) => (role === "user" ? "You" : "Academic Oracle");
+const roleLabel = (role: Message["role"], lang: AppLanguage) => (role === "user" ? LANGUAGE_DATA[lang].ui.exam.yourAnswer : LANGUAGE_DATA[lang].ui.examSetup.moduleSupertitle);
 
 function formatSize(bytes: number): string {
   if (!Number.isFinite(bytes) || bytes < 0) return "";
@@ -49,21 +49,21 @@ function selectionInfo(m: Message): { label: string; text: string } | null {
   return { label: s.actionLabel, text: s.selectionText };
 }
 
-function modeTags(m: Message): string {
+function modeTags(m: Message, lang: AppLanguage): string {
   const tags: string[] = [];
-  if (m.isDeepMode) tags.push("Deep mode");
-  if (m.isWebSearch) tags.push("Web search");
+  if (m.isDeepMode) tags.push(LANGUAGE_DATA[lang].ui.loadingModeLabels.Deep);
+  if (m.isWebSearch) tags.push(LANGUAGE_DATA[lang].ui.loadingModeLabels["Web Search"]);
   return tags.join(", ");
 }
 
 // ---------- markdown ----------
 
-export function buildMarkdown(messages: Message[]): string {
+export function buildMarkdown(messages: Message[], lang: AppLanguage): string {
   return messages
     .map((m) => {
-      const parts: string[] = [`## ${roleLabel(m.role)}`];
+      const parts: string[] = [`## ${roleLabel(m.role, lang)}`];
 
-      const tags = modeTags(m);
+      const tags = modeTags(m, lang);
       if (tags) parts.push(`*${tags}*`);
 
       const sel = selectionInfo(m);
@@ -82,9 +82,9 @@ export function buildMarkdown(messages: Message[]): string {
 }
 
 /** Copies the conversation as markdown to the clipboard. */
-export async function exportToMarkdown(messages: Message[]): Promise<ExportResult> {
+export async function exportToMarkdown(messages: Message[], lang: AppLanguage): Promise<ExportResult> {
   try {
-    await navigator.clipboard.writeText(buildMarkdown(messages));
+    await navigator.clipboard.writeText(buildMarkdown(messages, lang));
     return { status: "ok" };
   } catch (e) {
     return { status: "error", error: e instanceof Error ? e.message : String(e) };
@@ -183,7 +183,7 @@ function markdownToParagraphs(md: string): Paragraph[] {
   return out;
 }
 
-export function buildDocx(messages: Message[]): Document {
+export function buildDocx(messages: Message[], lang: AppLanguage): Document {
   const children: Paragraph[] = [];
 
   messages.forEach((m, i) => {
@@ -191,11 +191,11 @@ export function buildDocx(messages: Message[]): Document {
       new Paragraph({
         heading: HeadingLevel.HEADING_2,
         spacing: { before: i === 0 ? 0 : 360 },
-        children: [new TextRun({ text: roleLabel(m.role) })],
+        children: [new TextRun({ text: roleLabel(m.role, lang) })],
       })
     );
 
-    const tags = modeTags(m);
+    const tags = modeTags(m, lang);
     if (tags) {
       children.push(new Paragraph({ children: [new TextRun({ text: tags, italics: true, color: "777777", size: 18 })] }));
     }
@@ -219,10 +219,11 @@ export function buildDocx(messages: Message[]): Document {
 /** Builds a .docx of the conversation and triggers a download. */
 export async function exportToDocx(
   messages: Message[],
-  fileName: string
+  fileName: string,
+  lang: AppLanguage
 ): Promise<ExportResult> {
   try {
-    const blob = await Packer.toBlob(buildDocx(messages));
+    const blob = await Packer.toBlob(buildDocx(messages, lang));
     saveAs(blob, fileName);
     return { status: "ok" };
   } catch (e) {
@@ -232,6 +233,6 @@ export async function exportToDocx(
 
 // ---------- single entry point ----------
 
-export function exportMessages(messages: Message[], type: ExportType, fileName: string): Promise<ExportResult> {
-  return type === "md" ? exportToMarkdown(messages) : exportToDocx(messages, fileName);
+export function exportMessages(messages: Message[], type: ExportType, fileName: string, lang: AppLanguage): Promise<ExportResult> {
+  return type === "md" ? exportToMarkdown(messages, lang) : exportToDocx(messages, fileName, lang);
 }
